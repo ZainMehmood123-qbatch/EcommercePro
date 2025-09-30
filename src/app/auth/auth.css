@@ -1,0 +1,40 @@
+@import "tailwindcss";
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-inter: var(--font-inter), ui-sans-serif, system-ui;
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+.auth-layoutwhole{
+    @apply min-h-screen flex items-center justify-center bg-[#F8F9FA] p-4
+}
+
+.auth-layout{
+    @apply w-full max-w-md bg-white p-8 border border-[#E9ECEF]
+}
+
+.auth-button{
+    @apply w-full !bg-[#007BFF] !text-white
+}
+
+.auth-login-footer{
+    @apply text-center mt-2 space-y-2
+}
+
+.auth-login-fptext{
+    @apply text-[#007BFF] text-sm pt-4
+}
+
+.auth-login-datext{
+    @apply text-sm text-[#5A5F7D]
+}
+
+.auth-da{
+    @apply text-center text-sm text-[#5A5F7D] pt-4
+}
+
+.auth-text{
+    @apply text-[#007BFF]
+}

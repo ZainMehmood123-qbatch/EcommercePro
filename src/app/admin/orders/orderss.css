@@ -1,0 +1,52 @@
+@import "tailwindcss";
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-inter: var(--font-inter), ui-sans-serif, system-ui;
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+.ado-actionbutton{
+    @apply font-inter text-xs text-[#535E63] font-medium leading-[100%]
+}
+
+.ado-whole{
+    @apply bg-white rounded-md shadow p-4
+}
+
+.ado-uppergrid{
+    @apply grid grid-cols-3 gap-8 mb-6
+}
+
+.ado-cards{
+    @apply flex items-center justify-between
+}
+
+.ado-cardtitles{
+    @apply text-[#0A0A0A] font-inter font-medium text-sm
+}
+
+.ado-cardcontent{
+    @apply text-[#007BFF] font-inter text-xl font-bold
+}
+
+.ado-cardicons{
+    @apply flex items-center justify-center w-15 h-15 rounded-full bg-blue-50 text-[#007BFF] text-2xl
+}
+
+.ado-innernav{
+    @apply flex justify-between mb-4
+}
+
+.ado-title{
+    @apply text-2xl font-medium font-inter text-[#007BFF]
+}
+
+.ado-wholetable{
+    @apply [&_.ant-table-cell]:!py-2 
+         [&_.ant-table-thead_.ant-table-cell]:!text-[#535E63] 
+           [&_.ant-table-cell]:!border-r 
+         [&_.ant-table-cell]:!border-[#ECEFF1] 
+           [&_.ant-table-cell:last-child]:!border-r-0
+}

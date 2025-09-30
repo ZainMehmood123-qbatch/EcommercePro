@@ -1,0 +1,141 @@
+'use client';
+
+import React, { useEffect, useState, useCallback } from 'react';
+
+import dynamic from 'next/dynamic';
+
+import ClipLoader from 'react-spinners/ClipLoader';
+import {
+  DollarOutlined,
+  SortAscendingOutlined,
+  SortDescendingOutlined,
+  CalendarOutlined
+} from '@ant-design/icons';
+
+import { useAppDispatch, useAppSelector } from '@/store/index';
+import {
+  fetchProducts,
+  resetProducts,
+  setSearch,
+  setSort,
+  nextPage
+} from '@/store/slice/products-slice';
+
+import Navbar from '@/components/common/navbar';
+import SearchComponent from '@/components/dashboard/search-bar';
+import DelayedMessage from '@/components/dashboard/delayed-message';
+import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/drop-down';
+
+import './dashboard.css';
+
+const DashboardCard = dynamic(() => import('@/components/dashboard/dashboard-card'), {
+  ssr: false,
+  loading: () => <></>
+});
+
+const productSortItems: GenericDropdownItem[] = [
+  { key: 'price_asc', label: 'Price: Low to High', icon: <DollarOutlined /> },
+  { key: 'price_desc', label: 'Price: High to Low', icon: <DollarOutlined /> },
+  { key: 'name_asc', label: 'Name: A to Z', icon: <SortAscendingOutlined /> },
+  { key: 'name_desc', label: 'Name: Z to A', icon: <SortDescendingOutlined /> },
+  { key: 'newest', label: 'Newest First', icon: <CalendarOutlined /> },
+  { key: 'oldest', label: 'Oldest First', icon: <CalendarOutlined /> }
+];
+
+const Dashboardpage: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const {
+    products,
+    page,
+    search,
+    sort,
+    loading,
+    loadingMore,
+    hasMore
+  } = useAppSelector(state => state.products);
+
+  const [localSearch, setLocalSearch] = useState(search);
+  const [debouncedSearch, setDebouncedSearch] = useState(localSearch);
+
+  const loadProducts = useCallback(
+    (pageToLoad: number) => {
+      dispatch(fetchProducts({ page: pageToLoad, search: debouncedSearch, sort }));
+    },
+    [dispatch, debouncedSearch, sort]
+  );
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(localSearch);
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [localSearch]);
+
+  useEffect(() => {
+    dispatch(setSearch(debouncedSearch));
+  }, [debouncedSearch, dispatch]);
+
+  useEffect(() => {
+    dispatch(resetProducts());
+    loadProducts(1);
+  }, [debouncedSearch, sort, dispatch, loadProducts]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100 &&
+        !loading &&
+        !loadingMore &&
+        hasMore
+      ) {
+        dispatch(nextPage());
+        loadProducts(page + 1);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [dispatch, loading, loadingMore, hasMore, page, loadProducts]);
+
+  return (
+    <>
+      <Navbar title="E-commerce" />
+      <div className="dashboard-whole">
+        <div className="dashboard-innerheader">
+          <p className="dashboard-title">
+            Our Products
+          </p>
+          <div className="dashboard-innerheadericons">
+            <SearchComponent
+              searchTerm={localSearch}
+              setSearchTerm={setLocalSearch}
+              placeholder='Search products'
+            /> 
+            <GenericDropdown
+              items={productSortItems}
+              selectedKey={sort}
+              onSelect={(val: string) => dispatch(setSort(val))}
+            />
+          </div>
+        </div>
+        <div className="dashboard-product">
+          {products.map((product, index) => (
+          <DashboardCard key={`${product.id}-${index}`} {...product} />
+          ))}
+        </div>
+
+        <div className="dashboard-footer">
+          {loading ? <ClipLoader color="#007BFF" size={30} /> : null}
+          {loadingMore ? <ClipLoader color="#007BFF" size={20} /> : null}
+          {!hasMore && !loading && !loadingMore ? <DelayedMessage delay={1800}>
+              <p className="dashboard-footercontent">No more products</p>
+            </DelayedMessage> : null}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Dashboardpage;

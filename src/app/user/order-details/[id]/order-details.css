@@ -1,0 +1,67 @@
+@import "tailwindcss";
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-inter: var(--font-inter), ui-sans-serif, system-ui;
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+.od-imagetext{
+    @apply font-inter text-xs text-[#535E63] font-medium leading-[100%]
+}
+
+.od-price{
+    @apply text-[#535E63] font-normal text-xs leading-[16px]
+}
+
+.od-quantity{
+    @apply text-[#535E63] font-normal text-xs leading-[16px]
+}
+
+.od-spinner{
+    @apply flex justify-center items-center min-h-screen
+}
+
+.od-orderNF{
+    @apply mt-10 text-red-500
+}
+
+.od-whole{
+    @apply bg-[#F8F9FA] min-h-screen !pl-4 lg:!px-14 xl:!px-20
+}
+
+.od-backarrow{
+    @apply !text-[#007BFF] cursor-pointer text-lg
+}
+
+.od-title{
+    @apply font-inter font-medium text-2xl leading-[28.8px] text-[#007BFF] !mb-0
+}
+
+.od-wholetable{
+    @apply bg-[#F8F9FA] p-4 border-t border-t-[#979797] border-b border-b-[#DEE2E6]
+}
+
+.od-tablegrid{
+    @apply grid grid-cols-2 md:grid-cols-5 gap-y-2
+}
+
+.od-uppertitle{
+    @apply text-sm text-[#979797]
+}
+
+.od-lowertitle{
+    @apply text-sm font-normal text-[#272B41]
+}
+
+.od-producttitle{
+    @apply text-[#002050] font-medium text-xl mb-4
+}
+
+.od-tabledesign{
+    @apply [&_.ant-table-thead>tr>th]:!bg-[#F8F9FA] 
+           [&_.ant-table-thead>tr>th]:!text-[#535E63] 
+             [&_.ant-table-thead>tr>th]:!font-medium 
+             [&_.ant-table-thead>tr>th]:!text-xs
+}

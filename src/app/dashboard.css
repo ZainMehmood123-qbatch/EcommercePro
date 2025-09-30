@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-inter: var(--font-inter), ui-sans-serif, system-ui;
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+.dashboard-whole {
+    @apply bg-[#F8F9FA] px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 max-w-[1600px] m-auto
+}
+
+.dashboard-innerheader {
+    @apply flex flex-row max-[580px]:flex-col items-center max-[580px]:items-start justify-between pt-6 xl:pt-8
+}
+
+.dashboard-title {
+    @apply !text-[#007BFF] font-inter font-medium text-2xl leading-[28.8px] !m-0 pt-1
+}
+
+.dashboard-innerheadericons {
+    @apply flex items-center justify-between gap-6 pt-3
+}
+
+.dashboard-product {
+    @apply pt-4 sm:pt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-x-[12px] gap-y-[12px] lg:gap-x-[30px] lg:gap-y-[32px]
+}
+
+.dashboard-footer {
+    @apply flex justify-center py-6
+}
+
+.dashboard-footercontent {
+    @apply text-gray-500
+}

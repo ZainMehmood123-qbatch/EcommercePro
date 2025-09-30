@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-inter: var(--font-inter), ui-sans-serif, system-ui;
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+.order-titlenames{
+    @apply font-inter text-xs text-[#535E63] font-medium leading-[100%];
+}
+
+.order-whole{
+    @apply bg-[#F9FAFB] min-h-screen !pl-4 lg:!px-14 xl:!px-20;
+}
+
+.order-navbar{
+    @apply flex items-center gap-2 !pt-8 !pb-6
+}
+
+.order-arrowleft{
+    @apply !text-[#007BFF] cursor-pointer text-lg
+}
+
+.order-title{
+    @apply !text-[#007BFF] cursor-pointer text-lg
+}
+
+.order-searchplaceholder{
+    @apply w-full max-w-sm
+}
+
+.order-spinner{
+    @apply flex justify-center items-center min-h-screen
+}
+
+.order-count{
+    @apply absolute left-0 font-inter font-normal text-[16px] leading-6 text-[#868E96]
+}
+
+.order-wholetable{
+    @apply [&_.ant-table-thead>tr>th]:!bg-[#F8F8F8] 
+           [&_.ant-table-thead>tr>th]:!text-[#535E63] 
+             [&_.ant-table-thead>tr>th]:!font-medium 
+             [&_.ant-table-thead>tr>th]:!text-xs
+}
+
+

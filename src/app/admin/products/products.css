@@ -1,0 +1,37 @@
+@import "tailwindcss";
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-inter: var(--font-inter), ui-sans-serif, system-ui;
+    --font-sans: var(--font-geist-sans);
+    --font-mono: var(--font-geist-mono);
+}
+
+.adp-avatar{
+    @apply h-6 w-6 !rounded-none
+}
+
+.adp-whole{
+    @apply bg-white rounded-md shadow p-4
+}
+
+.adp-nav{
+    @apply flex justify-between mb-4 items-center
+}
+
+.adp-title{
+    @apply text-2xl font-medium font-inter text-[#007BFF]
+}
+
+.adp-addmultipleproducts{
+    @apply bg-[#007BFF] text-white
+}
+
+.adp-wholetable{
+    @apply [&_.ant-table-cell]:!py-2 
+         [&_.ant-table-thead_.ant-table-cell]:!text-[#535E63] 
+           [&_.ant-table-cell]:!border-r 
+         [&_.ant-table-cell]:!border-[#ECEFF1] 
+           [&_.ant-table-cell:last-child]:!border-r-0
+}
+

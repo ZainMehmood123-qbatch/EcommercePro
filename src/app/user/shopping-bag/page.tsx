@@ -1,0 +1,303 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+
+import { Button, Flex, Table, InputNumber, message, Image } from 'antd';
+import type { TableColumnsType, TableProps } from 'antd';
+import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
+
+import Link from 'next/link';
+import toast from 'react-hot-toast';
+
+import Navbar from '@/components/common/navbar';
+import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
+import { CartItem } from '@/types/cart';
+
+import './shopping-bag.css';
+
+type TableRowSelection<T extends object = object> =
+  TableProps<T>['rowSelection'];
+
+const Shoppingbag: React.FC = () => {
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('cart');
+    if (stored) {
+      setItems(JSON.parse(stored));
+    }
+  }, []);
+
+  const updateQty = (key: React.Key, newQty: number) => {
+    setItems((prev) => {
+      const updated = prev.map((item) => {
+        if (item.key === key) {
+          if (newQty > item.stock) {
+            toast.error(`Only ${item.stock} items available in stock`);
+            return { ...item, qty: item.stock };
+          }
+          return { ...item, qty: Math.max(1, newQty) };
+        }
+        return item;
+      });
+      localStorage.setItem('cart', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const deleteItem = (key: React.Key) => {
+    setItems((prev) => {
+      const updated = prev.filter((item) => item.key !== key);
+      localStorage.setItem('cart', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const deleteSelectedItems = () => {
+    if (!selectedRowKeys.length) {
+      toast.error('No items selected');
+      return;
+    }
+    setItems((prev) => {
+      const updated = prev.filter((item) => !selectedRowKeys.includes(item.key));
+      localStorage.setItem('cart', JSON.stringify(updated));
+      return updated;
+    });
+    setSelectedRowKeys([]);
+    toast.success('Selected items deleted');
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!items.length) {
+      toast.error('Your cart is empty!');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: items.map(i => ({
+            productId: i.id,
+            qty: i.qty,
+            colorName: i.colorName,
+            colorCode: i.colorCode,
+            size: i.size
+          }))
+        })
+      });
+
+      if (!res.ok) throw new Error('Failed to place order');
+
+      toast.success('Order placed successfully!');
+      setItems([]);
+      localStorage.removeItem('cart');
+    } catch (err) {
+      console.error(err);
+      message.error('Something went wrong. Try again!');
+    }
+  };
+
+  const columns: TableColumnsType<CartItem> = [
+    {
+      title: 'Product',
+      dataIndex: 'product',
+      className: '!pl-1',
+      render: (_, record) => (
+        <div className='flex items-center gap-2'>
+          <Image
+            src={record.image}
+            alt='product'
+            width={24}
+            height={24}
+            preview={{ mask: <span>Preview</span> }}
+            fallback='/fallback.png'
+            style={{ objectFit: 'cover' }}
+          />
+          <span className='sb-pvalues'>
+            {record.product}
+          </span>
+        </div>
+      )
+    },
+    {
+      title: 'Color',
+      dataIndex: 'colorName',
+      render: (_, record) => {
+        if (!record.colorName && !record.colorCode) {
+          return (
+            <span className='sb-productcolorname'>
+              White
+            </span>
+          );
+        }
+
+        return (
+          <div className='sb-colors'>
+            {record.colorCode && (
+              <span
+                className='sb-productcolorcode'
+                style={{ backgroundColor: record.colorCode }}
+              ></span>
+            )}
+            <span className='sb-pvalues'>
+              {record.colorName || record.colorCode}
+            </span>
+          </div>
+        );
+      }
+    },
+    {
+      title: 'Size',
+      dataIndex: 'size',
+      render: (value) => (
+        <span className='sb-pvalues'>
+          {value ?? 'L'}
+        </span>
+      )
+    },
+    {
+      title: 'Qty',
+      dataIndex: 'qty',
+      render: (_, record) => (
+        <Flex align='center' gap='small'>
+          <Button
+            size='small'
+            className='sb-signcolors'
+            onClick={() => updateQty(record.key, record.qty - 1)}
+            disabled={record.qty <= 1}
+          >
+            -
+          </Button>
+          <InputNumber
+            min={1}
+            max={record.stock}
+            value={record.qty}
+            className='sb-number'
+            onChange={(value) => updateQty(record.key, value || 1)}
+          />
+          <Button
+            size='small'
+            className='sb-signcolors'
+            onClick={() => updateQty(record.key, record.qty + 1)}
+            disabled={record.qty >= record.stock}
+          >
+            +
+          </Button>
+        </Flex>
+      )
+    },
+    {
+      title: 'Price',
+      dataIndex: 'price',
+      render: (_, record) => (
+        <span className='sb-pvalues'>
+          ${(record.qty * record.price).toFixed(2)}
+        </span>
+      )
+    },
+    {
+      title: 'Actions',
+      dataIndex: 'actions',
+      render: (_, record) => (
+        <Button
+          danger
+          type='text'
+          icon={<DeleteOutlined />}
+          onClick={() => {
+            setItemToDelete(record);
+            setIsModalOpen(true);
+          }}
+        />
+      )
+    }
+  ];
+
+  const rowSelection: TableRowSelection<CartItem> = {
+    selectedRowKeys,
+    onChange: setSelectedRowKeys
+  };
+
+  const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
+  const tax = subTotal * 0.1;
+  const total = subTotal + tax;
+
+  return (
+    <>
+      <Navbar title='E-commerce' />
+      <Flex gap='middle' vertical className='sb-innerbody'>
+        <Flex align='center' gap='middle'>
+          <div className='sb-innerbodyy'>
+            <Link href='/'>
+              <ArrowLeftOutlined className='sb-arrowleft' />
+            </Link>
+            <h4 className='sb-title'>
+              Your Shopping Bag
+            </h4>
+          </div>
+        </Flex>
+        <Table<CartItem>
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={items}
+          pagination={{ pageSize: 10 }}
+          scroll={{ x: 950 }}
+          bordered
+          rowClassName={() => 'h-12'}
+          className='sb-wholetable'
+        />
+        <div className='sb-summary'>
+          <p>
+            Sub Total: <b>${subTotal.toFixed(2)}</b>
+          </p>
+          <p>
+            Tax: <b>${tax.toFixed(2)}</b>
+          </p>
+          <p>
+            Total: <b>${total.toFixed(2)}</b>
+          </p>
+          <div className="sb-buttons">
+            <Button
+              danger
+              size='large'
+              className='!mb-3'
+              disabled={!selectedRowKeys.length}
+              onClick={deleteSelectedItems}
+            >
+              Delete Selected
+            </Button>
+            <Button
+              type='primary'
+              size='large'
+              className='sb-placeorder'
+              onClick={handlePlaceOrder}
+              // disabled={items.length === 0}
+            >
+              Place Order
+            </Button>
+          </div>
+        </div>
+        {isModalOpen && (
+          <DeleteConfirmationModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onConfirm={() => {
+              if (itemToDelete) {
+                deleteItem(itemToDelete.key);
+              }
+              setIsModalOpen(false);
+              setItemToDelete(null);
+            }}
+            productName={itemToDelete?.product}
+          />
+        )}
+      </Flex>
+    </>
+  );
+};
+
+export default Shoppingbag;

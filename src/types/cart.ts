@@ -1,0 +1,15 @@
+import React from 'react';
+
+// /types/cart.ts
+export interface CartItem {
+  key: React.Key;
+  id: string;
+  product: string;
+  image: string;
+  colorName?: string;
+  colorCode?: string;
+  size?: string;
+  qty: number;
+  price: number;
+  stock: number; 
+}
