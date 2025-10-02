@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import toast from 'react-hot-toast';
-import { Checkbox, Button } from 'antd';
+import { Checkbox, Button, Spin } from 'antd';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import AuthTitle from '@/components/auth/auth-title';
 import AuthForm from '@/components/auth/auth-form';
@@ -19,71 +19,83 @@ export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [mounted, setMounted] = useState(false); 
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
 
   const onFinish = async (values: LoginFormValues) => {
-  setLoading(true);
+    setLoading(true);
 
-  const res = await signIn('credentials', {
-    email: values.email,
-    password: values.password,
-    remember: values.remember ? 'true' : 'false',
-    redirect: false
-  });
-  console.log('remember is = ',remember);
+    const res = await signIn('credentials', {
+      email: values.email,
+      password: values.password,
+      remember: values.remember ? 'true' : 'false',
+      redirect: false
+    });
 
-  if (res && res.error) {
-    toast.error('Wrong username/password, please enter correct credentials');
-    setLoading(false);
-    return;
-  }
-
-  if (res && res.ok) {
-    toast.success('Login successfully!');
-
-    // Fetch the session to get user role
-    const sessionRes = await fetch('/api/auth/session');
-    const session = await sessionRes.json();
-
-    if (session?.user?.role === 'ADMIN') {
-      router.push('/admin/products');
-    } else {
-      router.push('/');
+    if (res && res.error) {
+      toast.error('Wrong Email/Password, please enter correct credentials');
+      setLoading(false);
+      return;
     }
-  }
 
-  setLoading(false);
-};
+    if (res && res.ok) {
+      toast.success('Login successfully!');
+      const sessionRes = await fetch('/api/auth/session');
+      const session = await sessionRes.json();
+      if (session?.user?.role === 'ADMIN') {
+        router.push('/admin/products');
+      } else {
+        router.push('/');
+      }
+    }
+
+    setLoading(false);
+  };
+
+  if (!mounted) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
+        <Spin size="large" tip="Loading login form..." />
+      </div>
+    );
+  }
 
   return (
-    <div>
-      <AuthTitle text='Login' />
-      <AuthForm name='login' onFinish={onFinish}>
-        <FormField label='Email Address' name='email' type='email' />
-        <FormField label='Password' name='password' type='password' />
-        <div className='mb-4'>
+    <div className="relative">
+      {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
+          <Spin size="large" tip="Logging in..." />
+        </div>
+      )}
+
+      <AuthTitle text="Login" />
+      <AuthForm name="login" onFinish={onFinish}>
+        <FormField label="Email Address" name="email" type="email" />
+        <FormField label="Password" name="password" type="password" />
+        <div className="mb-4">
           <Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)}>
             Remember me
           </Checkbox>
         </div>
-        <Button htmlType='submit' loading={loading} className='auth-button'>
+        <Button htmlType="submit" loading={loading} className="auth-button">
           Login
         </Button>
       </AuthForm>
-      {/* <Button
-        type='default'
-        onClick={() => signIn('google')}
-        className='!w-full !mt-3 !border-[#007BFF] !text-[#007BFF]'
-      >
-        Continue with Google
-      </Button> */}
 
-      <div className='auth-login-footer'>
-        <Link href='/auth/forgot-password' className='auth-login-fptext'>
-          Forgot Password? Reset
-        </Link>
-        <p className='auth-login-datext'>
+      <div className="auth-login-footer">
+        <p className="auth-login-datext">
+          Forgot Password?
+          <Link href="/auth/forgot-password" className="auth-login-fptext">
+            Reset
+          </Link>
+        </p>
+        <p className="auth-login-datext">
           I dont have an account!{' '}
-          <Link href='/auth/signup' className='auth-text'>
+          <Link href="/auth/signup" className="auth-text">
             SignUp
           </Link>
         </p>

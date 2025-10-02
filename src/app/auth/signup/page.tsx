@@ -1,7 +1,7 @@
 'use client';
 
 import toast from 'react-hot-toast';
-import { Button } from 'antd';
+import { Button, Spin } from 'antd';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -12,11 +12,20 @@ import FormField from '@/components/auth/fields/form-field';
 import { SignupFormValues } from '@/types/auth';
 
 import '../auth.css';
+import { useState, useEffect } from 'react';
 
 export default function SignupPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+      const timer = setTimeout(() => setMounted(true), 400);
+      return () => clearTimeout(timer);
+    }, []);
 
     const onFinish = async (values: SignupFormValues) => {
+      setLoading(true);
     if (values.password !== values.confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -44,10 +53,22 @@ export default function SignupPage() {
       console.log(error);
       toast.error('Something went wrong. Please try again.');
     }
+    setLoading(false);
   };
-
+if (!mounted) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
+        <Spin size="large" tip="Loading login form..." />
+      </div>
+    );
+  }
   return (
     <div>
+        {loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
+          <Spin size="large" tip="Logging in..." />
+        </div>
+      )}
       <AuthTitle text='SignUp' />
       <AuthForm name='signup' onFinish={onFinish}>
         <FormField label='Full Name' name='fullname' type='fullname' />
@@ -60,7 +81,7 @@ export default function SignupPage() {
           type='confirmPassword'
           dependency='password'
         />
-         <Button htmlType='submit' className='auth-button'>
+         <Button htmlType='submit' className='auth-button' loading={loading}>
           Sign Up
         </Button>
       </AuthForm>

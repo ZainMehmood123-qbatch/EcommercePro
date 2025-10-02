@@ -23,7 +23,7 @@ export default function FormField({
   switch (type) {
     case 'email':
       rules.push(
-        { type: 'email', message: 'Enter a valid email address' },
+        { type: 'email', message: '' },
         {
           pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
           message: 'Enter a valid email format (e.g. user@example.com)'
