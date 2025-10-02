@@ -1,7 +1,8 @@
 // prisma/seed.ts
-import { prisma } from '@/lib/prisma';
+// import { prisma } from '@/lib/prisma';
 //import { Product,Prisma } from '@prisma/client';
-
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 async function main() {
   // -------------------------------
   // 1️⃣ Seed Admin User
