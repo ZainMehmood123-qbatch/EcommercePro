@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { Button, Flex, Table, InputNumber, message, Image } from 'antd';
+import { Button, Flex, Table, InputNumber, message, Image, Spin } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
-import Navbar from '@/components/common/navbar';
 import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
 import { CartItem } from '@/types/cart';
 
@@ -21,15 +21,22 @@ type TableRowSelection<T extends object = object> =
 const Shoppingbag: React.FC = () => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const router = useRouter();
 
-  useEffect(() => {
+useEffect(() => {
+  const timer = setTimeout(() => {
     const stored = localStorage.getItem('cart');
     if (stored) {
       setItems(JSON.parse(stored));
     }
-  }, []);
+    setLoading(false);
+  }, 500);
+  return () => clearTimeout(timer);
+}, []);
+
 
   const updateQty = (key: React.Key, newQty: number) => {
     setItems((prev) => {
@@ -96,8 +103,10 @@ const Shoppingbag: React.FC = () => {
       toast.success('Order placed successfully!');
       setItems([]);
       localStorage.removeItem('cart');
+      router.push('/');
     } catch (err) {
       console.error(err);
+      toast.error('Dont have enough stock.');
       message.error('Something went wrong. Try again!');
     }
   };
@@ -226,9 +235,15 @@ const Shoppingbag: React.FC = () => {
   const tax = subTotal * 0.1;
   const total = subTotal + tax;
 
+  if (loading) {
+      return (
+        <div className='loader'>
+          <Spin size='large' />
+        </div>
+      );
+    }
   return (
     <>
-      <Navbar title='E-commerce' />
       <Flex gap='middle' vertical className='sb-innerbody'>
         <Flex align='center' gap='middle'>
           <div className='sb-innerbodyy'>

@@ -50,3 +50,11 @@
          [&_.ant-table-cell]:!border-[#ECEFF1] 
            [&_.ant-table-cell:last-child]:!border-r-0
 }
+
+.loader-overlay {
+  @apply absolute inset-0 flex justify-center items-center bg-white/60 z-[1000]
+}
+
+.loader{
+    @apply flex justify-center items-center min-h-screen
+}

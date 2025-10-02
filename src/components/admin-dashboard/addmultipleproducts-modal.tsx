@@ -49,13 +49,12 @@ export default function AddMultipleProductsModal({ visible, onClose }: Props) {
       ]}
       width={600}
     >
-      {/* Upload Section */}
       <div className="border-2 border-dashed border-gray-300 rounded-md p-10 flex flex-col items-center justify-center text-center bg-gray-50">
         <Upload.Dragger
           multiple={false}
           fileList={fileList}
           onChange={handleChange}
-          beforeUpload={() => false} // prevent auto upload
+          beforeUpload={() => false}
           className="w-full"
         >
           <div className="flex flex-col items-center justify-center">
@@ -72,8 +71,6 @@ export default function AddMultipleProductsModal({ visible, onClose }: Props) {
           </div>
         </Upload.Dragger>
       </div>
-
-      {/* Uploaded Files List */}
       {fileList.length > 0 && (
         <div className="mt-6">
           <h3 className="text-gray-700 text-sm font-medium mb-2">

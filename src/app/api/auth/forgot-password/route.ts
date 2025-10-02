@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const { email } = await req.json();
     
     const token = jwt.sign({ email }, process.env.EMAIL_PASS!, {
-      expiresIn: '2m' 
+      expiresIn: '5m' 
     });
 
     const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;

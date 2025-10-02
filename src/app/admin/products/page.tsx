@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, SetStateAction } from 'react';
-
-import { Table, Avatar, Button, message, Input } from 'antd';
+import { Table, Avatar, Button, message, Input, Spin } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   EditOutlined,
@@ -19,6 +18,7 @@ import AddMultipleProductsModal from '@/components/admin-dashboard/addmultiplepr
 import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/drop-down';
 
 import './products.css';
+import toast from 'react-hot-toast';
 
 interface Product {
   id: string;
@@ -39,7 +39,7 @@ const productSortItems: GenericDropdownItem[] = [
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // 👈 default true rakha
   const [pageNum, setPageNum] = useState(1);
   const [limit] = useState(12);
   const [total, setTotal] = useState(0);
@@ -53,38 +53,40 @@ export default function ProductsPage() {
   const [visible, setVisible] = useState(false);
 
   // fetch products
-  const fetchProducts = useCallback(async (page: number, search = debouncedSearch, sortKey = sort) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/products?page=${page}&limit=${limit}&search=${search}&sort=${sortKey}`);
-      const result = await res.json();
+  const fetchProducts = useCallback(
+    async (page: number, search = debouncedSearch, sortKey = sort) => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/products?page=${page}&limit=${limit}&search=${search}&sort=${sortKey}`
+        );
+        const result = await res.json();
 
-      if (result?.data && Array.isArray(result.data)) {
-        setProducts(result.data);
-        setTotal(result.total || 0);
-      } else {
-        setProducts([]);
-        setTotal(0);
+        if (result?.data && Array.isArray(result.data)) {
+          setProducts(result.data);
+          setTotal(result.total || 0);
+        } else {
+          setProducts([]);
+          setTotal(0);
+        }
+      } catch (err) {
+        console.error('Failed to fetch products', err);
+        message.error('Failed to fetch products');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error('Failed to fetch products', err);
-      message.error('Failed to fetch products');
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, sort, limit]);
+    },
+    [debouncedSearch, sort, limit]
+  );
 
-  // debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(localSearch);
-      setPageNum(1); // reset page jab search change ho
+      setPageNum(1);
     }, 500);
-
     return () => clearTimeout(handler);
   }, [localSearch]);
 
-  // fetch when dependencies change
   useEffect(() => {
     fetchProducts(pageNum);
   }, [pageNum, debouncedSearch, sort, fetchProducts]);
@@ -109,9 +111,11 @@ export default function ProductsPage() {
         message.success('Product deleted successfully');
         setProducts((prev) => prev.filter((p) => p.id !== record.id));
         setTotal((prev) => prev - 1);
+        toast.success('Product deleted successfully');
       } else {
         const error = await res.json();
         message.error(`${error.error}`);
+        toast.error('Product cannot be deleted');
       }
     } catch (error) {
       console.error('Delete error:', error);
@@ -123,9 +127,7 @@ export default function ProductsPage() {
     {
       title: 'Image',
       dataIndex: 'image',
-      render: (src) => (
-        <Avatar shape="square" className="adp-avatar" src={src} />
-      )
+      render: (src) => <Avatar shape="square" className="adp-avatar" src={src} />
     },
     { title: 'Title', dataIndex: 'title' },
     {
@@ -151,8 +153,8 @@ export default function ProductsPage() {
             type="text"
             icon={<DeleteOutlined className="!text-[#DC3545]" />}
             onClick={() => {
-              setProductToDelete(record); 
-              setIsDeleteModalOpen(true); 
+              setProductToDelete(record);
+              setIsDeleteModalOpen(true);
             }}
           />
         </div>
@@ -160,12 +162,18 @@ export default function ProductsPage() {
     }
   ];
 
+  if (loading) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white/70 z-50">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <div className="adp-whole">
       <div className="adp-nav">
-        <h1 className="adp-title">
-          Products
-        </h1>
+        <h1 className="adp-title">Products</h1>
         <div className="flex gap-2">
           <Input.Search
             placeholder="Search products"
@@ -184,7 +192,10 @@ export default function ProductsPage() {
           <Button type="primary" onClick={handleCreate}>
             + Add a Single Product
           </Button>
-          <Button className="adp-addmultipleproducts" onClick={() => setVisible(true)}>
+          <Button
+            className="adp-addmultipleproducts"
+            onClick={() => setVisible(true)}
+          >
             + Add Multiple Products
           </Button>
           <AddMultipleProductsModal
@@ -193,11 +204,11 @@ export default function ProductsPage() {
           />
         </div>
       </div>
+
       <Table
         rowKey="id"
         columns={columns}
         dataSource={products}
-        loading={loading}
         pagination={{
           current: pageNum,
           pageSize: limit,
@@ -206,14 +217,19 @@ export default function ProductsPage() {
         }}
         className="adp-wholetable"
       />
-      {isModalVisible ? <ProductModal
+
+      {isModalVisible && (
+        <ProductModal
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
           product={selectedProduct}
           setProducts={setProducts}
           products={products}
-        /> : null}
-      {isDeleteModalOpen ? <DeleteConfirmationModal
+        />
+      )}
+
+      {isDeleteModalOpen && (
+        <DeleteConfirmationModal
           isOpen={isDeleteModalOpen}
           onClose={() => {
             setIsDeleteModalOpen(false);
@@ -227,7 +243,8 @@ export default function ProductsPage() {
             setProductToDelete(null);
           }}
           productName={productToDelete?.title}
-        /> : null}
+        />
+      )}
     </div>
   );
 }

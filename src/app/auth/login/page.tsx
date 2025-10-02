@@ -38,7 +38,7 @@ export default function LoginPage() {
   }
 
   if (res && res.ok) {
-    toast.success('Login successful! Redirecting...');
+    toast.success('Login successfully!');
 
     // Fetch the session to get user role
     const sessionRes = await fetch('/api/auth/session');

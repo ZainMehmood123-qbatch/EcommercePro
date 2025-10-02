@@ -63,7 +63,6 @@ export async function middleware(req: NextRequest) {
     if (token.role !== 'ADMIN') return NextResponse.redirect(new URL('/unauthorized', req.url));
   }
 
-  // Default: allow access
   return NextResponse.next();
 }
 

@@ -35,3 +35,6 @@
            [&_.ant-table-cell:last-child]:!border-r-0
 }
 
+.loader{
+    @apply flex justify-center items-center min-h-screen
+}

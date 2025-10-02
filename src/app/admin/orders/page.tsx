@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
 import Link from 'next/link';
-
-import { Table, Card, Button } from 'antd';
+import { Table, Card, Button, Spin } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   ExportOutlined,
@@ -35,10 +33,14 @@ const OrdersPage = () => {
   const [totalOrders, setTotalOrders] = useState(0);
   const [totalUnits, setTotalUnits] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(false); 
+  const [initialLoading, setInitialLoading] = useState(true); 
+
   const [pageNum, setPageNum] = useState(1);
   const [limit] = useState(10);
   const [total, setTotal] = useState(0);
+
   const [localSearch, setLocalSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
 
@@ -49,13 +51,13 @@ const OrdersPage = () => {
       setPageNum(1);
     }, 500);
 
-    return () => {
-      clearTimeout(handler);
-    };
+    return () => clearTimeout(handler);
   }, [localSearch]);
 
-  const fetchOrders = async (page: number, search: string) => {
-    setLoading(true);
+  const fetchOrders = async (page: number, search: string, isInitial = false) => {
+    if (isInitial) setInitialLoading(true);
+    else setLoading(true);
+
     try {
       const res = await fetch(
         `/api/orders?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`
@@ -80,12 +82,21 @@ const OrdersPage = () => {
     } catch (err) {
       console.error('Failed to fetch orders', err);
     } finally {
-      setLoading(false);
+      if (isInitial) setInitialLoading(false);
+      else setLoading(false);
     }
   };
 
+  // First load (full-page loader)
   useEffect(() => {
-    fetchOrders(pageNum, debouncedSearch);
+    fetchOrders(pageNum, debouncedSearch, true);
+  }, []);
+
+  // After first load → search & pagination
+  useEffect(() => {
+    if (!initialLoading) {
+      fetchOrders(pageNum, debouncedSearch);
+    }
   }, [pageNum, debouncedSearch]);
 
   const columns: ColumnsType<OrderType> = [
@@ -113,8 +124,22 @@ const OrdersPage = () => {
     }
   ];
 
+  if (initialLoading) {
+    return (
+      <div className="loader">
+        <Spin size="large" tip="Loading orders..." />
+      </div>
+    );
+  }
+
   return (
-    <div className='ado-whole'>
+    <div className='ado-whole' style={{ position: 'relative' }}>
+      {loading && (
+        <div className="loader-overlay">
+          <Spin size="large" tip="Loading..." />
+        </div>
+      )}
+
       <div className='ado-uppergrid'>
         <Card className='p-1'>
           <div className='ado-cards'>
@@ -152,6 +177,7 @@ const OrdersPage = () => {
           </div>
         </Card>
       </div>
+
       <div className='ado-innernav'>
         <h1 className='ado-title'>Orders</h1>
         <SearchComponent
@@ -160,11 +186,11 @@ const OrdersPage = () => {
           placeholder='Search by user and orderID'
         />
       </div>
+
       <Table
         rowKey="id"
         columns={columns}
         dataSource={orders}
-        loading={loading}
         className='ado-wholetable'
         pagination={{
           current: pageNum,

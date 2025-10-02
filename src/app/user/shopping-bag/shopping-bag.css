@@ -66,3 +66,7 @@
              [&_.ant-table-thead>tr>th]:!font-medium 
              [&_.ant-table-thead>tr>th]:!text-xs
 }
+
+.loader{
+    @apply flex justify-center items-center min-h-screen
+}

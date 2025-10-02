@@ -129,7 +129,7 @@ const Dashboardpage: React.FC = () => {
         <div className="dashboard-footer">
           {loading ? <ClipLoader color="#007BFF" size={30} /> : null}
           {loadingMore ? <ClipLoader color="#007BFF" size={20} /> : null}
-          {!hasMore && !loading && !loadingMore ? <DelayedMessage delay={1800}>
+          {!hasMore && !loading && !loadingMore ? <DelayedMessage delay={800}>
               <p className="dashboard-footercontent">No more products</p>
             </DelayedMessage> : null}
         </div>

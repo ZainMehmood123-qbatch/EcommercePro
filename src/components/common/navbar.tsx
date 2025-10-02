@@ -59,7 +59,8 @@ const Navbar = ({ title = 'E-commerce' }) => {
   });
 
   return () => unsubscribe();
-}, []);
+  }, []);
+
   const handleShoppingClick = () => {
     if (isLoggedIn) {
       router.push('/user/shopping-bag');
@@ -80,15 +81,16 @@ const Navbar = ({ title = 'E-commerce' }) => {
     {
       key: 'logout',
       label: (
-        <Button
+        <Link 
           className='!rounded-none !border-none !shadow-none'
           onClick={() => {
             localStorage.removeItem('cart');
             signOut({ callbackUrl: '/' });
           }}
+          href={'/'}
         >
           <span className='text-red-500'>Logout</span>
-        </Button>
+        </Link>
       )
     }
   ];

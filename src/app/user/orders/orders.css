@@ -21,11 +21,11 @@
 }
 
 .order-arrowleft{
-    @apply !text-[#007BFF] cursor-pointer text-lg
+    @apply !text-[#007BFF] cursor-pointer text-xl font-medium
 }
 
 .order-title{
-    @apply !text-[#007BFF] cursor-pointer text-lg
+    @apply !text-[#007BFF] cursor-pointer text-2xl font-medium pt-2
 }
 
 .order-searchplaceholder{
@@ -47,4 +47,7 @@
              [&_.ant-table-thead>tr>th]:!text-xs
 }
 
+.loader{
+    @apply flex justify-center items-center min-h-screen
+}
 
