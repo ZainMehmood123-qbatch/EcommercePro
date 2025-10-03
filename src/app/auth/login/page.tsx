@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { Checkbox, Button, Spin } from 'antd';
+import { GoogleOutlined } from '@ant-design/icons';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -85,6 +86,13 @@ export default function LoginPage() {
           Login
         </Button>
       </AuthForm>
+      <Button
+  onClick={() => signIn('google', { callbackUrl: '/' })}
+  icon={<GoogleOutlined />}
+  className="auth-button mt-2"
+>
+  Continue with Google
+</Button>
 
       <div className="auth-login-footer">
         <p className="auth-login-datext">
