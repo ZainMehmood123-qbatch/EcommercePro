@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-
+import { useSession } from 'next-auth/react';
 import { Button, Flex, Table, InputNumber, message, Image, Spin } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
-
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -19,6 +18,7 @@ type TableRowSelection<T extends object = object> =
   TableProps<T>['rowSelection'];
 
 const Shoppingbag: React.FC = () => {
+  const { data: session } = useSession();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -26,21 +26,36 @@ const Shoppingbag: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const router = useRouter();
 
-useEffect(() => {
-  const timer = setTimeout(() => {
-    const stored = localStorage.getItem('cart');
-    if (stored) {
-      setItems(JSON.parse(stored));
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setLoading(false);
+      return;
     }
-    setLoading(false);
-  }, 500);
-  return () => clearTimeout(timer);
-}, []);
 
+    const cartKey = `cart-${session.user.id}`;
+    const stored = localStorage.getItem(cartKey);
+
+    if (stored) {
+      setItems(JSON.parse(stored) as CartItem[]);
+    }
+
+    setLoading(false);
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const cartKey = `cart-${session.user.id}`;
+    if (items.length > 0) {
+      localStorage.setItem(cartKey, JSON.stringify(items));
+    } else {
+      localStorage.removeItem(cartKey);
+    }
+  }, [items, session?.user?.id]);
 
   const updateQty = (key: React.Key, newQty: number) => {
-    setItems((prev) => {
-      const updated = prev.map((item) => {
+    setItems((prev) =>
+      prev.map((item) => {
         if (item.key === key) {
           if (newQty > item.stock) {
             toast.error(`Only ${item.stock} items available in stock`);
@@ -49,18 +64,12 @@ useEffect(() => {
           return { ...item, qty: Math.max(1, newQty) };
         }
         return item;
-      });
-      localStorage.setItem('cart', JSON.stringify(updated));
-      return updated;
-    });
+      })
+    );
   };
 
   const deleteItem = (key: React.Key) => {
-    setItems((prev) => {
-      const updated = prev.filter((item) => item.key !== key);
-      localStorage.setItem('cart', JSON.stringify(updated));
-      return updated;
-    });
+    setItems((prev) => prev.filter((item) => item.key !== key));
   };
 
   const deleteSelectedItems = () => {
@@ -68,11 +77,7 @@ useEffect(() => {
       toast.error('No items selected');
       return;
     }
-    setItems((prev) => {
-      const updated = prev.filter((item) => !selectedRowKeys.includes(item.key));
-      localStorage.setItem('cart', JSON.stringify(updated));
-      return updated;
-    });
+    setItems((prev) => prev.filter((item) => !selectedRowKeys.includes(item.key)));
     setSelectedRowKeys([]);
     toast.success('Selected items deleted');
   };
@@ -88,7 +93,7 @@ useEffect(() => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map(i => ({
+          items: items.map((i) => ({
             productId: i.id,
             qty: i.qty,
             colorName: i.colorName,
@@ -102,7 +107,6 @@ useEffect(() => {
 
       toast.success('Order placed successfully!');
       setItems([]);
-      localStorage.removeItem('cart');
       router.push('/');
     } catch (err) {
       console.error(err);
@@ -117,19 +121,17 @@ useEffect(() => {
       dataIndex: 'product',
       className: '!pl-1',
       render: (_, record) => (
-        <div className='flex items-center gap-2'>
+        <div className="flex items-center gap-2">
           <Image
             src={record.image}
-            alt='product'
+            alt="product"
             width={24}
             height={24}
             preview={{ mask: <span>Preview</span> }}
-            fallback='/fallback.png'
+            fallback="/fallback.png"
             style={{ objectFit: 'cover' }}
           />
-          <span className='sb-pvalues'>
-            {record.product}
-          </span>
+          <span className="sb-pvalues">{record.product}</span>
         </div>
       )
     },
@@ -138,22 +140,17 @@ useEffect(() => {
       dataIndex: 'colorName',
       render: (_, record) => {
         if (!record.colorName && !record.colorCode) {
-          return (
-            <span className='sb-productcolorname'>
-              White
-            </span>
-          );
+          return <span className="sb-productcolorname">White</span>;
         }
-
         return (
-          <div className='sb-colors'>
+          <div className="sb-colors">
             {record.colorCode && (
               <span
-                className='sb-productcolorcode'
+                className="sb-productcolorcode"
                 style={{ backgroundColor: record.colorCode }}
               ></span>
             )}
-            <span className='sb-pvalues'>
+            <span className="sb-pvalues">
               {record.colorName || record.colorCode}
             </span>
           </div>
@@ -163,20 +160,16 @@ useEffect(() => {
     {
       title: 'Size',
       dataIndex: 'size',
-      render: (value) => (
-        <span className='sb-pvalues'>
-          {value ?? 'L'}
-        </span>
-      )
+      render: (value) => <span className="sb-pvalues">{value ?? 'L'}</span>
     },
     {
       title: 'Qty',
       dataIndex: 'qty',
       render: (_, record) => (
-        <Flex align='center' gap='small'>
+        <Flex align="center" gap="small">
           <Button
-            size='small'
-            className='sb-signcolors'
+            size="small"
+            className="sb-signcolors"
             onClick={() => updateQty(record.key, record.qty - 1)}
             disabled={record.qty <= 1}
           >
@@ -186,12 +179,12 @@ useEffect(() => {
             min={1}
             max={record.stock}
             value={record.qty}
-            className='sb-number'
+            className="sb-number"
             onChange={(value) => updateQty(record.key, value || 1)}
           />
           <Button
-            size='small'
-            className='sb-signcolors'
+            size="small"
+            className="sb-signcolors"
             onClick={() => updateQty(record.key, record.qty + 1)}
             disabled={record.qty >= record.stock}
           >
@@ -204,7 +197,7 @@ useEffect(() => {
       title: 'Price',
       dataIndex: 'price',
       render: (_, record) => (
-        <span className='sb-pvalues'>
+        <span className="sb-pvalues">
           ${(record.qty * record.price).toFixed(2)}
         </span>
       )
@@ -215,7 +208,7 @@ useEffect(() => {
       render: (_, record) => (
         <Button
           danger
-          type='text'
+          type="text"
           icon={<DeleteOutlined />}
           onClick={() => {
             setItemToDelete(record);
@@ -236,23 +229,22 @@ useEffect(() => {
   const total = subTotal + tax;
 
   if (loading) {
-      return (
-        <div className='loader'>
-          <Spin size='large' />
-        </div>
-      );
-    }
+    return (
+      <div className="loader">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <>
-      <Flex gap='middle' vertical className='sb-innerbody'>
-        <Flex align='center' gap='middle'>
-          <div className='sb-innerbodyy'>
-            <Link href='/'>
-              <ArrowLeftOutlined className='sb-arrowleft' />
+      <Flex gap="middle" vertical className="sb-innerbody">
+        <Flex align="center" gap="middle">
+          <div className="sb-innerbodyy">
+            <Link href="/">
+              <ArrowLeftOutlined className="sb-arrowleft" />
             </Link>
-            <h4 className='sb-title'>
-              Your Shopping Bag
-            </h4>
+            <h4 className="sb-title">Your Shopping Bag</h4>
           </div>
         </Flex>
         <Table<CartItem>
@@ -263,9 +255,9 @@ useEffect(() => {
           scroll={{ x: 950 }}
           bordered
           rowClassName={() => 'h-12'}
-          className='sb-wholetable'
+          className="sb-wholetable"
         />
-        <div className='sb-summary'>
+        <div className="sb-summary">
           <p>
             Sub Total: <b>${subTotal.toFixed(2)}</b>
           </p>
@@ -278,19 +270,18 @@ useEffect(() => {
           <div className="sb-buttons">
             <Button
               danger
-              size='large'
-              className='!mb-3'
+              size="large"
+              className="!mb-3"
               disabled={!selectedRowKeys.length}
               onClick={deleteSelectedItems}
             >
               Delete Selected
             </Button>
             <Button
-              type='primary'
-              size='large'
-              className='sb-placeorder'
+              type="primary"
+              size="large"
+              className="sb-placeorder"
               onClick={handlePlaceOrder}
-              // disabled={items.length === 0}
             >
               Place Order
             </Button>

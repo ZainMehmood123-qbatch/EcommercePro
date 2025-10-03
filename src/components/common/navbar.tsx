@@ -50,16 +50,20 @@ const Navbar = ({ title = 'E-commerce' }) => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
+  const userId = session?.user?.id;
+
   useEffect(() => {
-  const stored = getCartItems();
-  setCartCount(stored.length);
+    if (!userId) return;
 
-  const unsubscribe = subscribeCartChange(() => {
-    setCartCount(getCartItems().length);
-  });
+    const stored = getCartItems(userId);
+    setCartCount(stored.length);
 
-  return () => unsubscribe();
-  }, []);
+    const unsubscribe = subscribeCartChange(() => {
+      setCartCount(getCartItems(userId).length);
+    });
+
+    return () => unsubscribe();
+  }, [userId]);
 
   const handleShoppingClick = () => {
     if (isLoggedIn) {

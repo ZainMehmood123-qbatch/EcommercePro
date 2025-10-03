@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 import Image from 'next/image';
 
@@ -8,6 +9,8 @@ import { Card, Button } from 'antd';
 import { PlusOutlined, MinusOutlined } from '@ant-design/icons';
 
 import { addToCart } from '@/lib/cart';
+import { CartItem } from '@/types/cart';
+import toast from 'react-hot-toast';
 
 interface DashboardCardProps {
   id: string;
@@ -40,8 +43,15 @@ export default function DashboardCard({
 
   const decrease = () => setQuantity((q) => (q > 1 ? q - 1 : 1));
 
+  const { data: session } = useSession();
+
   const handleAddToCart = () => {
-    addToCart({
+    if (!session?.user?.id) {
+      toast.error('Please login first.');
+      return;
+    }
+
+    const item: CartItem = {
       key: Date.now(),
       id,
       product: title,
@@ -49,12 +59,13 @@ export default function DashboardCard({
       colorName,
       colorCode,
       size,
-      qty: quantity,
+      qty: 1,   
       price,
       stock
-    });
-  };
+    };
 
+    addToCart(session.user.id, item); 
+  };
   return (
     <Card
       hoverable
