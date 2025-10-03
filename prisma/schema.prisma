@@ -23,6 +23,7 @@ model User {
   email     String   @unique
   mobile    String?
   password  String
+  resetTokenVersion Int      @default(0)  
   role      Role     @default(USER)
   orders    Order[]
   createdAt DateTime @default(now())

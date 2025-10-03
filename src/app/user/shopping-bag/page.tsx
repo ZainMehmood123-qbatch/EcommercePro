@@ -13,6 +13,7 @@ import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-
 import { CartItem } from '@/types/cart';
 
 import './shopping-bag.css';
+import Navbar from '@/components/common/navbar';
 
 type TableRowSelection<T extends object = object> =
   TableProps<T>['rowSelection'];
@@ -238,6 +239,7 @@ const Shoppingbag: React.FC = () => {
 
   return (
     <>
+    <Navbar/>
       <Flex gap="middle" vertical className="sb-innerbody">
         <Flex align="center" gap="middle">
           <div className="sb-innerbodyy">
@@ -262,7 +264,7 @@ const Shoppingbag: React.FC = () => {
             Sub Total: <b>${subTotal.toFixed(2)}</b>
           </p>
           <p>
-            Tax: <b>${tax.toFixed(2)}</b>
+            Tax: <b>${tax.toFixed(2)} (10%)</b> 
           </p>
           <p>
             Total: <b>${total.toFixed(2)}</b>

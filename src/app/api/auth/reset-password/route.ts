@@ -42,8 +42,8 @@ export async function POST(req: Request) {
 
     const decoded = jwt.verify(
       token,
-      process.env.EMAIL_PASS!
-    ) as { email: string };
+      process.env.JWT_SECRET!
+    ) as { email: string, version: number };
 
     if (!decoded?.email) {
       return NextResponse.json(
@@ -52,12 +52,26 @@ export async function POST(req: Request) {
       );
     }
 
+    const user = await prisma.user.findUnique({ where: { email: decoded.email } });
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 400 });
+    }
+
+    console.log('Version is = ',decoded.version);
+  
+    if (decoded.version !== user.resetTokenVersion) {
+      return NextResponse.json({ error: 'This token has already been used' }, { status: 400 });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     await prisma.user.update({
       where: { email: decoded.email },
-      data: { password: hashedPassword }
-    });
+      data: {
+          password: hashedPassword,
+          resetTokenVersion: { increment: 1 } 
+        }
+      });
 
     return NextResponse.json({ message: 'Password updated successfully' });
   } catch (error) {
