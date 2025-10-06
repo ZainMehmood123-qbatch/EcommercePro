@@ -19,17 +19,17 @@ type TableRowSelection<T extends object = object> =
   TableProps<T>['rowSelection'];
 
 const Shoppingbag: React.FC = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  //const [loading, setLoading] = useState(true);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     if (!session?.user?.id) {
-      setLoading(false);
+      //setLoading(false);
       return;
     }
 
@@ -40,7 +40,7 @@ const Shoppingbag: React.FC = () => {
       setItems(JSON.parse(stored) as CartItem[]);
     }
 
-    setLoading(false);
+    //setLoading(false);
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -164,6 +164,15 @@ const Shoppingbag: React.FC = () => {
       render: (value) => <span className="sb-pvalues">{value ?? 'L'}</span>
     },
     {
+      title: 'Price Per Unit',
+      dataIndex: 'priceperunit',
+      render: (_, record) => (
+        <div className="flex items-center gap-2">
+          <span className="sb-pvalues">{record.price}</span>
+        </div>
+      )
+    },
+    {
       title: 'Qty',
       dataIndex: 'qty',
       render: (_, record) => (
@@ -195,8 +204,8 @@ const Shoppingbag: React.FC = () => {
       )
     },
     {
-      title: 'Price',
-      dataIndex: 'price',
+      title: 'Total Price',
+      dataIndex: 'total price',
       render: (_, record) => (
         <span className="sb-pvalues">
           ${(record.qty * record.price).toFixed(2)}
@@ -229,83 +238,107 @@ const Shoppingbag: React.FC = () => {
   const tax = subTotal * 0.1;
   const total = subTotal + tax;
 
-  if (loading) {
-    return (
-      <div className="loader">
-        <Spin size="large" />
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="loader">
+  //       <Spin size="large" />
+  //     </div>
+  //   );
+  // }
 
+  if (status === 'loading') {
   return (
-    <>
-    <Navbar/>
-      <Flex gap="middle" vertical className="sb-innerbody">
-        <Flex align="center" gap="middle">
-          <div className="sb-innerbodyy">
-            <Link href="/">
-              <ArrowLeftOutlined className="sb-arrowleft" />
-            </Link>
-            <h4 className="sb-title">Your Shopping Bag</h4>
-          </div>
-        </Flex>
-        <Table<CartItem>
-          rowSelection={rowSelection}
-          columns={columns}
-          dataSource={items}
-          pagination={{ pageSize: 10 }}
-          scroll={{ x: 950 }}
-          bordered
-          rowClassName={() => 'h-12'}
-          className="sb-wholetable"
-        />
-        <div className="sb-summary">
-          <p>
-            Sub Total: <b>${subTotal.toFixed(2)}</b>
-          </p>
-          <p>
-            Tax: <b>${tax.toFixed(2)} (10%)</b> 
-          </p>
-          <p>
-            Total: <b>${total.toFixed(2)}</b>
-          </p>
-          <div className="sb-buttons">
-            <Button
-              danger
-              size="large"
-              className="!mb-3"
-              disabled={!selectedRowKeys.length}
-              onClick={deleteSelectedItems}
-            >
-              Delete Selected
-            </Button>
-            <Button
-              type="primary"
-              size="large"
-              className="sb-placeorder"
-              onClick={handlePlaceOrder}
-            >
-              Place Order
-            </Button>
-          </div>
-        </div>
-        {isModalOpen && (
-          <DeleteConfirmationModal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            onConfirm={() => {
-              if (itemToDelete) {
-                deleteItem(itemToDelete.key);
-              }
-              setIsModalOpen(false);
-              setItemToDelete(null);
-            }}
-            productName={itemToDelete?.product}
-          />
-        )}
-      </Flex>
-    </>
+    <div className="loader">
+      <Spin size="large" />
+    </div>
   );
-};
+}
 
+return (
+  <>
+    <Navbar />
+    <Flex gap="middle" vertical className="sb-innerbody">
+      <Flex align="center" gap="middle">
+        <div className="sb-innerbodyy">
+          <Link href="/">
+            <ArrowLeftOutlined className="sb-arrowleft" />
+          </Link>
+          <h4 className="sb-title">Your Shopping Bag</h4>
+        </div>
+      </Flex>
+
+    {items.length === 0 ? (
+  <div className="flex flex-col items-center justify-center text-center mt-20 space-y-4">
+    <p className="text-gray-500 text-base">No items in cart</p>
+    <Link href="/">
+      <Button type="primary" className="!bg-white !text-[#007BFF] !text-md !p-6 !rounded-none !border-[#e1e1e1]">
+        Continue Shopping
+      </Button>
+    </Link>
+  </div>
+) : (
+        <>
+          <Table<CartItem>
+            rowSelection={rowSelection}
+            columns={columns}
+            dataSource={items}
+            pagination={{ pageSize: 10 }}
+            scroll={{ x: 950 }}
+            bordered
+            rowClassName={() => 'h-12'}
+            className="sb-wholetable"
+          />
+
+          <div className="sb-summary">
+            <p>
+              Sub Total: <b>${subTotal.toFixed(2)}</b>
+            </p>
+            <p>
+              Tax: <b>${tax.toFixed(2)} (10%)</b>
+            </p>
+            <p>
+              Total: <b>${total.toFixed(2)}</b>
+            </p>
+            <div className="sb-buttons">
+              <Button
+                danger
+                size="large"
+                className="!mb-3"
+                disabled={!selectedRowKeys.length}
+                onClick={deleteSelectedItems}
+              >
+                Delete Selected
+              </Button>
+              <Button
+                type="primary"
+                size="large"
+                className="sb-placeorder"
+                onClick={handlePlaceOrder}
+              >
+                Place Order
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {isModalOpen && (
+        <DeleteConfirmationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={() => {
+            if (itemToDelete) {
+              deleteItem(itemToDelete.key);
+            }
+            setIsModalOpen(false);
+            setItemToDelete(null);
+          }}
+          productName={itemToDelete?.product}
+        />
+      )}
+    </Flex>
+  </>
+);
+
+};
 export default Shoppingbag;

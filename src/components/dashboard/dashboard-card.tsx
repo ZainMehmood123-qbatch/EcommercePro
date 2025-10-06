@@ -59,7 +59,7 @@ export default function DashboardCard({
       colorName,
       colorCode,
       size,
-      qty: 1,   
+      qty: quantity,   
       price,
       stock
     };
