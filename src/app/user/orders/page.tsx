@@ -103,6 +103,7 @@ const Orders: React.FC = () => {
 
   return (
     <div className='order-whole'>
+      <div className='flex justify-between'>
       <div className='order-navbar'>
         <Link href='/'>
           <ArrowLeftOutlined className='order-arrowleft' />
@@ -110,14 +111,14 @@ const Orders: React.FC = () => {
         <h4 className='order-title'>Orders</h4>
       </div>
 
-      <div className='mb-4'>
+      <div className='mt-10 pr-4'>
         <SearchComponent
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           placeholder='Search by Order ID'
         />
       </div>
-
+</div>
       <Table
         columns={columns}
         dataSource={orders}

@@ -84,7 +84,7 @@ const OrderDetails: React.FC = () => {
   }
 
   if (!orderDetails) {
-    return <p className='od-orderNF'>Order not found</p>;
+    return;
   }
 
   return (
