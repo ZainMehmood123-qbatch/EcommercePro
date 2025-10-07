@@ -17,6 +17,7 @@ export default function AuthForm({
     <Form
       name={name}
       layout='vertical'
+      validateTrigger="onBlur"
       onFinish={onFinish}
       autoComplete='off'
     >
