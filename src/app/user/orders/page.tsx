@@ -9,6 +9,7 @@ import { RootState, AppDispatch } from '@/store';
 import { fetchOrders, setPage } from '@/store/slice/orders-slice';
 import { FetchedOrder } from '@/types/order';
 import SearchComponent from '@/components/dashboard/search-bar';
+import Navbar from '@/components/common/navbar';
 
 import './orders.css';
 
@@ -102,6 +103,8 @@ const Orders: React.FC = () => {
   }
 
   return (
+    <>
+    <Navbar />
     <div className='order-whole'>
       <div className='flex justify-between'>
       <div className='order-navbar'>
@@ -139,6 +142,7 @@ const Orders: React.FC = () => {
         className='order-wholetable'
       />
     </div>
+    </>
   );
 };
 

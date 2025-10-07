@@ -10,13 +10,15 @@ interface FormFieldProps {
   name: string;
   type?: 'text' | 'email' | 'password' | 'confirmPassword' | 'fullname' | 'mobile';
   dependency?: string;
+  placeholder?: string;
 }
 
 export default function FormField({
   label,
   name,
   type = 'text',
-  dependency
+  dependency,
+  placeholder
 }: FormFieldProps) {
   const rules: Rule[] = [{ required: true, message: `Please enter your ${label.toLowerCase()}` }];
 
@@ -68,6 +70,19 @@ export default function FormField({
   }
 
   return (
+    // <Form.Item
+    //   label={label}
+    //   name={name}
+    //   rules={rules}
+    //   dependencies={dependency ? [dependency] : []}
+    // >
+    //   {type.includes('password') ? (
+    //     <Input.Password placeholder={label} />
+    //   ) : (
+    //     <Input type={type === 'text' ? undefined : type} placeholder={label} />
+    //   )}
+    // </Form.Item>
+
     <Form.Item
       label={label}
       name={name}
@@ -75,9 +90,12 @@ export default function FormField({
       dependencies={dependency ? [dependency] : []}
     >
       {type.includes('password') ? (
-        <Input.Password placeholder={label} />
+        <Input.Password placeholder={placeholder || `Enter your ${label.toLowerCase()}`} />
       ) : (
-        <Input type={type === 'text' ? undefined : type} placeholder={label} />
+        <Input
+          type={type === 'text' ? undefined : type}
+          placeholder={placeholder || `Enter your ${label.toLowerCase()}`}
+        />
       )}
     </Form.Item>
   );

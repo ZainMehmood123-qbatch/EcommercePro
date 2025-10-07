@@ -75,7 +75,7 @@ export default function LoginPage() {
 
       <AuthTitle text="Login" />
       <AuthForm name="login" onFinish={onFinish}>
-        <FormField label="Email Address" name="email" type="email" />
+        <FormField label="Email Address" name="email" type="email"/>
         <FormField label="Password" name="password" type="password" />
         <div className="mb-4">
           <Checkbox checked={remember} onChange={(e) => setRemember(e.target.checked)}>

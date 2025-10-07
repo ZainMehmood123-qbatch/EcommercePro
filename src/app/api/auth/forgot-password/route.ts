@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     }
     
     const token = jwt.sign({ email, version: user.resetTokenVersion }, process.env.JWT_SECRET!, {
-      expiresIn: '5m' 
+      expiresIn: '10m' 
     });
 
     const resetLink = `${process.env.NEXTAUTH_URL}/auth/reset-password?token=${token}`;
@@ -24,7 +24,7 @@ export async function POST(req: Request) {
       'Password Reset Request',
       `<p>You requested to reset your password.</p>
        <p>Click <a href='${resetLink}'>here</a> to reset your password.</p>
-       <p>This link will expire in 5 minutes.</p>`
+       <p>This link will expire in 10 minutes.</p>`
     );
 
     return NextResponse.json({ message: 'Password reset email sent!' });
