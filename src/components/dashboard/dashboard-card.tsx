@@ -144,7 +144,7 @@ export default function DashboardCard({ product }: DashboardCardProps) {
                 onMouseLeave={() => setHoveredColor(null)}
                 className={`relative w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 overflow-hidden ${
                   selectedColor === color.colorName
-                    ? 'border-[#007BFF] scale-110 shadow-lg ring-2 ring-[#007BFF] ring-offset-2'
+                    ? 'border-[#007BFF] scale-110 shadow-lg ring ring-[#007BFF] ring-offset-2'
                     : hoveredColor === color.colorName
                     ? 'border-[#007BFF] scale-105 shadow-md'
                     : 'border-gray-200 hover:border-gray-300 hover:scale-105 shadow-sm'

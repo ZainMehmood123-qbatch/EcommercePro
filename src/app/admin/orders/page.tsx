@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { Table, Card, Button, Spin } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
@@ -12,6 +11,8 @@ import {
 } from '@ant-design/icons';
 
 import SearchComponent from '@/components/dashboard/search-bar';
+import OrderDetailsSidebar from '@/components/OrderDetailsSidebar'; 
+
 import { OrderType, FetchedOrder, FetchedOrderItem } from '@/types/order';
 
 import './orderss.css';
@@ -34,8 +35,8 @@ const OrdersPage = () => {
   const [totalUnits, setTotalUnits] = useState(0);
   const [totalAmount, setTotalAmount] = useState(0);
 
-  const [loading, setLoading] = useState(false); 
-  const [initialLoading, setInitialLoading] = useState(true); 
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [pageNum, setPageNum] = useState(1);
   const [limit] = useState(10);
@@ -44,7 +45,9 @@ const OrdersPage = () => {
   const [localSearch, setLocalSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
 
-  // debounce effect
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(localSearch);
@@ -87,17 +90,25 @@ const OrdersPage = () => {
     }
   };
 
-  // First load (full-page loader)
   useEffect(() => {
     fetchOrders(pageNum, debouncedSearch, true);
   }, []);
 
-  // After first load → search & pagination
   useEffect(() => {
     if (!initialLoading) {
       fetchOrders(pageNum, debouncedSearch);
     }
   }, [pageNum, debouncedSearch]);
+
+  const handleViewOrderDetails = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setSidebarOpen(true);
+  };
+
+  const handleCloseSidebar = () => {
+    setSidebarOpen(false);
+    setSelectedOrderId(null);
+  };
 
   const columns: ColumnsType<OrderType> = [
     { title: 'Date', dataIndex: 'date' },
@@ -113,13 +124,12 @@ const OrdersPage = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (_: unknown, record: OrderType) => (
-        <Link href={`/user/order-details/${record.id}`}>
-          <Button
-            type='text'
-            icon={<ExportOutlined />}
-            className='ado-actionbutton'
-          />
-        </Link>
+        <Button
+          type='text'
+          icon={<ExportOutlined />}
+          className='ado-actionbutton hover:bg-blue-50 hover:text-blue-600 transition-all'
+          onClick={() => handleViewOrderDetails(record.id)} 
+        />
       )
     }
   ];
@@ -186,7 +196,6 @@ const OrdersPage = () => {
           placeholder='Search by user and orderID'
         />
       </div>
-
       <Table
         rowKey="id"
         columns={columns}
@@ -198,6 +207,12 @@ const OrdersPage = () => {
           total: total,
           onChange: (page) => setPageNum(page)
         }}
+      />
+
+      <OrderDetailsSidebar
+        orderId={selectedOrderId}
+        open={sidebarOpen}
+        onClose={handleCloseSidebar}
       />
     </div>
   );
