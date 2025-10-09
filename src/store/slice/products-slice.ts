@@ -1,6 +1,5 @@
-// store/productsSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { ProductType, ProductResponse } from '@/types/product';
+import type { ProductType, ProductResponse } from '@/types/product';
 
 interface ProductsState {
   products: ProductType[];
@@ -36,18 +35,18 @@ interface FetchProductsArgs {
 
 export const fetchProducts = createAsyncThunk<
   ProductResponse,
-  FetchProductsArgs, 
-  { rejectValue: string } 
+  FetchProductsArgs,
+  { rejectValue: string }
 >('products/fetchProducts', async ({ page, search, sort }, { rejectWithValue }) => {
   try {
     const res = await fetch(
-      `/api/products?page=${page}&limit=8&search=${encodeURIComponent(
-        search
-      )}&sort=${sort}`
+      `/api/products?page=${page}&limit=8&search=${encodeURIComponent(search)}&sort=${sort}`
     );
+
     if (!res.ok) {
       return rejectWithValue('Failed to fetch products');
     }
+
     const data: ProductResponse = await res.json();
     return data;
   } catch (err) {
@@ -80,11 +79,8 @@ const productsSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(fetchProducts.pending, (state) => {
-        if (state.page === 1) {
-          state.loading = true;
-        } else {
-          state.loadingMore = true;
-        }
+        if (state.page === 1) state.loading = true;
+        else state.loadingMore = true;
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         const { data, total } = action.payload;
@@ -106,7 +102,5 @@ const productsSlice = createSlice({
   }
 });
 
-export const { resetProducts, setSearch, setSort, nextPage } =
-  productsSlice.actions;
-
+export const { resetProducts, setSearch, setSort, nextPage } = productsSlice.actions;
 export default productsSlice.reducer;

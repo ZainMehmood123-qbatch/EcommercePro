@@ -96,63 +96,55 @@ export async function GET(req: NextRequest) {
 }
 
 
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession({ req, ...authOptions });
-
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const userId = session.user.id;
-
-    const body = await req.json();
-    const { items } = body;
+    const { items } = (await req.json()) as { items: OrderItemInput[] };
 
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json(
-        { error: 'No items to create order' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'No items to create order' }, { status: 400 });
+    }
+    const variantIds = items.map((i) => i.variantId);
+    const variants = await prisma.productVariant.findMany({
+      where: { id: { in: variantIds } },
+      include: { product: true }
+    });
+
+    if (variants.length !== items.length) {
+      return NextResponse.json({ error: 'Some variants not found' }, { status: 400 });
     }
 
     let subtotal = 0;
 
-    const itemsWithValidIds = await Promise.all(
-      items.map(async (item: OrderItemInput) => {
-        if (!item.productId) {
-          throw new Error('Missing productId in order item');
-        }
+    const itemsWithValidatedData = items.map((item) => {
+      const variant = variants.find((v) => v.id === item.variantId);
+      if (!variant) throw new Error('Variant not found');
 
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId }
-        });
+      if (variant.stock < item.qty) {
+        throw new Error(
+          `Not enough stock for ${variant.product.title} (${variant.colorName ?? ''} ${variant.size ?? ''})`
+        );
+      }
 
-        if (!product) {
-          throw new Error(
-            `Product not found: ${item.title ?? ''} ${item.colorName ?? ''} ${item.size ?? ''}`
-          );
-        }
+      const price = variant.price;
+      subtotal += price * item.qty;
 
-        if (product.stock < item.qty) {
-          throw new Error(
-            `Not enough stock for ${product.title}. Available: ${product.stock}, Requested: ${item.qty}`
-          );
-        }
-
-        const price = product.price;
-        subtotal += price * item.qty;
-
-        return {
-          productId: product.id,
-          qty: item.qty,
-          price,
-          colorName: item.colorName ?? null,
-          colorCode: item.colorCode ?? null,
-          size: item.size ?? null
-        };
-      })
-    );
+      return {
+        productId: variant.productId,
+        variantId: variant.id,
+        qty: item.qty,
+        price,
+        colorName: variant.colorName,
+        colorCode: variant.colorCode,
+        size: variant.size
+      };
+    });
 
     const tax = subtotal * 0.1;
     const total = subtotal + tax;
@@ -163,20 +155,24 @@ export async function POST(req: NextRequest) {
           userId,
           tax,
           total,
-          items: {
-            create: itemsWithValidIds
-          }
+         items: {
+  create: itemsWithValidatedData.map((item) => ({
+    productId: item.productId,
+    variantId: item.variantId,
+    qty: item.qty,
+    price: item.price
+  }))
+}
+
         },
-        include: {
-          items: true
-        }
+        include: { items: true }
       });
 
-      // Decrement stock
+      // Decrement stock safely
       await Promise.all(
-        itemsWithValidIds.map((item) =>
-          tx.product.update({
-            where: { id: item.productId },
+        itemsWithValidatedData.map((item) =>
+          tx.productVariant.update({
+            where: { id: item.variantId },
             data: { stock: { decrement: item.qty } }
           })
         )

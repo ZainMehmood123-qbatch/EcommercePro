@@ -1,9 +1,11 @@
 // prisma/seed.ts
 // import { prisma } from '@/lib/prisma';
-//import { Product,Prisma } from '@prisma/client';
+// import { Product, Prisma } from '@prisma/client';
 import { PrismaClient } from '@prisma/client';
-//import bcrypt from 'bcryptjs';
+// import bcrypt from 'bcryptjs';
+
 const prisma = new PrismaClient();
+
 async function main() {
   // -------------------------------
   // 1️⃣ Seed Admin User
@@ -33,284 +35,185 @@ async function main() {
   // -------------------------------
   // 2️⃣ Seed Products
   // -------------------------------
-await prisma.product.deleteMany(); // remove old products
+  // Clear previous data
+  await prisma.productVariant.deleteMany();
+  await prisma.product.deleteMany();
 
-await prisma.product.createMany({
-  data: [
+  const colors = [
+    { name: 'Black', code: '#000000', image: '/black.png' },
+    { name: 'White', code: '#FFFFFF', image: '/white.png' },
+    { name: 'Yellow', code: '#FFFF00', image: '/yellow.png' },
+    { name: 'Red', code: '#FF0000', image: '/red.png' }
+  ];
+
+  const products = [
     {
       title: 'Cargo Trousers',
-      price: 45.99,
-      image: '/myheadphone.png',
-      colorName: 'Black',
-      colorCode: '#000000',
-      size: 'M',
-      stock: 50
+      variants: [
+        { size: 'M', stock: 50, price: 45.99 },
+        { size: 'L', stock: 30, price: 46.99 }
+      ]
     },
     {
-      title: 'Classic White T-Shirt',
-      price: 19.99,
-      image: '/mywooden.png',
-      colorName: 'White',
-      colorCode: '#FFFFFF',
-      size: 'L',
-      stock: 120
+      title: 'Classic T-Shirt',
+      variants: [
+        { size: 'M', stock: 80, price: 19.99 },
+        { size: 'L', stock: 120, price: 20.99 }
+      ]
     },
     {
       title: 'Denim Jacket',
-      price: 89.5,
-      image: '/myheadphone.png',
-      colorName: 'Blue',
-      colorCode: '#0000FF',
-      size: 'XL',
-      stock: 30
+      variants: [
+        { size: 'M', stock: 25, price: 89.5 },
+        { size: 'L', stock: 30, price: 91 }
+      ]
     },
     {
-      title: 'Black Sneakers',
-      price: 59.0,
-      image: '/mywooden.png',
-      colorName: 'Black',
-      colorCode: '#000000',
-      size: '42',
-      stock: 75
+      title: 'Sneakers',
+      variants: [
+        { size: '41', stock: 60, price: 59 },
+        { size: '42', stock: 75, price: 60 }
+      ]
     },
     {
-      title: 'Red Hoodie',
-      price: 39.99,
-      image: '/myheadphone.png',
-      colorName: 'Red',
-      colorCode: '#FF0000',
-      size: 'M',
-      stock: 40
+      title: 'Hoodie',
+      variants: [
+        { size: 'M', stock: 40, price: 39.99 },
+        { size: 'L', stock: 30, price: 41 }
+      ]
     },
     {
-      title: 'Blue Polo Shirt',
-      price: 29.99,
-      image: '/mywooden.png',
-      colorName: 'Blue',
-      colorCode: '#1E90FF',
-      size: 'L',
-      stock: 65
+      title: 'Polo Shirt',
+      variants: [
+        { size: 'M', stock: 50, price: 29.99 },
+        { size: 'L', stock: 65, price: 30.5 }
+      ]
     },
     {
       title: 'Leather Jacket',
-      price: 120.0,
-      image: '/myheadphone.png',
-      colorName: 'Brown',
-      colorCode: '#654321',
-      size: 'XL',
-      stock: 25
+      variants: [
+        { size: 'L', stock: 20, price: 120 },
+        { size: 'XL', stock: 25, price: 125 }
+      ]
     },
     {
       title: 'Running Shoes',
-      price: 75.0,
-      image: '/mywooden.png',
-      colorName: 'Gray',
-      colorCode: '#808080',
-      size: '43',
-      stock: 80
+      variants: [
+        { size: '42', stock: 60, price: 75 },
+        { size: '43', stock: 80, price: 77 }
+      ]
     },
     {
       title: 'Checked Shirt',
-      price: 35.0,
-      image: '/myheadphone.png',
-      colorName: 'Green',
-      colorCode: '#008000',
-      size: 'M',
-      stock: 55
+      variants: [
+        { size: 'M', stock: 55, price: 35 },
+        { size: 'L', stock: 45, price: 36 }
+      ]
     },
     {
       title: 'Jeans Slim Fit',
-      price: 55.5,
-      image: '/mywooden.png',
-      colorName: 'Dark Blue',
-      colorCode: '#00008B',
-      size: '32',
-      stock: 90
+      variants: [
+        { size: '30', stock: 60, price: 55.5 },
+        { size: '32', stock: 90, price: 56.5 }
+      ]
     },
     {
       title: 'Green Hoodie',
-      price: 42.0,
-      image: '/myheadphone.png',
-      colorName: 'Green',
-      colorCode: '#006400',
-      size: 'L',
-      stock: 45
-    },
-    {
-      title: 'Black Leather Boots',
-      price: 95.0,
-      image: '/mywooden.png',
-      colorName: 'Black',
-      colorCode: '#000000',
-      size: '44',
-      stock: 30
+      variants: [
+        { size: 'M', stock: 35, price: 42 },
+        { size: 'L', stock: 45, price: 43 }
+      ]
     },
     {
       title: 'White Sneakers',
-      price: 60.0,
-      image: '/myheadphone.png',
-      colorName: 'White',
-      colorCode: '#FFFFFF',
-      size: '41',
-      stock: 85
+      variants: [
+        { size: '40', stock: 70, price: 60 },
+        { size: '41', stock: 85, price: 61 }
+      ]
     },
     {
       title: 'Striped T-Shirt',
-      price: 22.0,
-      image: '/mywooden.png',
-      colorName: 'Navy',
-      colorCode: '#000080',
-      size: 'M',
-      stock: 100
+      variants: [
+        { size: 'M', stock: 100, price: 22 },
+        { size: 'L', stock: 80, price: 23 }
+      ]
     },
     {
       title: 'Blue Jeans',
-      price: 50.0,
-      image: '/myheadphone.png',
-      colorName: 'Blue',
-      colorCode: '#1E90FF',
-      size: '34',
-      stock: 110
+      variants: [
+        { size: '32', stock: 100, price: 50 },
+        { size: '34', stock: 110, price: 51 }
+      ]
     },
     {
       title: 'Winter Coat',
-      price: 130.0,
-      image: '/mywooden.png',
-      colorName: 'Gray',
-      colorCode: '#696969',
-      size: 'XL',
-      stock: 20
-    },
-    {
-      title: 'Formal Shoes',
-      price: 85.0,
-      image: '/myheadphone.png',
-      colorName: 'Brown',
-      colorCode: '#8B4513',
-      size: '43',
-      stock: 60
+      variants: [
+        { size: 'L', stock: 25, price: 130 },
+        { size: 'XL', stock: 20, price: 132 }
+      ]
     },
     {
       title: 'Summer Hat',
-      price: 15.0,
-      image: '/mywooden.png',
-      colorName: 'Beige',
-      colorCode: '#F5F5DC',
-      size: 'One Size',
-      stock: 150
-    },
-    {
-      title: 'Casual Shorts',
-      price: 25.0,
-      image: '/myheadphone.png',
-      colorName: 'Khaki',
-      colorCode: '#C3B091',
-      size: 'M',
-      stock: 95
-    },
-    {
-      title: 'Graphic Hoodie',
-      price: 40.0,
-      image: '/mywooden.png',
-      colorName: 'Black',
-      colorCode: '#000000',
-      size: 'L',
-      stock: 50
+      variants: [
+        { size: 'M', stock: 50, price: 25 },
+        { size: 'L', stock: 40, price: 26 }
+      ]
     },
     {
       title: 'Leather Belt',
-      price: 20.0,
-      image: '/myheadphone.png',
-      colorName: 'Brown',
-      colorCode: '#A0522D',
-      size: 'M',
-      stock: 130
+      variants: [
+        { size: 'M', stock: 60, price: 35 },
+        { size: 'L', stock: 50, price: 36 }
+      ]
     },
     {
-      title: 'Running Shorts',
-      price: 18.0,
-      image: '/mywooden.png',
-      colorName: 'Blue',
-      colorCode: '#4682B4',
-      size: 'M',
-      stock: 140
+      title: 'Sports Cap',
+      variants: [
+        { size: 'One Size', stock: 70, price: 15 }
+      ]
     },
     {
-      title: 'Sports Jacket',
-      price: 90.0,
-      image: '/myheadphone.png',
-      colorName: 'Navy',
-      colorCode: '#000080',
-      size: 'L',
-      stock: 35
+      title: 'Yoga Pants',
+      variants: [
+        { size: 'S', stock: 40, price: 30 },
+        { size: 'M', stock: 50, price: 31 }
+      ]
     },
     {
-      title: 'Plaid Shirt',
-      price: 38.0,
-      image: '/mywooden.png',
-      colorName: 'Red',
-      colorCode: '#B22222',
-      size: 'M',
-      stock: 70
-    },
-    {
-      title: 'Sneaker Socks',
-      price: 10.0,
-      image: '/myheadphone.png',
-      colorName: 'White',
-      colorCode: '#FFFFFF',
-      size: 'Free Size',
-      stock: 200
-    },
-    {
-      title: 'Denim Shorts',
-      price: 35.0,
-      image: '/mywooden.png',
-      colorName: 'Blue',
-      colorCode: '#4169E1',
-      size: 'L',
-      stock: 65
-    },
-    {
-      title: 'V-Neck T-Shirt',
-      price: 21.0,
-      image: '/myheadphone.png',
-      colorName: 'Gray',
-      colorCode: '#A9A9A9',
-      size: 'M',
-      stock: 115
-    },
-    {
-      title: 'Hiking Boots',
-      price: 110.0,
-      image: '/mywooden.png',
-      colorName: 'Brown',
-      colorCode: '#5C4033',
-      size: '45',
-      stock: 25
-    },
-    {
-      title: 'Rain Jacket',
-      price: 75.0,
-      image: '/myheadphone.png',
-      colorName: 'Yellow',
-      colorCode: '#FFD700',
-      size: 'XL',
-      stock: 40
-    },
-    {
-      title: 'Beanie Hat',
-      price: 12.0,
-      image: '/mywooden.png',
-      colorName: 'Black',
-      colorCode: '#000000',
-      size: 'One Size',
-      stock: 180
+      title: 'Hooded Sweatshirt',
+      variants: [
+        { size: 'M', stock: 45, price: 40 },
+        { size: 'L', stock: 30, price: 41 }
+      ]
     }
-  ]
-});
+  ];
 
-console.log('✅ Product seeding complete');
+  for (const product of products) {
+    const variantsWithColors = [];
+    for (const variant of product.variants) {
+      for (const color of colors) {
+        variantsWithColors.push({
+          size: variant.size,
+          stock: variant.stock,
+          price: variant.price,
+          colorName: color.name,
+          colorCode: color.code,
+          image: color.image
+        });
+      }
+    }
+
+    await prisma.product.create({
+      data: {
+        title: product.title,
+        variants: {
+          create: variantsWithColors
+        }
+      }
+    });
+  }
+
+  console.log('Seed completed with 20+ products and 4 colors each!');
 }
 
 // Run main

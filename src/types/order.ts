@@ -1,24 +1,28 @@
-// /types/order.ts
 'use client';
 import React from 'react';
-import { ProductType,ProductBase,ProductAttributes } from './product';
-
+import { ProductBase } from './product';
 
 export interface FetchedOrder {
   id: string;
   createdAt: string;
   userId: string;
-  items?: FetchedOrderItem[];
+  items?: FetchedOrderProduct[]; 
   total?: number;
 }
+
 export interface FetchedOrderItem {
   productId: string;
+  variantId: string;
   qty: number;
   price: number;
+  colorName?: string;
+  colorCode?: string;
+  size?: string;
+  image?: string; 
 }
 
 export interface CreateOrderRequest {
-  items: ProductType[];
+  items: OrderItemInput[];
   tax: number;
   total: number;
 }
@@ -27,6 +31,10 @@ export interface FetchedOrderProduct {
   product: ProductBase;
   price: number;
   qty: number;
+  colorName?: string;
+  colorCode?: string;
+  size?: string;
+  image?: string; 
 }
 
 export interface OrderType {
@@ -44,13 +52,27 @@ export interface OrderDetailType {
   orderNo: string;
   date: string;
   user: string;
-  total:number;
-  items: ProductType[];
+  total: number;
+  items: {
+    key: number;
+    title: string;
+    price: number;
+    qty: number;
+    image: string;
+    colorName?: string;
+    colorCode?: string;
+    size?: string;
+  }[]; 
 }
 
-export interface OrderItemInput extends ProductAttributes {
-  productId: string; 
+export interface OrderItemInput {
+  productId: string;
+  variantId: string;
   title: string;
   qty: number;
   price: number;
+  colorName?: string;
+  colorCode?: string;
+  size?: string;
+  image?: string; 
 }

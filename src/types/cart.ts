@@ -3,7 +3,8 @@ import React from 'react';
 // /types/cart.ts
 export interface CartItem {
   key: React.Key;
-  id: string;
+  id: string;          // productId
+  variantId: string;   // ProductVariant.id
   product: string;
   image: string;
   colorName?: string;
@@ -13,3 +14,4 @@ export interface CartItem {
   price: number;
   stock: number; 
 }
+

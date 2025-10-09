@@ -94,14 +94,16 @@ const Shoppingbag: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: items.map((i) => ({
-            productId: i.id,
-            qty: i.qty,
-            colorName: i.colorName,
-            colorCode: i.colorCode,
-            size: i.size
-          }))
-        })
+  items: items.map(i => ({
+    productId: i.id,        // main product ID
+    variantId: i.variantId, // variant ID
+    qty: i.qty,
+    price: i.price,
+    colorName: i.colorName,
+    colorCode: i.colorCode,
+    size: i.size
+  }))
+})
       });
 
       if (!res.ok) throw new Error('Failed to place order');

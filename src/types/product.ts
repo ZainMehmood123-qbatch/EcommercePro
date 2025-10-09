@@ -1,28 +1,36 @@
-// /types/order.ts
 'use client';
 import React from 'react';
 
-// product
+// Base product info (general info only)
 export interface ProductBase {
   id: string;
   title: string;
-  image: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Product variant (color, size, price, image, stock)
+export interface ProductVariant {
+  id: string;
+  productId: string;
+  colorName: string;
+  colorCode: string;
+  size: string;
+  stock: number;
   price: number;
-  stock:number
+  image: string; // variant-specific image
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface ProductAttributes {
-  colorName?: string;
-  colorCode?: string;
-  size?: string;
-}
-
-export interface ProductType extends ProductBase, ProductAttributes {
-  product?: ProductBase;
+// Complete product (with all its variants)
+export interface ProductType extends ProductBase {
+  variants: ProductVariant[];
   key?: React.Key;
-  qty?: number;
+  qty?: number; // useful for cart or order context
 }
 
+// Response format from backend (paginated or full list)
 export interface ProductResponse {
   data: ProductType[];
   total: number;

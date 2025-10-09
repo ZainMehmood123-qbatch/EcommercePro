@@ -1,9 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-
 import dynamic from 'next/dynamic';
-
 import { Spin } from 'antd';
 import {
   DollarOutlined,
@@ -28,11 +26,13 @@ import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/dro
 
 import './dashboard.css';
 
+// ✅ DashboardCard dynamically imported
 const DashboardCard = dynamic(() => import('@/components/dashboard/dashboard-card'), {
   ssr: false,
   loading: () => <></>
 });
 
+// ✅ Sort options
 const productSortItems: GenericDropdownItem[] = [
   { key: 'price_asc', label: 'Price: Low to High', icon: <DollarOutlined /> },
   { key: 'price_desc', label: 'Price: High to Low', icon: <DollarOutlined /> },
@@ -44,19 +44,14 @@ const productSortItems: GenericDropdownItem[] = [
 
 const Dashboardpage: React.FC = () => {
   const dispatch = useAppDispatch();
-  const {
-    products,
-    page,
-    search,
-    sort,
-    loading,
-    loadingMore,
-    hasMore
-  } = useAppSelector(state => state.products);
+  const { products, page, search, sort, loading, loadingMore, hasMore } = useAppSelector(
+    state => state.products
+  );
 
   const [localSearch, setLocalSearch] = useState(search);
   const [debouncedSearch, setDebouncedSearch] = useState(localSearch);
 
+  // ✅ Fetch products
   const loadProducts = useCallback(
     (pageToLoad: number) => {
       dispatch(fetchProducts({ page: pageToLoad, search: debouncedSearch, sort }));
@@ -64,11 +59,11 @@ const Dashboardpage: React.FC = () => {
     [dispatch, debouncedSearch, sort]
   );
 
+  // ✅ Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(localSearch);
     }, 500);
-
     return () => clearTimeout(handler);
   }, [localSearch]);
 
@@ -76,11 +71,13 @@ const Dashboardpage: React.FC = () => {
     dispatch(setSearch(debouncedSearch));
   }, [debouncedSearch, dispatch]);
 
+  // ✅ Reload products when search or sort changes
   useEffect(() => {
     dispatch(resetProducts());
     loadProducts(1);
   }, [debouncedSearch, sort, dispatch, loadProducts]);
 
+  // ✅ Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -95,29 +92,32 @@ const Dashboardpage: React.FC = () => {
     };
 
     window.addEventListener('scroll', handleScroll);
-    
     return () => window.removeEventListener('scroll', handleScroll);
   }, [dispatch, loading, loadingMore, hasMore, page, loadProducts]);
 
   return (
     <>
-     {loading && (
+      {/* ✅ Loading overlay */}
+      {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
-          <Spin size="large" tip="Logging in..."/>
+          <Spin size="large" tip="Loading products..." />
         </div>
       )}
+
       <Navbar title="E-commerce" />
+
       <div className="dashboard-whole">
+        {/* ✅ Header section */}
         <div className="dashboard-innerheader">
-          <p className="dashboard-title">
-            Our Products
-          </p>
+          <p className="dashboard-title">Our Products</p>
+
           <div className="dashboard-innerheadericons">
             <SearchComponent
               searchTerm={localSearch}
               setSearchTerm={setLocalSearch}
-              placeholder='Search products'
-            /> 
+              placeholder="Search products"
+            />
+
             <GenericDropdown
               items={productSortItems}
               selectedKey={sort}
@@ -125,17 +125,22 @@ const Dashboardpage: React.FC = () => {
             />
           </div>
         </div>
+
+        {/* ✅ Product Grid */}
         <div className="dashboard-product">
           {products.map((product, index) => (
-          <DashboardCard key={`${product.id}-${index}`} {...product} />
-          ))}
+  <DashboardCard key={`${product.id}-${index}`} product={product} />
+))}
         </div>
 
+        {/* ✅ Footer */}
         <div className="dashboard-footer">
-          {loadingMore ? <Spin size="large"/> : null}
-          {!hasMore && !loading && !loadingMore ? <DelayedMessage delay={800}>
+          {loadingMore ? <Spin size="large" /> : null}
+          {!hasMore && !loading && !loadingMore ? (
+            <DelayedMessage delay={800}>
               <p className="dashboard-footercontent">No more products</p>
-            </DelayedMessage> : null}
+            </DelayedMessage>
+          ) : null}
         </div>
       </div>
     </>
