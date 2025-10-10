@@ -62,19 +62,16 @@ export const fetchOrderDetails = createAsyncThunk<
       orderNo: `ORD-${data.id.substring(0, 8)}`,
       user: data.user.fullname,
       total: data.total,
-    items: data.items.map((item: FetchedOrderProduct, index: number) => ({
-  key: index,
-  title: item.product?.title ?? 'Untitled',
-  price: item.price ?? 0,
-  qty: item.qty ?? 0,
-  image: item.image ?? '/fallback.png', // ✅ Now valid
-  colorName: item.colorName ?? '-',
-  colorCode: item.colorCode ?? '',
-  size: item.size ?? '-'
-}))
-
-
-
+      items: data.items.map((item: FetchedOrderProduct, index: number) => ({
+        key: index,
+        title: item.product?.title ?? 'Untitled',
+        price: item.price ?? 0,
+        qty: item.qty ?? 0,
+        image: item.image ?? '/fallback.png', 
+        colorName: item.colorName ?? '-',
+        colorCode: item.colorCode ?? '',
+        size: item.size ?? '-'
+      }))
     };
 
     return mappedOrder;

@@ -19,14 +19,7 @@ import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/dro
 
 import './products.css';
 import toast from 'react-hot-toast';
-
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  stock?: number;
-  image?: string;
-}
+import { ProductType } from '@/types/product';
 
 const productSortItems: GenericDropdownItem[] = [
   { key: 'price_asc', label: 'Price: Low to High', icon: <DollarOutlined /> },
@@ -38,8 +31,8 @@ const productSortItems: GenericDropdownItem[] = [
 ];
 
 export default function ProductsPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true); // 👈 default true rakha
+  const [products, setProducts] = useState<ProductType[]>([]);
+  const [loading, setLoading] = useState(true);
   const [pageNum, setPageNum] = useState(1);
   const [limit] = useState(12);
   const [total, setTotal] = useState(0);
@@ -47,28 +40,41 @@ export default function ProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [sort, setSort] = useState<string>('newest');
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<ProductType | null>(null);
   const [visible, setVisible] = useState(false);
 
-  // fetch products
-  const fetchProducts = useCallback(
-    async (page: number, search = debouncedSearch, sortKey = sort) => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `/api/products?page=${page}&limit=${limit}&search=${search}&sort=${sortKey}`
-        );
-        const result = await res.json();
+     const fetchProducts = useCallback(
+        async (page: number, search = debouncedSearch, sortKey = sort) => {
 
-        if (result?.data && Array.isArray(result.data)) {
-          setProducts(result.data);
-          setTotal(result.total || 0);
-        } else {
-          setProducts([]);
-          setTotal(0);
-        }
+          setLoading(true);
+          try {
+            const res = await fetch(
+              `/api/products?page=${page}&limit=${limit}&search=${search}&sort=${sortKey}`
+            );
+            const result = await res.json();
+
+            if (result?.data && Array.isArray(result.data)) {
+              const transformed = result.data.map((p: ProductType) => {
+                const firstVariant = p.variants?.[0];
+                return {
+                  id: p.id,
+                  title: p.title,
+                  price: firstVariant?.price ?? 0,
+                  stock: firstVariant?.stock ?? 0,
+                  image: firstVariant?.image ?? '/placeholder.png',
+                  variants: p.variants || []
+                };
+              });
+
+                setProducts(transformed);
+                setTotal(result.total || 0);
+              } else {
+                setProducts([]);
+                setTotal(0);
+              }
+
       } catch (err) {
         console.error('Failed to fetch products', err);
         message.error('Failed to fetch products');
@@ -91,7 +97,7 @@ export default function ProductsPage() {
     fetchProducts(pageNum);
   }, [pageNum, debouncedSearch, sort, fetchProducts]);
 
-  const handleEdit = (product: Product) => {
+  const handleEdit = (product: ProductType) => {
     setSelectedProduct(product);
     setIsModalVisible(true);
   };
@@ -101,7 +107,7 @@ export default function ProductsPage() {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (record: Product) => {
+  const handleDelete = async (record: ProductType) => {
     try {
       const res = await fetch(`/api/products/${record.id}`, {
         method: 'DELETE'
@@ -123,26 +129,29 @@ export default function ProductsPage() {
     }
   };
 
-  const columns: ColumnsType<Product> = [
+  const columns: ColumnsType<ProductType> = [
     {
       title: 'Image',
-      dataIndex: 'image',
-      render: (src) => <Avatar shape="square" className="adp-avatar" src={src} />
+      render: (record: ProductType) => (
+        <Avatar
+          shape="square"
+          className="adp-avatar"
+          src={record.variants?.[0]?.image || '/placeholder.png'}
+        />
+      )
     },
     { title: 'Title', dataIndex: 'title' },
     {
       title: 'Price',
-      dataIndex: 'price',
-      render: (p: number) => `$${p.toFixed(2)}`
+      render: (record: ProductType) => `$${record.variants?.[0]?.price?.toFixed(2) ?? '0.00'}`
     },
     {
       title: 'Stock',
-      dataIndex: 'stock',
-      render: (s) => s ?? '-'
+      render: (record: ProductType) => record.variants?.[0]?.stock ?? '-'
     },
     {
       title: 'Actions',
-      render: (record: Product) => (
+      render: (record: ProductType) => (
         <div className="flex gap-2">
           <Button
             type="text"

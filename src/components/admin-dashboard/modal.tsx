@@ -11,51 +11,59 @@ import {
   Upload,
   Image,
   Typography,
-  Divider
+  Divider,
+  Space
 } from 'antd';
-import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
+import type { ProductType, ProductVariant } from '@/types/product';
 
 const { Title } = Typography;
-
-interface Product {
-  id: string;
-  title: string;
-  price: number;
-  stock?: number;
-  image?: string;
-}
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  product: Product | null;
-  products: Product[];
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  product: ProductType | null;
+  products: ProductType[];
+  setProducts: React.Dispatch<React.SetStateAction<ProductType[]>>;
 }
 
 export default function ProductModal({
   visible,
   onClose,
   product,
-  setProducts,
-  products
+  products,
+  setProducts
 }: Props) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [image, setImage] = useState<string>('');
 
+  // Initialize form with product data or default values
   useEffect(() => {
     if (product) {
-      form.setFieldsValue(product);
-      setImage(product.image || '');
+      form.setFieldsValue({
+        title: product.title,
+        variants: product.variants
+      });
     } else {
       form.resetFields();
-      setImage('');
+      form.setFieldsValue({
+        variants: [
+          {
+            colorName: '',
+            colorCode: '#000000',
+            size: '',
+            price: 0,
+            stock: 0,
+            image: ''
+          }
+        ]
+      });
     }
   }, [product, form]);
 
-  const handleImageUpload = async (file: File) => {
+  // Upload Image Function
+  const handleImageUpload = async (file: File, _: string, index: number) => {
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -64,7 +72,11 @@ export default function ProductModal({
       if (!res.ok) throw new Error('Upload failed');
 
       const { url } = await res.json();
-      setImage(url);
+
+      const values = form.getFieldsValue();
+      values.variants[index].image = url;
+      form.setFieldsValue(values);
+
       message.success('Image uploaded successfully!');
     } catch (err) {
       console.error(err);
@@ -73,25 +85,24 @@ export default function ProductModal({
     return false;
   };
 
+  // Save / Update Product
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
-      if (!image) {
-        message.error('Product image is required!');
-        return;
-      }
+      const payload: ProductType = { ...values };
 
-      const payload = { ...values, image };
       setLoading(true);
 
-      let res;
+      let res: Response;
       if (product) {
+        // Update existing product
         res = await fetch(`/api/products/${product.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
       } else {
+        // Create new product
         res = await fetch('/api/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -100,7 +111,7 @@ export default function ProductModal({
       }
 
       if (!res.ok) throw new Error('Failed to save product');
-      const savedProduct: Product = await res.json();
+      const savedProduct: ProductType = await res.json();
 
       if (product) {
         setProducts(products.map((p) => (p.id === savedProduct.id ? savedProduct : p)));
@@ -126,40 +137,25 @@ export default function ProductModal({
       title={<Title level={4}>{product ? '✏️ Edit Product' : '➕ Add New Product'}</Title>}
       open={visible}
       onCancel={onClose}
-      width={520}
+      width={600}
+      styles={{
+            body: {
+              maxHeight: '70vh',
+              overflowY: 'auto',
+              paddingRight: 16
+            }
+          }}
       footer={[
-        <Button key="cancel" onClick={onClose}>Cancel</Button>,
+        <Button key="cancel" onClick={onClose}>
+          Cancel
+        </Button>,
         <Button key="save" type="primary" onClick={handleSave} loading={loading}>
           {product ? 'Update' : 'Save'}
         </Button>
       ]}
     >
       <Form form={form} layout="vertical">
-        <Divider orientation="left">Product Image</Divider>
-        <Form.Item>
-          <Upload
-            accept="image/*"
-            showUploadList={false}
-            beforeUpload={handleImageUpload}
-          >
-            {image ? (
-              <div className="relative w-28 h-28 rounded-lg shadow-md overflow-hidden cursor-pointer group">
-                <Image src={image} alt="Product" width={112} height={112} style={{ objectFit: 'cover' }} fallback="/fallback.png"/>
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition">
-                  <UploadOutlined /> Change
-                </div>
-              </div>
-            ) : (
-              <div className="w-28 h-28 flex flex-col items-center justify-center border border-dashed rounded-lg cursor-pointer hover:border-blue-500 hover:text-blue-500 transition">
-                <PlusOutlined />
-                <span className="mt-1 text-xs">Upload</span>
-              </div>
-            )}
-          </Upload>
-        </Form.Item>
-
-        <Divider orientation="left">Product Details</Divider>
-
+        {/* Product Title */}
         <Form.Item
           label="Product Name"
           name="title"
@@ -168,27 +164,130 @@ export default function ProductModal({
           <Input placeholder="Enter product name" />
         </Form.Item>
 
-        <Form.Item
-          label="Price"
-          name="price"
-          rules={[
-            { required: true, message: 'Please enter product price' },
-            { type: 'number', min: 0.01, message: 'Price must be greater than 0' }
-          ]}
-        >
-          <InputNumber className="w-full" placeholder="Enter price" prefix="$"/>
-        </Form.Item>
+        <Divider orientation="left">Variants</Divider>
 
-        <Form.Item
-          label="Stock Quantity"
-          name="stock"
-          rules={[
-            { required: true, message: 'Please enter stock quantity' },
-            { type: 'number', min: 0, message: 'Stock cannot be negative' }
-          ]}
-        >
-          <InputNumber className="w-full" placeholder="Enter stock quantity"/>
-        </Form.Item>
+        {/* ✅ Variants List */}
+        <Form.List name="variants">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }, index) => (
+                <div key={key} className="p-4 mb-4 border rounded-lg shadow-sm bg-gray-50">
+                  <Space align="start" className="w-full">
+                    {/* Image Upload */}
+                    <Form.Item {...restField} name={[name, 'image']} label="Image">
+                      <Upload
+                        accept="image/*"
+                        showUploadList={false}
+                        beforeUpload={(file) => {
+                        handleImageUpload(file as File, 'image', index);
+                        return false; 
+                      }}
+                 >
+                        {form.getFieldValue(['variants', name, 'image']) ? (
+                          <div className="relative w-20 h-20 rounded-lg shadow overflow-hidden cursor-pointer group">
+                            <Image
+                              src={form.getFieldValue(['variants', name, 'image'])}
+                              alt="Variant"
+                              width={80}
+                              height={80}
+                              style={{ objectFit: 'cover' }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white opacity-0 group-hover:opacity-100 transition">
+                              <UploadOutlined /> Change
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-20 h-20 flex flex-col items-center justify-center border border-dashed rounded-lg cursor-pointer hover:border-blue-500 hover:text-blue-500 transition">
+                            <PlusOutlined />
+                            <span className="mt-1 text-xs">Upload</span>
+                          </div>
+                        )}
+                      </Upload>
+                    </Form.Item>
+
+                    {/* Other Variant Fields */}
+                    <div className="flex-1 grid grid-cols-2 gap-3">
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'colorName']}
+                        label="Color Name"
+                        rules={[{ required: true, message: 'Enter color name' }]}
+                      >
+                        <Input placeholder="Red" />
+                      </Form.Item>
+
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'colorCode']}
+                        label="Color Code"
+                        rules={[{ required: true, message: 'Pick color' }]}
+                      >
+                        <Input type="color" />
+                      </Form.Item>
+
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'size']}
+                        label="Size"
+                        rules={[{ required: true, message: 'Enter size' }]}
+                      >
+                        <Input placeholder="M" />
+                      </Form.Item>
+
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'price']}
+                        label="Price"
+                        rules={[{ required: true, message: 'Enter price' }]}
+                      >
+                        <InputNumber className="w-full" min={0} prefix="$" />
+                      </Form.Item>
+
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'stock']}
+                        label="Stock"
+                        rules={[{ required: true, message: 'Enter stock' }]}
+                      >
+                        <InputNumber className="w-full" min={0} />
+                      </Form.Item>
+                    </div>
+
+                    {/* Delete Variant */}
+                    {fields.length > 1 && (
+                      <Button
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => remove(name)}
+                      />
+                    )}
+                  </Space>
+                </div>
+              ))}
+
+              <Form.Item>
+                <Button
+                  type="dashed"
+                  onClick={() =>
+                    add({
+                      colorName: '',
+                      colorCode: '#000000',
+                      size: '',
+                      price: 0,
+                      stock: 0,
+                      image: ''
+                    } as ProductVariant)
+                  }
+                  block
+                  icon={<PlusOutlined />}
+                >
+                  Add Variant
+                </Button>
+              </Form.Item>
+            </>
+          )}
+        </Form.List>
       </Form>
     </Modal>
   );
