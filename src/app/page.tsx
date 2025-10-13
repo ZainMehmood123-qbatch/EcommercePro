@@ -4,7 +4,6 @@ import React, { useEffect, useState, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { Spin } from 'antd';
 import {
-  DollarOutlined,
   SortAscendingOutlined,
   SortDescendingOutlined,
   CalendarOutlined
@@ -34,8 +33,6 @@ const DashboardCard = dynamic(() => import('@/components/dashboard/dashboard-car
 
 // Sort options
 const productSortItems: GenericDropdownItem[] = [
-  { key: 'price_asc', label: 'Price: Low to High', icon: <DollarOutlined /> },
-  { key: 'price_desc', label: 'Price: High to Low', icon: <DollarOutlined /> },
   { key: 'name_asc', label: 'Name: A to Z', icon: <SortAscendingOutlined /> },
   { key: 'name_desc', label: 'Name: Z to A', icon: <SortDescendingOutlined /> },
   { key: 'newest', label: 'Newest First', icon: <CalendarOutlined /> },

@@ -6,7 +6,6 @@ import type { ColumnsType } from 'antd/es/table';
 import {
   EditOutlined,
   DeleteOutlined,
-  DollarOutlined,
   SortAscendingOutlined,
   SortDescendingOutlined,
   CalendarOutlined
@@ -22,8 +21,6 @@ import toast from 'react-hot-toast';
 import { ProductType } from '@/types/product';
 
 const productSortItems: GenericDropdownItem[] = [
-  { key: 'price_asc', label: 'Price: Low to High', icon: <DollarOutlined /> },
-  { key: 'price_desc', label: 'Price: High to Low', icon: <DollarOutlined /> },
   { key: 'name_asc', label: 'Name: A to Z', icon: <SortAscendingOutlined /> },
   { key: 'name_desc', label: 'Name: Z to A', icon: <SortDescendingOutlined /> },
   { key: 'newest', label: 'Newest First', icon: <CalendarOutlined /> },
