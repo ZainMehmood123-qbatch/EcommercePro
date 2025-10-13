@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { Prisma } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
+import { createOrderSchema } from '@/validations/orderValidation';
 import { OrderItemInput } from '@/types/order';
 import { authOptions } from '../auth/[...nextauth]/route';
 
@@ -95,8 +96,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-
-
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession({ req, ...authOptions });
@@ -105,12 +104,27 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = session.user.id;
-    const { items } = (await req.json()) as { items: OrderItemInput[] };
-
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return NextResponse.json({ error: 'No items to create order' }, { status: 400 });
+    const body = await req.json();
+    const { error } = createOrderSchema.validate(body, { abortEarly: false });
+    if (error) {
+      return NextResponse.json(
+        {
+          error: 'Validation failed',
+          details: error.details.map((d) => d.message)
+        },
+        { status: 400 }
+      );
     }
+
+    const { items } = body as { items: OrderItemInput[] };
     const variantIds = items.map((i) => i.variantId);
+    const duplicates = variantIds.filter((id, index) => variantIds.indexOf(id) !== index);
+    if (duplicates.length > 0) {
+      return NextResponse.json(
+        { error: `Duplicate variants not allowed: ${[...new Set(duplicates)].join(', ')}` },
+        { status: 400 }
+      );
+    }
     const variants = await prisma.productVariant.findMany({
       where: { id: { in: variantIds } },
       include: { product: true }
@@ -119,10 +133,10 @@ export async function POST(req: NextRequest) {
     if (variants.length !== items.length) {
       return NextResponse.json({ error: 'Some variants not found' }, { status: 400 });
     }
-
     let subtotal = 0;
+    const orderedItems = variantIds.map((vid) => items.find((i) => i.variantId === vid)!);
 
-    const itemsWithValidatedData = items.map((item) => {
+    const itemsWithValidatedData = orderedItems.map((item) => {
       const variant = variants.find((v) => v.id === item.variantId);
       if (!variant) throw new Error('Variant not found');
 
@@ -148,27 +162,25 @@ export async function POST(req: NextRequest) {
 
     const tax = subtotal * 0.1;
     const total = subtotal + tax;
-
     const order = await prisma.$transaction(async (tx) => {
       const newOrder = await tx.order.create({
         data: {
           userId,
           tax,
           total,
-         items: {
-  create: itemsWithValidatedData.map((item) => ({
-    productId: item.productId,
-    variantId: item.variantId,
-    qty: item.qty,
-    price: item.price
-  }))
-}
-
+          items: {
+            create: itemsWithValidatedData.map((item) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              qty: item.qty,
+              price: item.price
+            }))
+          }
         },
         include: { items: true }
       });
 
-      // Decrement stock safely
+      // decrement stock
       await Promise.all(
         itemsWithValidatedData.map((item) =>
           tx.productVariant.update({

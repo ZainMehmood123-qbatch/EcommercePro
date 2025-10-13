@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
+import type { ProductType, ProductVariant } from '@/types/product';
+import { productCreateSchema } from '@/validations/productSchema';
 
 export async function GET(req: NextRequest) {
   try {
@@ -64,32 +66,32 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-  const newProduct = await prisma.product.create({
-  data: {
-    title: body.title,
-    status: 'ACTIVE',
-    variants: {
-      create: body.variants?.map((v: {
-        colorName: string;
-        colorCode: string;
-        size: string;
-        stock: number;
-        price: number;
-        image: string;
-      }) => ({
-        colorName: v.colorName,
-        colorCode: v.colorCode,
-        size: v.size,
-        stock: v.stock,
-        price: v.price,
-        image: v.image
-      }))
+    const body: ProductType = await req.json();
+    const { error, value } = productCreateSchema.validate(body, { abortEarly: false });
+    if (error) {
+      return NextResponse.json(
+        { success: false, errors: error.details.map((e) => e.message) },
+        { status: 400 }
+      );
     }
-  },
-  include: { variants: true }
-});
 
+    const newProduct = await prisma.product.create({
+      data: {
+        title: value.title,
+        status: 'ACTIVE',
+        variants: {
+          create: value.variants.map((v: ProductVariant) => ({
+            colorName: v.colorName,
+            colorCode: v.colorCode,
+            size: v.size,
+            stock: v.stock,
+            price: v.price,
+            image: v.image
+          }))
+        }
+      },
+      include: { variants: true }
+    });
 
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {

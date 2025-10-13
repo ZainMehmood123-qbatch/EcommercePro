@@ -97,7 +97,7 @@ export default function DashboardCard({ product }: DashboardCardProps) {
             height={220}
             className="w-full h-[220px] object-contain transform group-hover:scale-110 transition-all duration-500 ease-out"
           />
-          {stock > 0 && stock < 10 && selectedVariant && (
+          {stock > 0 && stock < 1000 && selectedVariant && (
             <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg animate-pulse">
               Only {stock} left!
             </div>
