@@ -3,10 +3,15 @@ import type { NextRequest } from 'next/server';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { ProductType, ProductVariant } from '@/types/product';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
 import { productCreateSchema } from '@/validations/productSchema';
 
 export async function GET(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    const role = session?.user?.role || 'USER';
+
     const { searchParams } = new URL(req.url);
 
     const page = parseInt(searchParams.get('page') || '1', 10);
@@ -18,22 +23,22 @@ export async function GET(req: NextRequest) {
     let orderBy: Prisma.ProductOrderByWithRelationInput;
 
     switch (sort) {
-  case 'name_asc':
-    orderBy = { title: 'asc' };
-    break;
-  case 'name_desc':
-    orderBy = { title: 'desc' };
-    break;
-  case 'oldest':
-    orderBy = { createdAt: 'asc' };
-    break;
-  case 'newest':
-  default:
-    orderBy = { createdAt: 'desc' };
-    break;
-}
+      case 'name_asc':
+        orderBy = { title: 'asc' };
+        break;
+      case 'name_desc':
+        orderBy = { title: 'desc' };
+        break;
+      case 'oldest':
+        orderBy = { createdAt: 'asc' };
+        break;
+      case 'newest':
+      default:
+        orderBy = { createdAt: 'desc' };
+        break;
+    }
 
-    const where: Prisma.ProductWhereInput = {
+    const baseWhere: Prisma.ProductWhereInput = {
       status: 'ACTIVE',
       ...(search
         ? {
@@ -45,15 +50,20 @@ export async function GET(req: NextRequest) {
         : {})
     };
 
+    const where: Prisma.ProductWhereInput =
+      role === 'ADMIN'
+        ? baseWhere 
+        : {
+            ...baseWhere,
+            variants: {
+              some: { isDeleted: false } 
+            }
+          };
+
     const products = await prisma.product.findMany({
       skip,
       take: limit,
-      where: {
-      ...where,
-      variants: {
-        some: { isDeleted: false } 
-      }
-    },
+      where,
       orderBy,
       include: {
         variants: {
@@ -74,6 +84,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body: ProductType = await req.json();
+
     const { error, value } = productCreateSchema.validate(body, { abortEarly: false });
     if (error) {
       return NextResponse.json(
@@ -87,7 +98,7 @@ export async function POST(req: NextRequest) {
         title: value.title,
         status: 'ACTIVE',
         variants: {
-          create: value.variants.map((v: ProductVariant) => ({
+          create: (value.variants ?? []).map((v: ProductVariant) => ({
             colorName: v.colorName,
             colorCode: v.colorCode,
             size: v.size,
@@ -103,6 +114,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(newProduct, { status: 201 });
   } catch (error) {
     console.error('Error creating product:', error);
-    return NextResponse.json({ error: 'Failed to create product' }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: 'Failed to create product' },
+      { status: 500 }
+    );
   }
 }
+
