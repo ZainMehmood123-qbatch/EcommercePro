@@ -81,53 +81,52 @@ export default function DashboardCard({ product }: DashboardCardProps) {
     };
 
     addToCart(session.user.id, item);
-    toast.success('Added to cart');
   };
 
   return (
     <Card
       hoverable
-      className="w-full h-auto rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group"
+      className='w-full h-auto rounded-xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden group'
       cover={
-        <div className="relative bg-gradient-to-br from-gray-50 to-white flex justify-center items-center p-4 overflow-hidden">
+        <div className='relative bg-gradient-to-br from-gray-50 to-white flex justify-center items-center p-4 overflow-hidden'>
           <Image
-            src={displayImage}
+            src={displayImage || '/placeholder.png'}
             alt={title}
             width={260}
             height={220}
-            className="w-full h-[220px] object-contain transform group-hover:scale-110 transition-all duration-500 ease-out"
+            className='w-full h-[220px] object-contain transform group-hover:scale-110 transition-all duration-500 ease-out'
           />
           {stock > 0 && stock < 1000 && selectedVariant && (
-            <div className="absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg animate-pulse">
+            <div className='absolute top-3 right-3 bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-lg animate-pulse'>
               Only {stock} left!
             </div>
           )}
           {selectedColor && (
-            <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-medium px-3 py-1.5 rounded-full shadow-md border border-gray-200">
+            <div className='absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-gray-800 text-xs font-medium px-3 py-1.5 rounded-full shadow-md border border-gray-200'>
               {hoveredColor || selectedColor}
             </div>
           )}
         </div>
       }
     >
-      <div className="space-y-4">
-        <h2 className="text-gray-800 text-base font-semibold leading-snug line-clamp-2 group-hover:text-[#007BFF] transition-colors duration-200">
+      <div className='space-y-4'>
+        <h2 className='text-gray-800 text-base font-semibold leading-snug line-clamp-2 group-hover:text-[#007BFF] transition-colors duration-200'>
           {title}
         </h2>
 
-        <div className="flex items-baseline gap-2">
-          <span className="text-gray-500 text-xs font-medium">Price:</span>
-          <span className="text-[#007BFF] font-bold text-2xl leading-tight">
+        <div className='flex items-baseline gap-2'>
+          <span className='text-gray-500 text-xs font-medium'>Price:</span>
+          <span className='text-[#007BFF] font-bold text-2xl leading-tight'>
             ${price.toFixed(2)}
           </span>
         </div>
 
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-2">
-            Select Color {selectedColor && <span className="text-[#007BFF]">✓</span>}
+          <label className='block text-xs font-medium text-gray-500 mb-2'>
+            Select Color {selectedColor && <span className='text-[#007BFF]'>✓</span>}
           </label>
-          <div className="flex gap-2.5 flex-wrap">
+          <div className='flex gap-2.5 flex-wrap'>
             {availableColors.map(color => (
               <button
                 key={color.colorName}
@@ -155,11 +154,11 @@ export default function DashboardCard({ product }: DashboardCardProps) {
                   src={color.image}
                   alt={color.colorName}
                   fill
-                  className="object-cover rounded-full"
+                  className='object-cover rounded-full'
                 />
                 {selectedColor === color.colorName && (
-                  <div className="absolute inset-0 bg-[#007BFF]/20 flex items-center justify-center">
-                    <span className="text-white text-xl font-bold drop-shadow-lg">✓</span>
+                  <div className='absolute inset-0 bg-[#007BFF]/20 flex items-center justify-center'>
+                    <span className='text-white text-xl font-bold drop-shadow-lg'>✓</span>
                   </div>
                 )}
               </button>
@@ -169,10 +168,10 @@ export default function DashboardCard({ product }: DashboardCardProps) {
 
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-2">
-            Select Size {selectedSize && <span className="text-[#007BFF]">✓</span>}
+          <label className='block text-xs font-medium text-gray-500 mb-2'>
+            Select Size {selectedSize && <span className='text-[#007BFF]'>✓</span>}
           </label>
-          <div className="flex gap-2 flex-wrap">
+          <div className='flex gap-2 flex-wrap'>
             {availableSizes.map(sizeVariant => (
               <button
                 key={sizeVariant.size}
@@ -194,32 +193,32 @@ export default function DashboardCard({ product }: DashboardCardProps) {
         </div>
 
 
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+        <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2'>
 
-          <div className="flex items-center bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-1 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
+          <div className='flex items-center bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-1 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300'>
             <Button
               icon={<MinusOutlined />}
               onClick={decrease}
               disabled={quantity <= 1}
-              className="border-none shadow-none h-9 w-9 text-gray-700 hover:text-[#007BFF] bg-transparent hover:bg-white hover:scale-110 rounded-md transition-all duration-200 disabled:opacity-40"
+              className='border-none shadow-none h-9 w-9 text-gray-700 hover:text-[#007BFF] bg-transparent hover:bg-white hover:scale-110 rounded-md transition-all duration-200 disabled:opacity-40'
             />
-            <span className="px-5 py-1 font-bold text-lg text-gray-800 min-w-[50px] text-center">
+            <span className='px-5 py-1 font-bold text-lg text-gray-800 min-w-[50px] text-center'>
               {quantity}
             </span>
             <Button
               icon={<PlusOutlined />}
               onClick={increase}
               disabled={quantity >= stock}
-              className="border-none shadow-none h-9 w-9 text-gray-700 hover:text-[#007BFF] bg-transparent hover:bg-white hover:scale-110 rounded-md transition-all duration-200 disabled:opacity-40"
+              className='border-none shadow-none h-9 w-9 text-gray-700 hover:text-[#007BFF] bg-transparent hover:bg-white hover:scale-110 rounded-md transition-all duration-200 disabled:opacity-40'
             />
           </div>
           <Button
-            type="primary"
-            size="large"
-            icon={<ShoppingCartOutlined className="text-base" />}
+            type='primary'
+            size='large'
+            icon={<ShoppingCartOutlined className='text-base' />}
             onClick={handleAddToCart}
             disabled={!selectedVariant || stock === 0}
-            className="!font-inter !text-sm !font-semibold !flex !justify-center !items-center !gap-2 !px-6 !py-2 !rounded-lg !bg-gradient-to-r !from-[#007BFF] !to-[#0056b3] hover:!from-[#0056b3] hover:!to-[#003d82] !border-none !shadow-md hover:!shadow-xl hover:!scale-105 !transition-all !duration-300 disabled:!bg-gray-300 disabled:!cursor-not-allowed disabled:!scale-100 flex-1 sm:flex-none"
+            className='!font-inter !text-sm !font-semibold !flex !justify-center !items-center !gap-2 !px-6 !py-2 !rounded-lg !bg-gradient-to-r !from-[#007BFF] !to-[#0056b3] hover:!from-[#0056b3] hover:!to-[#003d82] !border-none !shadow-md hover:!shadow-xl hover:!scale-105 !transition-all !duration-300 disabled:!bg-gray-300 disabled:!cursor-not-allowed disabled:!scale-100 flex-1 sm:flex-none'
           >
             {!selectedVariant
               ? 'Select Variant'

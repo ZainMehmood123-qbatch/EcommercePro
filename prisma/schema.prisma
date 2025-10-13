@@ -51,7 +51,7 @@ model ProductVariant {
   stock      Int         @default(0)
   price      Float
   image      String      
-
+  isDeleted   Boolean  @default(false)
   orderItems OrderItem[]
 
   createdAt  DateTime    @default(now())

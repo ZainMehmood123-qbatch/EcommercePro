@@ -26,13 +26,13 @@ import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/dro
 
 import './dashboard.css';
 
-// ✅ DashboardCard dynamically imported
+// DashboardCard dynamically imported
 const DashboardCard = dynamic(() => import('@/components/dashboard/dashboard-card'), {
   ssr: false,
   loading: () => <></>
 });
 
-// ✅ Sort options
+// Sort options
 const productSortItems: GenericDropdownItem[] = [
   { key: 'price_asc', label: 'Price: Low to High', icon: <DollarOutlined /> },
   { key: 'price_desc', label: 'Price: High to Low', icon: <DollarOutlined /> },
@@ -51,7 +51,7 @@ const Dashboardpage: React.FC = () => {
   const [localSearch, setLocalSearch] = useState(search);
   const [debouncedSearch, setDebouncedSearch] = useState(localSearch);
 
-  // ✅ Fetch products
+  // Fetch products
   const loadProducts = useCallback(
     (pageToLoad: number) => {
       dispatch(fetchProducts({ page: pageToLoad, search: debouncedSearch, sort }));
@@ -59,7 +59,7 @@ const Dashboardpage: React.FC = () => {
     [dispatch, debouncedSearch, sort]
   );
 
-  // ✅ Debounce search input
+  // Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(localSearch);
@@ -71,13 +71,13 @@ const Dashboardpage: React.FC = () => {
     dispatch(setSearch(debouncedSearch));
   }, [debouncedSearch, dispatch]);
 
-  // ✅ Reload products when search or sort changes
+  // Reload products when search or sort changes
   useEffect(() => {
     dispatch(resetProducts());
     loadProducts(1);
   }, [debouncedSearch, sort, dispatch, loadProducts]);
 
-  // ✅ Infinite scroll
+  // Infinite scroll
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -97,7 +97,7 @@ const Dashboardpage: React.FC = () => {
 
   return (
     <>
-      {/* ✅ Loading overlay */}
+
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
           <Spin size="large" tip="Loading products..." />
@@ -107,7 +107,6 @@ const Dashboardpage: React.FC = () => {
       <Navbar title="E-commerce" />
 
       <div className="dashboard-whole">
-        {/* ✅ Header section */}
         <div className="dashboard-innerheader">
           <p className="dashboard-title">Our Products</p>
 
@@ -126,14 +125,12 @@ const Dashboardpage: React.FC = () => {
           </div>
         </div>
 
-        {/* ✅ Product Grid */}
         <div className="dashboard-product">
           {products.map((product, index) => (
-  <DashboardCard key={`${product.id}-${index}`} product={product} />
-))}
+            <DashboardCard key={`${product.id}-${index}`} product={product} />
+          ))}
         </div>
 
-        {/* ✅ Footer */}
         <div className="dashboard-footer">
           {loadingMore ? <Spin size="large" /> : null}
           {!hasMore && !loading && !loadingMore ? (

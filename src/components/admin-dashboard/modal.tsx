@@ -17,6 +17,8 @@ import {
 import { PlusOutlined, UploadOutlined, DeleteOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import type { ProductType, ProductVariant } from '@/types/product';
+import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
+
 
 const { Title } = Typography;
 
@@ -37,8 +39,9 @@ export default function ProductModal({
 }: Props) {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [variantToDelete, setVariantToDelete] = useState<number | null>(null);
 
-  // Initialize form with product data or default values
   useEffect(() => {
     if (product) {
       form.setFieldsValue({
@@ -83,6 +86,33 @@ export default function ProductModal({
       message.error('Failed to upload image');
     }
     return false;
+  };
+
+
+  const handleDeleteVariant = async () => {
+    if (variantToDelete === null) return;
+
+    const variantId = form.getFieldValue(['variants', variantToDelete, 'id']);
+
+    try {
+      if (variantId) {
+        const res = await fetch(`/api/variants/${variantId}`, {
+          method: 'DELETE'
+        });
+        if (!res.ok) throw new Error('Failed to delete variant');
+        toast.success('Variant deleted successfully!');
+        message.success('Variant deleted successfully!');
+      }
+      const values = form.getFieldsValue();
+      values.variants.splice(variantToDelete, 1);
+      form.setFieldsValue(values);
+    } catch (error) {
+      console.error(error);
+      message.error('Failed to delete variant!');
+    } finally {
+      setDeleteModalOpen(false);
+      setVariantToDelete(null);
+    }
   };
 
   // Save / Update Product
@@ -139,12 +169,12 @@ export default function ProductModal({
       onCancel={onClose}
       width={600}
       styles={{
-            body: {
-              maxHeight: '70vh',
-              overflowY: 'auto',
-              paddingRight: 16
-            }
-          }}
+        body: {
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          paddingRight: 16
+        }
+      }}
       footer={[
         <Button key="cancel" onClick={onClose}>
           Cancel
@@ -165,24 +195,21 @@ export default function ProductModal({
         </Form.Item>
 
         <Divider orientation="left">Variants</Divider>
-
-        {/* ✅ Variants List */}
         <Form.List name="variants">
-          {(fields, { add, remove }) => (
+          {(fields, { add }) => (
             <>
               {fields.map(({ key, name, ...restField }, index) => (
                 <div key={key} className="p-4 mb-4 border rounded-lg shadow-sm bg-gray-50">
                   <Space align="start" className="w-full">
-                    {/* Image Upload */}
                     <Form.Item {...restField} name={[name, 'image']} label="Image">
                       <Upload
                         accept="image/*"
                         showUploadList={false}
                         beforeUpload={(file) => {
-                        handleImageUpload(file as File, 'image', index);
-                        return false; 
-                      }}
-                 >
+                          handleImageUpload(file as File, 'image', index);
+                          return false;
+                        }}
+                      >
                         {form.getFieldValue(['variants', name, 'image']) ? (
                           <div className="relative w-20 h-20 rounded-lg shadow overflow-hidden cursor-pointer group">
                             <Image
@@ -205,7 +232,6 @@ export default function ProductModal({
                       </Upload>
                     </Form.Item>
 
-                    {/* Other Variant Fields */}
                     <div className="flex-1 grid grid-cols-2 gap-3">
                       <Form.Item
                         {...restField}
@@ -253,15 +279,18 @@ export default function ProductModal({
                       </Form.Item>
                     </div>
 
-                    {/* Delete Variant */}
                     {fields.length > 1 && (
                       <Button
                         type="text"
                         danger
                         icon={<DeleteOutlined />}
-                        onClick={() => remove(name)}
+                        onClick={() => {
+                          setVariantToDelete(name);
+                          setDeleteModalOpen(true);
+                        }}
                       />
                     )}
+
                   </Space>
                 </div>
               ))}
@@ -289,6 +318,16 @@ export default function ProductModal({
           )}
         </Form.List>
       </Form>
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setVariantToDelete(null);
+        }}
+        onConfirm={handleDeleteVariant}
+        productName="this variant"
+      />
+
     </Modal>
   );
 }
