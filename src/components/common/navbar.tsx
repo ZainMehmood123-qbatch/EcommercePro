@@ -1,3 +1,4 @@
+// /components/common/navbar/page.tsx
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -57,23 +58,26 @@ const Navbar = ({ title = 'E-commerce' }) => {
     {
       key: 'logout',
       label: (
-        <Link
+        <button
           onClick={() => {
             if (userId) localStorage.removeItem(`cart-${userId}`);
             signOut({ callbackUrl: '/' });
           }}
-          href='/'
+          className='w-full text-left text-red-500 bg-transparent border-none px-2 py-1 hover:bg-gray-50'
         >
-          <span className='text-red-500'>Logout</span>
-        </Link>
+          Logout
+        </button>
       )
     }
   ];
 
   return (
-    <nav className='bg-white pt-3 px-4 py-4 flex items-center justify-between'>
-      <p className='font-inter font-bold text-base text-black m-0'>{title}</p>
+    <nav className='bg-white pt-3 px-4 py-4 lg:pt-3 lg:px-6 xl:pt-3 xl:px-9 flex items-center justify-between'>
+      <p className='font-inter font-bold text-base leading-4 text-black !m-0'>
+        {title}
+      </p>
       <div className='flex items-center gap-5 relative'>
+        {/* Shopping Bag */}
         <div className='relative inline-block'>
           <ShoppingBag
             onClick={handleShoppingClick}
@@ -85,16 +89,28 @@ const Navbar = ({ title = 'E-commerce' }) => {
             </span>
           )}
         </div>
+
+        {/* Notification Bell */}
         <Bell className='h-4 w-4 text-[#007BFF]' />
+
+        {/* Auth Section */}
         {!isLoggedIn ? (
-          <Link href='/auth/login' className='text-[#007BFF] text-xs'>
+          <Link
+            href='/auth/login'
+            className='text-[#007BFF] font-medium text-xs leading-3'
+          >
             Login
           </Link>
         ) : (
           <Dropdown menu={{ items }} trigger={['click']}>
-            <Button type='text' className='flex items-center text-[#007BFF] text-xs'>
+            <Button
+              type='text'
+              className='flex items-center text-[#007BFF] font-medium text-xs !border-none !shadow-none'
+            >
               <User className='h-4 w-4 mr-1 text-[#007BFF]' />
-              <span>{session?.user?.name || 'Account'}</span>
+              <span className='text-[#007BFF]'>
+                {session?.user?.name || 'Account'}
+              </span>
             </Button>
           </Dropdown>
         )}
