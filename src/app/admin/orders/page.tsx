@@ -137,7 +137,7 @@ const OrdersPage = () => {
   if (initialLoading) {
     return (
       <div className="loader">
-        <Spin size="large" tip="Loading orders..." />
+        <Spin size="large"/>
       </div>
     );
   }
@@ -146,7 +146,7 @@ const OrdersPage = () => {
     <div className='ado-whole' style={{ position: 'relative' }}>
       {loading && (
         <div className="loader-overlay">
-          <Spin size="large" tip="Loading..." />
+          <Spin size="large"/>
         </div>
       )}
 

@@ -60,7 +60,7 @@ export default function LoginPage() {
   if (!mounted) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-        <Spin size="large" tip="Loading login form..." />
+        <Spin size="large"/>
       </div>
     );
   }
@@ -69,7 +69,7 @@ export default function LoginPage() {
     <div className="relative">
       {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
-          <Spin size="large" tip="Logging in..." />
+          <Spin size="large"/>
         </div>
       )}
 

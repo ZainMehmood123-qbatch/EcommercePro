@@ -8,7 +8,6 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { RootState, AppDispatch } from '@/store';
 import { fetchOrderDetails, clearOrderDetails } from '@/store/slice/orders-slice';
-import { ProductType } from '@/types/product';
 
 import './order-details.css';
 
@@ -17,6 +16,17 @@ interface OrderDetailsSidebarProps {
   open: boolean;
   onClose: () => void;
 }
+
+type OrderProductRow = {
+  key: number;
+  title: string;
+  price: number;
+  qty: number;
+  image: string;
+  colorName?: string;
+  colorCode?: string;
+  size?: string;
+};
 
 const OrderDetailsSidebar: React.FC<OrderDetailsSidebarProps> = ({ 
   orderId, 
@@ -31,7 +41,6 @@ const OrderDetailsSidebar: React.FC<OrderDetailsSidebarProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [drawerWidth, setDrawerWidth] = useState('50%');
 
-  // Adjust drawer width based on screen size
   useEffect(() => {
     const updateWidth = () => {
       if (window.innerWidth < 768) {
@@ -66,14 +75,14 @@ const OrderDetailsSidebar: React.FC<OrderDetailsSidebarProps> = ({
 
   const dataSource = useMemo(() => orderDetails?.items || [], [orderDetails]);
 
-  const columns: TableColumnsType<any> = [
+  const columns: TableColumnsType<OrderProductRow> = [
   {
     title: 'Title',
     dataIndex: 'title',
     render: (value: string, record) => (
       <div className='flex items-center gap-2'>
         <Image
-          src={record.image || '/fallback.png'} // ✅ direct property now
+          src={record.image || '/fallback.png'} 
           alt='product'
           width={32}
           height={32}
@@ -144,12 +153,14 @@ const OrderDetailsSidebar: React.FC<OrderDetailsSidebarProps> = ({
       open={open}
       onClose={onClose}
       closeIcon={null}
-      bodyStyle={{ padding: '16px 16px' }}
-      headerStyle={{ borderBottom: '1px solid #f0f0f0', padding: '12px 16px' }}
+      styles={{
+    header: { borderBottom: '1px solid #f0f0f0', padding: '12px 16px' },
+    body: { padding: '16px 16px' }
+  }}
     >
       {orderLoading ? (
         <div className='flex items-center justify-center h-full'>
-          <Spin size='large' tip='Loading order...' />
+          <Spin size='large'/>
         </div>
       ) : orderDetails ? (
         <div className='flex flex-col gap-4'>
@@ -179,7 +190,7 @@ const OrderDetailsSidebar: React.FC<OrderDetailsSidebarProps> = ({
           <div>
             <h5 className='od-producttitle text-sm sm:text-base mb-2'>Product Information</h5>
             <div className='overflow-x-auto'>
-              <Table<ProductType>
+              <Table<OrderProductRow>
                 columns={columns}
                 dataSource={dataSource}
                 pagination={{

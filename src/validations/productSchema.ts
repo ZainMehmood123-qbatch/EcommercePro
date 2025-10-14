@@ -38,7 +38,6 @@
 import Joi from 'joi';
 import type { ProductVariant, ProductType } from '@/types/product';
 
-// ✅ Variant validation
 export const variantSchema = Joi.object<ProductVariant>({
   id: Joi.string().optional(),
   productId: Joi.string().optional(),
@@ -65,7 +64,7 @@ export const variantSchema = Joi.object<ProductVariant>({
   }),
   isDeleted: Joi.boolean().optional(),
   image: Joi.string()
-    .allow('', null) // ✅ allow empty or null during creation
+    .allow('', null) 
     .pattern(/^(https?:\/\/|\/|[a-zA-Z0-9_\-]+\.(jpg|jpeg|png|webp))/, 'valid image path')
     .messages({
       'string.pattern.name': 'Please provide a valid image URL or path'
@@ -74,7 +73,6 @@ export const variantSchema = Joi.object<ProductVariant>({
   updatedAt: Joi.string().optional()
 });
 
-// ✅ Product creation validation
 export const productCreateSchema = Joi.object<ProductType>({
   id: Joi.string().optional(),
   title: Joi.string().min(3).max(100).required().messages({
@@ -84,7 +82,7 @@ export const productCreateSchema = Joi.object<ProductType>({
   }),
   variants: Joi.array()
     .items(variantSchema)
-    .default([]) // ✅ allow no variants on create
+    .default([])
     .messages({
       'array.base': 'Variants must be an array'
     }),
@@ -92,13 +90,12 @@ export const productCreateSchema = Joi.object<ProductType>({
   updatedAt: Joi.string().optional()
 });
 
-// ✅ Product update validation
 export const productUpdateSchema = Joi.object<ProductType>({
   id: Joi.string().optional(),
   title: Joi.string().min(3).max(100).required(),
   variants: Joi.array()
     .items(variantSchema)
-    .default([]) // ✅ optional, so you can update title only
+    .default([]) 
     .messages({
       'array.base': 'Variants must be an array'
     }),

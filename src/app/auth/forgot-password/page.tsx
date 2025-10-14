@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
 if (!mounted) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-        <Spin size="large" tip="Loading login form..." />
+        <Spin size="large"/>
       </div>
     );
   }
@@ -56,7 +56,7 @@ if (!mounted) {
     <div>
   {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
-          <Spin size="large" tip="Logging in..." />
+          <Spin size="large"/>
         </div>
       )}
       <AuthTitle text='Forgot Password' />
