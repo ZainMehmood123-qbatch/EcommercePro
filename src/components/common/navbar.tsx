@@ -60,7 +60,6 @@ const Navbar = ({ title = 'E-commerce' }) => {
       label: (
         <button
           onClick={() => {
-            if (userId) localStorage.removeItem(`cart-${userId}`);
             signOut({ callbackUrl: '/' });
           }}
           className='w-full text-left text-red-500 bg-transparent border-none px-2 py-1 hover:bg-gray-50'
