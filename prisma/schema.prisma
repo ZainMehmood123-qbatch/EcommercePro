@@ -67,6 +67,7 @@ model Order {
   total     Float
   tax       Float
   items     OrderItem[]
+  paymentStatus String   @default("PENDING") 
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 }

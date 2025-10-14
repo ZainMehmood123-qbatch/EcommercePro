@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Button, Flex, Table, InputNumber, message, Image, Spin } from 'antd';
+import { Button, Flex, Table, InputNumber, Image, Spin } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
 import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
@@ -25,7 +24,6 @@ const Shoppingbag: React.FC = () => {
   //const [loading, setLoading] = useState(true);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const router = useRouter();
 
   useEffect(() => {
     if (!session?.user?.id) {
@@ -83,40 +81,67 @@ const Shoppingbag: React.FC = () => {
     toast.success('Selected items deleted');
   };
 
-  const handlePlaceOrder = async () => {
-    if (!items.length) {
-      toast.error('Your cart is empty!');
-      return;
-    }
+//   const handlePlaceOrder = async () => {
+//     if (!items.length) {
+//       toast.error('Your cart is empty!');
+//       return;
+//     }
 
-    try {
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-  items: items.map(i => ({
-    productId: i.id,        // main product ID
-    variantId: i.variantId, // variant ID
-    qty: i.qty,
-    price: i.price,
-    colorName: i.colorName,
-    colorCode: i.colorCode,
-    size: i.size
-  }))
-})
-      });
+//     try {
+//       const res = await fetch('/api/orders', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json' },
+//         body: JSON.stringify({
+//   items: items.map(i => ({
+//     productId: i.id,        // main product ID
+//     variantId: i.variantId, // variant ID
+//     qty: i.qty,
+//     price: i.price,
+//     colorName: i.colorName,
+//     colorCode: i.colorCode,
+//     size: i.size
+//   }))
+// })
+//       });
 
-      if (!res.ok) throw new Error('Failed to place order');
+//       if (!res.ok) throw new Error('Failed to place order');
 
-      toast.success('Order placed successfully!');
-      setItems([]);
-      router.push('/');
-    } catch (err) {
-      console.error(err);
-      toast.error('Dont have enough stock.');
-      message.error('Something went wrong. Try again!');
-    }
-  };
+//       toast.success('Order placed successfully!');
+//       setItems([]);
+//       router.push('/');
+//     } catch (err) {
+//       console.error(err);
+//       toast.error('Dont have enough stock.');
+//       message.error('Something went wrong. Try again!');
+//     }
+//   };
+
+
+const handlePlaceOrder = async () => {
+  if (!items.length) {
+    toast.error('Your cart is empty!');
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        items,
+        total
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Checkout failed');
+
+    window.location.href = data.url; // redirect to Stripe checkout
+  } catch (err) {
+    console.error(err);
+    toast.error('Checkout failed. Try again!');
+  }
+};
 
   const columns: TableColumnsType<CartItem> = [
     {

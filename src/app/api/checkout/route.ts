@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import type { CreateOrderRequest, OrderItemInput } from '@/types/order';
+import type { CartItem } from '@/types/cart';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20'
+  apiVersion: '2025-09-30.clover'
 });
 
 export async function POST(req: NextRequest) {
@@ -15,48 +15,59 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body: CreateOrderRequest = await req.json();
-    const { items, total } = body;
-    console.log(total);
+    const body = await req.json();
+    const { items, total } = body as { items: CartItem[]; total: number };
 
     if (!items?.length) {
-      return NextResponse.json({ error: 'No items found' }, { status: 400 });
+      return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
     }
 
-    // Convert to Stripe line items
-    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(
-      (item: OrderItemInput) => ({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: `${item.title}${item.size ? ` (${item.size})` : ''}`,
-            images: item.image ? [item.image] : []
-          },
-          unit_amount: Math.round(item.price * 100) // cents
-        },
-        quantity: item.qty
-      })
-    );
+    console.log('Stripe checkout request received');
+    console.log('Session user:', session.user);
+    console.log('Items:', JSON.stringify(items, null, 2));
+    console.log('Total:', total);
 
-    // Create Stripe session
+    // prepare line items with metadata
+    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item) => ({
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: item.product,
+          images: [
+            item.image.startsWith('http')
+              ? item.image
+              : `${process.env.NEXT_PUBLIC_BASE_URL}${item.image}`
+          ],
+          metadata: {
+            productId: item.id,
+            variantId: item.variantId,
+            colorName: item.colorName ?? '',
+            colorCode: item.colorCode ?? '',
+            size: item.size ?? '',
+            image: item.image
+          }
+        },
+        unit_amount: Math.round(item.price * 100)
+      },
+      quantity: item.qty
+    }));
+
+    // create Stripe checkout session
     const stripeSession = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
-      line_items: lineItems,
       mode: 'payment',
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
       customer_email: session.user.email,
+      line_items,
       metadata: {
         userId: session.user.id
-        // you can later add: orderId: 'xyz'
       }
     });
 
     return NextResponse.json({ url: stripeSession.url });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Unexpected error occurred';
-    console.error('Stripe checkout error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch (err) {
+    console.error('Checkout error:', err);
+    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
   }
 }

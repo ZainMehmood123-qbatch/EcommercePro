@@ -3,14 +3,19 @@ import Stripe from 'stripe';
 import { prisma } from '@/lib/prisma';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20'
+  apiVersion: '2025-09-30.clover'
 });
 
 export async function POST(req: NextRequest) {
+  const sig = req.headers.get('stripe-signature');
+  if (!sig) {
+    return NextResponse.json({ error: 'Missing Stripe signature' }, { status: 400 });
+  }
+
   const body = await req.text();
-  const sig = req.headers.get('stripe-signature')!;
 
   try {
+    // Verify the Stripe event
     const event = stripe.webhooks.constructEvent(
       body,
       sig,
@@ -19,21 +24,59 @@ export async function POST(req: NextRequest) {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
-      const orderId = session.metadata?.orderId;
+      const userId = session.metadata?.userId;
 
-      if (orderId) {
-        await prisma.order.update({
-          where: { id: orderId },
-          data: { paymentStatus: 'PAID' }
-        });
+      if (!userId) {
+        console.error('⚠️ Missing userId in session metadata');
+        return NextResponse.json({ ok: false });
       }
+
+      // Get purchased items from Stripe
+      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+        expand: ['data.price.product']
+      });
+
+      // Save order in the database
+      await prisma.order.create({
+        data: {
+          userId,
+          total: (session.amount_total ?? 0) / 100,
+          tax: ((session.amount_total ?? 0) / 100) * 0.1,
+          paymentStatus: 'PAID',
+          items: {
+            create: lineItems.data.map((item) => {
+              const product = item.price?.product as Stripe.Product | undefined;
+              const metadata = product?.metadata ?? {};
+
+              return {
+                productId: metadata.productId ?? '',
+                variantId: metadata.variantId ?? '',
+                qty: item.quantity ?? 1,
+                price:
+                  item.amount_total && item.quantity
+                    ? (item.amount_total / 100) / item.quantity
+                    : 0
+              };
+            })
+          }
+        }
+      });
+
+      console.log(`Order successfully created for user ${userId}`);
     }
 
     return NextResponse.json({ received: true });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : 'Webhook verification failed';
-    console.error('Webhook error:', message);
-    return NextResponse.json({ error: message }, { status: 400 });
+  } catch (err) {
+    console.error('Webhook error:', err);
+
+    if (err instanceof Error) {
+      console.error('Message:', err.message);
+      console.error('Stack:', err.stack);
+    }
+
+    return NextResponse.json(
+      { error: 'Webhook failed' },
+      { status: 400 }
+    );
   }
 }
