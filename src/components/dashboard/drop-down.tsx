@@ -13,11 +13,11 @@ export interface GenericDropdownItem {
   icon?: React.ReactNode;
 }
 
-interface Dropdown {
-  items: GenericDropdownItem[];              // Dropdown items
-  selectedKey: string;                        // Current selected key
-  onSelect: (key: string) => void;           // Callback on selection
-  className?: string;                         // Optional styling
+export interface GenericDropdownProps {
+  items: GenericDropdownItem[];             
+  selectedKey: string;                        
+  onSelect: (key: string) => void;          
+  className?: string;                         
 }
 
 const GenericDropdown: React.FC<GenericDropdownProps> = ({
@@ -32,7 +32,11 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
   };
 
   const menuProps = {
-    items,
+    items: items.map(item => ({
+      key: item.key,
+      label: item.label,
+      icon: item.icon
+    })),
     onClick: handleMenuClick,
     selectedKeys: [selectedKey]
   };
