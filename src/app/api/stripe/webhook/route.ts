@@ -15,7 +15,6 @@ export async function POST(req: NextRequest) {
   const body = await req.text();
 
   try {
-    // Verify the Stripe event
     const event = stripe.webhooks.constructEvent(
       body,
       sig,
@@ -27,21 +26,22 @@ export async function POST(req: NextRequest) {
       const userId = session.metadata?.userId;
 
       if (!userId) {
-        console.error('⚠️ Missing userId in session metadata');
+        console.error('Missing userId in session metadata');
         return NextResponse.json({ ok: false });
       }
-
-      // Get purchased items from Stripe
       const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
         expand: ['data.price.product']
       });
 
-      // Save order in the database
+      const subtotal = (session.amount_subtotal ?? 0) / 100; 
+      const tax = subtotal * 0.1; 
+      const totalWithTax = subtotal + tax;
+
       await prisma.order.create({
         data: {
           userId,
-          total: (session.amount_total ?? 0) / 100,
-          tax: ((session.amount_total ?? 0) / 100) * 0.1,
+          total: totalWithTax,
+          tax: tax,
           paymentStatus: 'PAID',
           items: {
             create: lineItems.data.map((item) => {
