@@ -5,11 +5,12 @@ import { CartItem } from '@/types/cart';
 type Listener = () => void;
 const listeners: Listener[] = [];
 
+// Create unique key per user
 function getCartKey(userId: string) {
-  console.log(userId);
   return `cart-${userId}`;
 }
 
+// ---- Subscription system ----
 export function subscribeCartChange(listener: Listener) {
   listeners.push(listener);
   return () => {
@@ -22,14 +23,14 @@ function notifyCartChange() {
   listeners.forEach((fn) => fn());
 }
 
-// Get cart items
+// ---- Get cart items ----
 export function getCartItems(userId: string): CartItem[] {
   if (typeof window === 'undefined') return [];
   const data = localStorage.getItem(getCartKey(userId));
   return data ? (JSON.parse(data) as CartItem[]) : [];
 }
 
-// Add item to cart
+// ---- Add item ----
 export function addToCart(userId: string, item: CartItem) {
   const items = getCartItems(userId);
 
@@ -63,8 +64,22 @@ export function addToCart(userId: string, item: CartItem) {
   notifyCartChange();
 }
 
-// Update entire cart
+// ---- Update full cart ----
 export function updateCart(userId: string, items: CartItem[]) {
   localStorage.setItem(getCartKey(userId), JSON.stringify(items));
-  notifyCartChange(); 
+  notifyCartChange();
 }
+
+// ---- Clear cart ----
+export function clearCart(userId: string) {
+  localStorage.removeItem(getCartKey(userId));
+  notifyCartChange();
+}
+
+// ---- Remove single item ----
+export function removeFromCart(userId: string, itemId: string) {
+  const items = getCartItems(userId).filter((i) => i.id !== itemId);
+  localStorage.setItem(getCartKey(userId), JSON.stringify(items));
+  notifyCartChange();
+}
+
