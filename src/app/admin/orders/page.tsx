@@ -11,11 +11,12 @@ import {
 } from '@ant-design/icons';
 
 import SearchComponent from '@/components/dashboard/search-bar';
-import OrderDetailsSidebar from '@/components/OrderDetailsSidebar'; 
+import OrderDetailsSidebar from '@/components/OrderDetailsSidebar';
 
 import { OrderType, FetchedOrder, FetchedOrderItem } from '@/types/order';
 
 import './orderss.css';
+import toast from 'react-hot-toast';
 
 interface ApiResponse {
   orders: (FetchedOrder & { items: FetchedOrderItem[] })[];
@@ -47,6 +48,8 @@ const OrdersPage = () => {
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -112,86 +115,99 @@ const OrdersPage = () => {
   };
 
   const handleMarkCompleted = async (orderId: string) => {
-  try {
-    const res = await fetch('/api/orders', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ orderId, paymentStatus: 'COMPLETED' })
-    });
+    setUpdatingOrderId(orderId);
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, paymentStatus: 'COMPLETED' })
+      });
 
-    if (res.ok) {
-      fetchOrders(pageNum, debouncedSearch); 
-    } else {
-      console.error('Failed to update order');
+      if (res.ok) {
+        toast.success('Order marked as completed successfully!');
+        await fetchOrders(pageNum, debouncedSearch);
+      } else {
+        toast.error('Failed to update order status.');
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      toast.error('Something went wrong.');
+    } finally {
+      setUpdatingOrderId(null);
     }
-  } catch (error) {
-    console.error('Error updating order:', error);
-  }
-};
+  };
+
   const columns: ColumnsType<OrderType> = [
-  { title: 'Date', dataIndex: 'date' },
-  { title: 'Order #', dataIndex: 'orderNo' },
-  { title: 'User', dataIndex: 'user' },
-  { title: 'Product(s)', dataIndex: 'products' },
-  {
-    title: 'Amount',
-    dataIndex: 'amount',
-    render: (a: number) => `$${a.toFixed(2)}`
-  },
-  {
-    title: 'Status',
-    dataIndex: 'status',
-    render: (_, record: OrderType) => {
-      const status = record.paymentStatus?.toUpperCase();
-      console.log('status is', status);
-      const color =
-        status === 'PENDING'
-          ? 'orange'
-          : status === 'PAID'
-          ? 'green'
-          : 'blue';
-      return (
-        <span
-          style={{
-            color,
-            fontWeight: 600,
-            textTransform: 'capitalize'
-          }}
-        >
-          {status}
-        </span>
-      );
-    }
-  },
-  {
-    title: 'Actions',
-    dataIndex: 'actions',
-    render: (_: unknown, record: OrderType) => (
-      <div className="flex gap-2">
-        <Button
-          type="text"
-          icon={<ExportOutlined />}
-          className="hover:bg-blue-50 hover:text-blue-600 transition-all"
-          onClick={() => handleViewOrderDetails(record.id)}
-        />
-        {record.paymentStatus === 'PAID' && (
-          <Button
-            type="primary"
-            onClick={() => handleMarkCompleted(record.id)}
+    { title: 'Date', dataIndex: 'date' },
+    { title: 'Order #', dataIndex: 'orderNo' },
+    { title: 'User', dataIndex: 'user' },
+    { title: 'Product(s)', dataIndex: 'products' },
+    {
+      title: 'Amount',
+      dataIndex: 'amount',
+      render: (a: number) => `$${a.toFixed(2)}`
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      render: (_, record: OrderType) => {
+        const status = record.paymentStatus?.toUpperCase();
+        console.log('status is', status);
+        const color =
+          status === 'PENDING'
+            ? 'orange'
+            : status === 'PAID'
+              ? 'green'
+              : 'blue';
+        return (
+          <span
+            style={{
+              color,
+              fontWeight: 600,
+              textTransform: 'capitalize'
+            }}
           >
-            Mark Completed
-          </Button>
-        )}
-      </div>
-    )
-  }
-];
+            {status}
+          </span>
+        );
+      }
+    },
+    {
+      title: 'Actions',
+      dataIndex: 'actions',
+      render: (_: unknown, record: OrderType) => (
+        <div className="flex gap-2">
+          <Button
+            type="text"
+            icon={<ExportOutlined />}
+            className="hover:bg-blue-50 hover:text-blue-600 transition-all"
+            onClick={() => handleViewOrderDetails(record.id)}
+          />
+          {record.paymentStatus === 'PAID' && (
+            <Button
+              type="primary"
+              loading={updatingOrderId === record.id}
+              className="!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600 transition-all duration-200"
+              onClick={() => handleMarkCompleted(record.id)}
+            >
+              {updatingOrderId === record.id ? 'Updating...' : (
+                <>
+                  Mark Completed
+                </>
+              )}
+            </Button>
+          )}
+
+        </div>
+      )
+    }
+  ];
 
 
   if (initialLoading) {
     return (
       <div className="loader">
-        <Spin size="large"/>
+        <Spin size="large" />
       </div>
     );
   }
@@ -200,7 +216,7 @@ const OrdersPage = () => {
     <div className='ado-whole' style={{ position: 'relative' }}>
       {loading && (
         <div className="loader-overlay">
-          <Spin size="large"/>
+          <Spin size="large" />
         </div>
       )}
 
