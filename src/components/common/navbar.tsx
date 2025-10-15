@@ -17,7 +17,6 @@ const Navbar = ({ title = 'E-commerce' }) => {
 
   const userId = session?.user?.id;
 
-  // Keep cart count synced with user cart
   useEffect(() => {
     if (!userId) {
       setCartCount(0);
@@ -29,10 +28,8 @@ const Navbar = ({ title = 'E-commerce' }) => {
       setCartCount(items.length);
     };
 
-    // Initial load
     updateCount();
 
-    // Subscribe for realtime updates
     const unsubscribe = subscribeCartChange(updateCount);
 
     return () => unsubscribe();
@@ -76,7 +73,6 @@ const Navbar = ({ title = 'E-commerce' }) => {
         {title}
       </p>
       <div className='flex items-center gap-5 relative'>
-        {/* Shopping Bag */}
         <div className='relative inline-block'>
           <ShoppingBag
             onClick={handleShoppingClick}
@@ -88,11 +84,7 @@ const Navbar = ({ title = 'E-commerce' }) => {
             </span>
           )}
         </div>
-
-        {/* Notification Bell */}
         <Bell className='h-4 w-4 text-[#007BFF]' />
-
-        {/* Auth Section */}
         {!isLoggedIn ? (
           <Link
             href='/auth/login'
