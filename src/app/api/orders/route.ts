@@ -202,3 +202,26 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const { orderId, paymentStatus } = await req.json();
+
+    if (!orderId || !paymentStatus) {
+      return NextResponse.json(
+        { error: 'Missing orderId or paymentStatus' },
+        { status: 400 }
+      );
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { paymentStatus }
+    });
+
+    return NextResponse.json(updatedOrder);
+  } catch (error) {
+    console.error('Error updating order:', error);
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
+}

@@ -8,6 +8,7 @@ export interface FetchedOrder {
   userId: string;
   items?: FetchedOrderProduct[]; 
   total?: number;
+  paymentStatus?: string;
 }
 
 export interface FetchedOrderItem {
@@ -45,6 +46,7 @@ export interface OrderType {
   user: string;
   products: number;
   amount: number;
+  paymentStatus?: string;
 }
 
 export interface OrderDetailType {

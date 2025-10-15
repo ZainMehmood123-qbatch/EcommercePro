@@ -74,7 +74,8 @@ const OrdersPage = () => {
         date: new Date(o.createdAt).toLocaleDateString(),
         user: o.userId ? `USR-${o.userId.slice(0, 8)}` : 'Me',
         products: o.items?.length || 0,
-        amount: o.items?.reduce((sum, i) => sum + i.price * i.qty, 0) || 0
+        amount: o.items?.reduce((sum, i) => sum + i.price * i.qty, 0) || 0,
+        paymentStatus: o.paymentStatus || 'PENDING'
       }));
 
       setOrders(mappedOrders);
@@ -110,29 +111,82 @@ const OrdersPage = () => {
     setSelectedOrderId(null);
   };
 
-  const columns: ColumnsType<OrderType> = [
-    { title: 'Date', dataIndex: 'date' },
-    { title: 'Order #', dataIndex: 'orderNo' },
-    { title: 'User', dataIndex: 'user' },
-    { title: 'Product(s)', dataIndex: 'products' },
-    {
-      title: 'Amount',
-      dataIndex: 'amount',
-      render: (a: number) => `$${a.toFixed(2)}`
-    },
-    {
-      title: 'Actions',
-      dataIndex: 'actions',
-      render: (_: unknown, record: OrderType) => (
-        <Button
-          type='text'
-          icon={<ExportOutlined />}
-          className='ado-actionbutton hover:bg-blue-50 hover:text-blue-600 transition-all'
-          onClick={() => handleViewOrderDetails(record.id)} 
-        />
-      )
+  const handleMarkCompleted = async (orderId: string) => {
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderId, paymentStatus: 'COMPLETED' })
+    });
+
+    if (res.ok) {
+      fetchOrders(pageNum, debouncedSearch); 
+    } else {
+      console.error('Failed to update order');
     }
-  ];
+  } catch (error) {
+    console.error('Error updating order:', error);
+  }
+};
+  const columns: ColumnsType<OrderType> = [
+  { title: 'Date', dataIndex: 'date' },
+  { title: 'Order #', dataIndex: 'orderNo' },
+  { title: 'User', dataIndex: 'user' },
+  { title: 'Product(s)', dataIndex: 'products' },
+  {
+    title: 'Amount',
+    dataIndex: 'amount',
+    render: (a: number) => `$${a.toFixed(2)}`
+  },
+  {
+    title: 'Status',
+    dataIndex: 'status',
+    render: (_, record: OrderType) => {
+      const status = record.paymentStatus?.toUpperCase();
+      console.log('status is', status);
+      const color =
+        status === 'PENDING'
+          ? 'orange'
+          : status === 'PAID'
+          ? 'green'
+          : 'blue';
+      return (
+        <span
+          style={{
+            color,
+            fontWeight: 600,
+            textTransform: 'capitalize'
+          }}
+        >
+          {status}
+        </span>
+      );
+    }
+  },
+  {
+    title: 'Actions',
+    dataIndex: 'actions',
+    render: (_: unknown, record: OrderType) => (
+      <div className="flex gap-2">
+        <Button
+          type="text"
+          icon={<ExportOutlined />}
+          className="hover:bg-blue-50 hover:text-blue-600 transition-all"
+          onClick={() => handleViewOrderDetails(record.id)}
+        />
+        {record.paymentStatus === 'PAID' && (
+          <Button
+            type="primary"
+            onClick={() => handleMarkCompleted(record.id)}
+          >
+            Mark Completed
+          </Button>
+        )}
+      </div>
+    )
+  }
+];
+
 
   if (initialLoading) {
     return (
