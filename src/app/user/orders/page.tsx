@@ -23,7 +23,7 @@ const Orders: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  
+
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -92,6 +92,33 @@ const Orders: React.FC = () => {
           ${Number(record.total ?? 0).toFixed(2)}
         </span>
       )
+    },
+    {
+      title: 'Status',
+      dataIndex: 'paymentStatus',
+      render: (text: string) => {
+        const status = text?.toUpperCase();
+        const color =
+          status === 'PENDING'
+            ? 'orange'
+            : status === 'PAID'
+              ? 'blue'
+              : status === 'COMPLETED'
+                ? 'green'
+                : 'gray';
+
+        return (
+          <span
+            style={{
+              color,
+              fontWeight: 600,
+              textTransform: 'capitalize'
+            }}
+          >
+            {status}
+          </span>
+        );
+      }
     },
     {
       title: 'Actions',
