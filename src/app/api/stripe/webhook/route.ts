@@ -6,6 +6,10 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-09-30.clover'
 });
 
+export const config = {
+  api: { bodyParser: false }
+};
+
 export async function POST(req: NextRequest) {
   const sig = req.headers.get('stripe-signature');
   if (!sig) {
@@ -23,60 +27,28 @@ export async function POST(req: NextRequest) {
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
-      const userId = session.metadata?.userId;
+      const orderId = session.metadata?.orderId;
 
-      if (!userId) {
-        console.error('Missing userId in session metadata');
+      if (!orderId) {
+        console.error('Missing orderId in session metadata');
         return NextResponse.json({ ok: false });
       }
-      const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
-        expand: ['data.price.product']
+
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: 'PAID' }
       });
 
-      const subtotal = (session.amount_subtotal ?? 0) / 100; 
-      const tax = subtotal * 0.1; 
-      const totalWithTax = subtotal + tax;
-
-      await prisma.order.create({
-        data: {
-          userId,
-          total: totalWithTax,
-          tax: tax,
-          paymentStatus: 'PAID',
-          items: {
-            create: lineItems.data.map((item) => {
-              const product = item.price?.product as Stripe.Product | undefined;
-              const metadata = product?.metadata ?? {};
-
-              return {
-                productId: metadata.productId ?? '',
-                variantId: metadata.variantId ?? '',
-                qty: item.quantity ?? 1,
-                price:
-                  item.amount_total && item.quantity
-                    ? (item.amount_total / 100) / item.quantity
-                    : 0
-              };
-            })
-          }
-        }
-      });
-
-      console.log(`Order successfully created for user ${userId}`);
+      console.log(`Order ${orderId} marked as PAID`);
     }
 
     return NextResponse.json({ received: true });
   } catch (err) {
     console.error('Webhook error:', err);
-
     if (err instanceof Error) {
       console.error('Message:', err.message);
       console.error('Stack:', err.stack);
     }
-
-    return NextResponse.json(
-      { error: 'Webhook failed' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Webhook failed' }, { status: 400 });
   }
 }
