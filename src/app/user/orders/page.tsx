@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Table, Button, Spin } from 'antd';
+import moment from 'moment';
 import { ArrowLeftOutlined, ExportOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import Link from 'next/link';
@@ -65,9 +66,12 @@ const Orders: React.FC = () => {
       title: 'Date',
       dataIndex: 'date',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <span className='order-titlenames'>
-          {new Date(record.createdAt).toLocaleDateString()}
-        </span>
+        <div className="order-titlenames">
+          <span>{moment(record.createdAt).format('DD/MM/YYYY')}</span>
+          <span className="block mt-2 text-[10px] text-gray-500">
+            {moment(record.createdAt).format('hh:mm:ss A')}
+          </span>
+        </div>
       )
     },
     {
