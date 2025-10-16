@@ -80,7 +80,7 @@ export default function DashboardCard({ product }: DashboardCardProps) {
       stock: selectedVariant.stock
     };
 
-    addToCart(session.user.id, item);
+    addToCart(session.user.id, item,item.stock);
   };
 
   return (

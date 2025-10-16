@@ -16,7 +16,7 @@ const Navbar = ({ title = 'E-commerce' }) => {
   const [cartCount, setCartCount] = useState(0);
 
   const userId = session?.user?.id;
-
+console.log('status:', status, session?.user?.id);
   useEffect(() => {
     if (!userId) {
       setCartCount(0);

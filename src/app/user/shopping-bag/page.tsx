@@ -43,6 +43,7 @@ const Shoppingbag: React.FC = () => {
       const updated = prev.map((item) => {
         if (item.key === key) {
           if (newQty > item.stock) {
+            console.log(item.stock);
             toast.error(`Only ${item.stock} items available in stock`);
             return { ...item, qty: item.stock };
           }

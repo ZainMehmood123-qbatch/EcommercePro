@@ -31,7 +31,7 @@ export function getCartItems(userId: string): CartItem[] {
 }
 
 // ---- Add item ----
-export function addToCart(userId: string, item: CartItem) {
+export function addToCart(userId: string, item: CartItem,stock:number) {
   const items = getCartItems(userId);
 
   const existingIndex = items.findIndex(
@@ -45,9 +45,10 @@ export function addToCart(userId: string, item: CartItem) {
   if (existingIndex !== -1) {
     if (items[existingIndex].qty + item.qty <= items[existingIndex].stock) {
       items[existingIndex].qty += item.qty;
+      items[existingIndex].stock = stock;
       toast.success('Quantity updated in cart!');
     } else {
-      toast.error(`Only ${items[existingIndex].stock} items available in stock!`);
+      toast.error(`Only ${stock} items available in stock!`);
       return;
     }
   } else {
