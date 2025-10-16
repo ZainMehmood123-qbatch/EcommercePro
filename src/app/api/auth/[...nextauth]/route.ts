@@ -1,9 +1,9 @@
-
 import bcrypt from 'bcryptjs';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import { prisma } from '@/lib/prisma';
+import { getOrCreateStripeCustomer } from '@/lib/stripeCustomer';
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: 'jwt' },
@@ -14,7 +14,6 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!
     }),
-
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
@@ -28,7 +27,6 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
         });
-
         if (!user || !user.password) return null;
 
         const isPasswordValid = await bcrypt.compare(
@@ -47,9 +45,7 @@ export const authOptions: NextAuthOptions = {
     })
   ],
 
-  pages: {
-    signIn: '/auth/login'
-  },
+  pages: { signIn: '/auth/login' },
 
   callbacks: {
     async signIn({ user, account }) {
@@ -69,6 +65,8 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
+        await getOrCreateStripeCustomer(existingUser.id, existingUser.email);
+
         user.id = existingUser.id;
         user.role = existingUser.role as 'ADMIN' | 'USER';
       }
@@ -81,12 +79,10 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name ?? '';
         token.email = user.email ?? '';
         token.role = user.role;
-
         if (account?.provider === 'credentials') {
           const remember =
             (account as { provider: 'credentials'; remember?: string })
               ?.remember === 'true';
-
           token.expires =
             Math.floor(Date.now() / 1000) +
             (remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24);
@@ -94,12 +90,9 @@ export const authOptions: NextAuthOptions = {
           token.expires = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
         }
       }
-
-      // token expiry check
       if (token.expires && Date.now() / 1000 > token.expires) {
         token.expires = 0;
       }
-
       return token;
     },
 
@@ -107,7 +100,6 @@ export const authOptions: NextAuthOptions = {
       if (!token.expires || Date.now() / 1000 > token.expires) {
         return null;
       }
-
       session.user = {
         id: token.id,
         name: token.name,
@@ -115,7 +107,6 @@ export const authOptions: NextAuthOptions = {
         role: token.role
       };
       session.expires = new Date(token.expires * 1000).toISOString();
-
       return session;
     }
   }

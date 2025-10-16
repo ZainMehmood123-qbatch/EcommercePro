@@ -6,27 +6,25 @@ import { prisma } from '@/lib/prisma';
 import { createOrderSchema } from '@/validations/orderValidation';
 import type { CartItem } from '@/types/cart';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-09-30.clover' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-09-30.clover'
+});
 
 export async function POST(req: NextRequest) {
   try {
-    // Step 1: Authenticate user
     const session = await getServerSession(authOptions);
     if (!session?.user?.id || !session.user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Step 2: Parse request body
     const body = await req.json();
-    console.log('🧾 Incoming order body:', JSON.stringify(body, null, 2));
+    console.log('Incoming order body:', JSON.stringify(body, null, 2));
 
     const { items, total } = body as { items: CartItem[]; total: number };
-
     if (!items?.length) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
     }
 
-    // Step 3: Validate data with Joi schema
     const { error } = createOrderSchema.validate({ items }, { abortEarly: false });
     if (error) {
       return NextResponse.json(
@@ -35,7 +33,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Step 4: Check for duplicate variants
     const variantIds = items.map((i) => i.variantId);
     const duplicates = variantIds.filter((id, index) => variantIds.indexOf(id) !== index);
     if (duplicates.length > 0) {
@@ -45,7 +42,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Step 5: Fetch product variants
     const variants = await prisma.productVariant.findMany({
       where: { id: { in: variantIds } },
       include: { product: true }
@@ -55,11 +51,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Some variants not found' }, { status: 400 });
     }
 
-    // Step 6: Validate stock and calculate subtotal/tax/total
     let subtotal = 0;
-    const orderedItems = variantIds.map((vid) => items.find((i) => i.variantId === vid)!);
-
-    const itemsWithValidatedData = orderedItems.map((item) => {
+    const itemsWithValidatedData = items.map((item) => {
       const variant = variants.find((v) => v.id === item.variantId);
       if (!variant) throw new Error('Variant not found');
 
@@ -86,12 +79,10 @@ export async function POST(req: NextRequest) {
     const tax = subtotal * 0.1;
     const calculatedTotal = subtotal + tax;
 
-    // Step 7: Check client vs server total match
     if (Math.abs(calculatedTotal - total) > 0.01) {
       return NextResponse.json({ error: 'Total mismatch detected' }, { status: 400 });
     }
 
-    // Step 8: Get or create Stripe customer
     const user = await prisma.user.findUnique({ where: { id: session.user.id } });
     let customerId = user?.stripeCustomerId;
 
@@ -100,69 +91,69 @@ export async function POST(req: NextRequest) {
         email: session.user.email,
         metadata: { userId: session.user.id }
       });
+
       await prisma.user.update({
         where: { id: session.user.id },
         data: { stripeCustomerId: customer.id }
       });
+
       customerId = customer.id;
     }
 
-    // Step 9: Create pending order + decrement stock
-const order = await prisma.$transaction(async (tx) => {
-  const newOrder = await tx.order.create({
-    data: {
-      userId: session.user.id,
-      stripeCustomerId: customerId,
-      tax,
-      total: calculatedTotal,
-      paymentStatus: 'PENDING',
-      items: {
-        create: itemsWithValidatedData.map((item) => ({
-          productId: item.productId,
-          variantId: item.variantId,
-          qty: item.qty,
-          price: item.price
-        }))
-      }
-    }
-  });
-
-  // Decrement stock immediately
-  await Promise.all(
-    itemsWithValidatedData.map((item) =>
-      tx.productVariant.update({
-        where: { id: item.variantId },
-        data: { stock: { decrement: item.qty } }
-      })
-    )
-  );
-
-  return newOrder;
-});
-
-
-    // Step 10: Create Stripe Checkout Session
-    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = itemsWithValidatedData.map((item) => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: `${item.colorName ?? ''} ${item.size ?? ''}`.trim() || 'Product',
-          metadata: {
-            productId: item.productId,
-            variantId: item.variantId,
-            colorName: item.colorName ?? '',
-            size: item.size ?? ''
+    const order = await prisma.$transaction(async (tx) => {
+      const newOrder = await tx.order.create({
+        data: {
+          userId: session.user.id,
+          stripeCustomerId: customerId!,
+          tax,
+          total: calculatedTotal,
+          paymentStatus: 'PENDING',
+          items: {
+            create: itemsWithValidatedData.map((item) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              qty: item.qty,
+              price: item.price
+            }))
           }
+        }
+      });
+
+      await Promise.all(
+        itemsWithValidatedData.map((item) =>
+          tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.qty } }
+          })
+        )
+      );
+
+      return newOrder;
+    });
+
+    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = itemsWithValidatedData.map(
+      (item) => ({
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: `${item.colorName ?? ''} ${item.size ?? ''}`.trim() || 'Product',
+            metadata: {
+              productId: item.productId,
+              variantId: item.variantId,
+              colorName: item.colorName ?? '',
+              size: item.size ?? ''
+            }
+          },
+          unit_amount: Math.round(item.price * 100)
         },
-        unit_amount: Math.round(item.price * 100)
-      },
-      quantity: item.qty
-    }));
+        quantity: item.qty
+      })
+    );
 
     const stripeSession = await stripe.checkout.sessions.create({
-      customer: customerId,
-      payment_method_types: ['card'],
+      customer: customerId!,
       mode: 'payment',
+      payment_method_types: ['card'],
       success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
       line_items,
@@ -172,13 +163,11 @@ const order = await prisma.$transaction(async (tx) => {
       }
     });
 
-    // Step 11: Update order with Stripe session ID
     await prisma.order.update({
       where: { id: order.id },
       data: { stripeSessionId: stripeSession.id }
     });
 
-    // Step 12: Return Stripe checkout URL
     return NextResponse.json({ url: stripeSession.url }, { status: 200 });
   } catch (err) {
     console.error('Checkout error:', err);
