@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { productUpdateSchema } from '@/validations/productSchema';
+//import { productUpdateSchema } from '@/validations/productSchema';
 import type { ProductType } from '@/types/product';
 
 interface Params {
@@ -11,18 +11,10 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   try {
     const body: Partial<ProductType> = await req.json();
 
-    const { error, value } = productUpdateSchema.validate(body, { abortEarly: false });
-    if (error) {
-      return NextResponse.json(
-        { success: false, errors: error.details.map((e) => e.message) },
-        { status: 400 }
-      );
-    }
-
     const updatedProduct = await prisma.product.update({
       where: { id: params.id },
       data: {
-        title: value.title,
+        title: body.title,
         status: 'ACTIVE'
       },
       include: { variants: { where: { isDeleted: false } } }

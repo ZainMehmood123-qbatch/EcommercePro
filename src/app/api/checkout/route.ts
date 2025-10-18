@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
-import { createOrderSchema } from '@/validations/orderValidation';
+//import { createOrderSchema } from '@/validations/orderSchema';
 import type { CartItem } from '@/types/cart';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -25,13 +25,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
     }
 
-    const { error } = createOrderSchema.validate({ items }, { abortEarly: false });
-    if (error) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.details.map((d) => d.message) },
-        { status: 400 }
-      );
-    }
+    // const { error } = createOrderSchema.validate({ items }, { abortEarly: false });
+    // if (error) {
+    //   return NextResponse.json(
+    //     { error: 'Validation failed', details: error.details.map((d) => d.message) },
+    //     { status: 400 }
+    //   );
+    // }
 
     const variantIds = items.map((i) => i.variantId);
     const duplicates = variantIds.filter((id, index) => variantIds.indexOf(id) !== index);

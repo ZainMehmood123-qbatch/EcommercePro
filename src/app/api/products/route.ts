@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma';
 import type { ProductType, ProductVariant } from '@/types/product';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import { productCreateSchema } from '@/validations/productSchema';
 
 export async function GET(req: NextRequest) {
   try {
@@ -85,20 +84,12 @@ export async function POST(req: NextRequest) {
   try {
     const body: ProductType = await req.json();
 
-    const { error, value } = productCreateSchema.validate(body, { abortEarly: false });
-    if (error) {
-      return NextResponse.json(
-        { success: false, errors: error.details.map((e) => e.message) },
-        { status: 400 }
-      );
-    }
-
     const newProduct = await prisma.product.create({
       data: {
-        title: value.title,
+        title: body.title,
         status: 'ACTIVE',
         variants: {
-          create: (value.variants ?? []).map((v: ProductVariant) => ({
+          create: (body.variants ?? []).map((v: ProductVariant) => ({
             colorName: v.colorName,
             colorCode: v.colorCode,
             size: v.size,
