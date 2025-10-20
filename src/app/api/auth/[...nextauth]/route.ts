@@ -96,19 +96,38 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
+    // async session({ session, token }) {
+    //   if (!token.expires || Date.now() / 1000 > token.expires) {
+    //     return null;
+    //   }
+    //   session.user = {
+    //     id: token.id,
+    //     name: token.name,
+    //     email: token.email,
+    //     role: token.role
+    //   };
+    //   session.expires = new Date(token.expires * 1000).toISOString();
+    //   return session;
+    // }
+
     async session({ session, token }) {
-      if (!token.expires || Date.now() / 1000 > token.expires) {
-        return null;
-      }
-      session.user = {
-        id: token.id,
-        name: token.name,
-        email: token.email,
-        role: token.role
-      };
-      session.expires = new Date(token.expires * 1000).toISOString();
-      return session;
-    }
+  if (!token.expires || Date.now() / 1000 > token.expires) {
+    return {
+      user: null,
+      expires: new Date(Date.now()).toISOString()
+    };
+  }
+
+  session.user = {
+    id: token.id,
+    name: token.name,
+    email: token.email,
+    role: token.role
+  };
+  session.expires = new Date(token.expires * 1000).toISOString();
+  return session;
+}
+
   }
 };
 
