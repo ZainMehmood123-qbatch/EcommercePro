@@ -6,6 +6,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../auth/[...nextauth]/route';
 
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession({ req, ...authOptions });
@@ -60,12 +61,17 @@ export async function GET(req: NextRequest) {
       prisma.order.count({ where: whereClause })
     ]);
 
-    const totalUnits = orders.reduce(
+    const allOrdersForStats = await prisma.order.findMany({
+      where: whereClause,
+      include: { items: true }
+    });
+
+    const totalUnits = allOrdersForStats.reduce(
       (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
       0
     );
 
-    const totalAmount = orders.reduce(
+    const totalAmount = allOrdersForStats.reduce(
       (sum, o) => sum + o.items.reduce((s, i) => s + i.price * i.qty, 0),
       0
     );
@@ -86,13 +92,13 @@ export async function GET(req: NextRequest) {
     );
   } catch (err) {
     console.error('Failed to fetch orders:', err);
-    
     return NextResponse.json(
       { error: 'Failed to fetch orders' },
       { status: 500 }
     );
   }
 }
+
 
 export async function PATCH(req: Request) {
   try {
