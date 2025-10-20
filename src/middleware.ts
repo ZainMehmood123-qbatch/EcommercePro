@@ -41,7 +41,6 @@ export async function middleware(req: ValidatedNextRequest) {
             { status: 400 }
           );
         }
-
       
         const validatedBody = JSON.stringify(body);
         const validatedRequest = new Request(req.url, {
@@ -74,7 +73,7 @@ export async function middleware(req: ValidatedNextRequest) {
 
   if (publicRoutes.includes(pathname)) {
     if (token && (pathname === '/auth/login' || pathname === '/auth/signup')) {
-      if (token.role === 'ADMIN') return NextResponse.redirect(new URL('/admin/orders', req.url));
+      if (token.role === 'ADMIN') return NextResponse.redi`rect(new URL('/admin/orders', req.url));
       if (token.role === 'USER') return NextResponse.redirect(new URL('/user/shopping-bag', req.url));
     }
     return NextResponse.next();
