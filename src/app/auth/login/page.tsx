@@ -33,7 +33,7 @@ export default function LoginPage() {
     const res = await signIn('credentials', {
       email: values.email,
       password: values.password,
-      remember: values.remember ? 'true' : 'false',
+      remember: remember ? 'true' : 'false', 
       redirect: false
     });
 
@@ -87,12 +87,12 @@ export default function LoginPage() {
         </Button>
       </AuthForm>
       <Button
-  onClick={() => signIn('google', { callbackUrl: '/' })}
-  icon={<GoogleOutlined />}
-  className="auth-button mt-2"
->
-  Continue with Google
-</Button>
+        onClick={() => signIn('google', { callbackUrl: '/' })}
+        icon={<GoogleOutlined />}
+        className="auth-button mt-2"
+      >
+        Continue with Google
+      </Button>
 
       <div className="auth-login-footer">
         <p className="auth-login-datext">

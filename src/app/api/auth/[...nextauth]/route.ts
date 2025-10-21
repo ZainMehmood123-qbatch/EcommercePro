@@ -1,13 +1,33 @@
 import bcrypt from 'bcryptjs';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import NextAuth, { NextAuthOptions } from 'next-auth';
+import NextAuth, { NextAuthOptions, User } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
+import { encode as jwtEncode, decode as jwtDecode } from 'next-auth/jwt';
 import { prisma } from '@/lib/prisma';
 import { getOrCreateStripeCustomer } from '@/lib/stripeCustomer';
 
+const JWT_SECRET = process.env.NEXTAUTH_SECRET;
+if (!JWT_SECRET) throw new Error('NEXTAUTH_SECRET is not defined');
+
 export const authOptions: NextAuthOptions = {
-  session: { strategy: 'jwt' },
-  secret: process.env.NEXTAUTH_SECRET,
+  session: { 
+    strategy: 'jwt'
+  },
+  secret: JWT_SECRET,
+  jwt: {
+    async encode({ token, secret, maxAge }) {
+      if (!token) return '';
+      const maxAgeNew = token.exp
+        ? (token.exp as number) - Math.floor(Date.now() / 1000)
+        : maxAge;
+      
+      return jwtEncode({ token, secret, maxAge: maxAgeNew });
+    },
+    async decode({ token, secret }) {
+      return jwtDecode({ token, secret });
+    }
+  },
 
   providers: [
     GoogleProvider({
@@ -21,7 +41,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
         remember: { label: 'Remember', type: 'text' }
       },
-      async authorize(credentials) {
+      async authorize(credentials): Promise<User | null> {
         if (!credentials?.email || !credentials.password) return null;
 
         const user = await prisma.user.findUnique({
@@ -39,7 +59,8 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           name: user.fullname,
           email: user.email,
-          role: user.role as 'ADMIN' | 'USER'
+          role: user.role as 'ADMIN' | 'USER',
+          remember: credentials.remember === 'true'
         };
       }
     })
@@ -73,61 +94,54 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id;
-        token.name = user.name ?? '';
-        token.email = user.email ?? '';
-        token.role = user.role;
+    async jwt({ token, user, trigger, account }): Promise<JWT> {
+      if (trigger === 'signIn' && user) {
+        const now = Math.floor(Date.now() / 1000);
+        let maxAge: number;
+        
         if (account?.provider === 'credentials') {
-          const remember =
-            (account as { provider: 'credentials'; remember?: string })
-              ?.remember === 'true';
-          token.expires =
-            Math.floor(Date.now() / 1000) +
-            (remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24);
+          const remember = user.remember ?? false;
+          maxAge = remember ? 30 * 24 * 60 * 60 : 2 * 60; 
         } else {
-          token.expires = Math.floor(Date.now() / 1000) + 60 * 60 * 24;
+          maxAge = 30 * 24 * 60 * 60;
         }
+        
+        const exp = now + maxAge;
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.role = user.role;
+        token.exp = exp;
+        token.maxAge = maxAge;
       }
-      if (token.expires && Date.now() / 1000 > token.expires) {
-        token.expires = 0;
-      }
+
       return token;
     },
 
-    // async session({ session, token }) {
-    //   if (!token.expires || Date.now() / 1000 > token.expires) {
-    //     return null;
-    //   }
-    //   session.user = {
-    //     id: token.id,
-    //     name: token.name,
-    //     email: token.email,
-    //     role: token.role
-    //   };
-    //   session.expires = new Date(token.expires * 1000).toISOString();
-    //   return session;
-    // }
-
     async session({ session, token }) {
-  if (!token.expires || Date.now() / 1000 > token.expires) {
-    return {
-      user: null,
-      expires: new Date(Date.now()).toISOString()
-    };
-  }
+      if (token) {
+        const now = Math.floor(Date.now() / 1000);
+        const tokenExp = token.exp as number;
+        const remaining = tokenExp - now;
 
-  session.user = {
-    id: token.id,
-    name: token.name,
-    email: token.email,
-    role: token.role
-  };
-  session.expires = new Date(token.expires * 1000).toISOString();
-  return session;
-}
+        session.user = {
+          id: token.id as string,
+          name: token.name as string,
+          email: token.email as string,
+          role: token.role as 'ADMIN' | 'USER'
+        };
 
+        session.expires = new Date(tokenExp * 1000).toISOString();
+        if (remaining <= 0) {
+          return {
+            ...session,
+            expires: new Date(0).toISOString()
+          };
+        }
+      }
+
+      return session;
+    }
   }
 };
 
