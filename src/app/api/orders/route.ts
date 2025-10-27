@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 
-import { Prisma } from '@prisma/client';
+import { Prisma, Role } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '../auth/[...nextauth]/route';
@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     let whereClause: Prisma.OrderWhereInput = {};
 
-    if (role === 'ADMIN') {
+    if (role === Role.ADMIN) {
       if (search) {
         whereClause = {
           OR: [
@@ -51,8 +51,8 @@ export async function GET(req: NextRequest) {
       prisma.order.findMany({
         where: whereClause,
         include: {
-          items: true,
-          user: { select: { id: true, fullname: true, email: true } }
+          user: { select: { id: true, fullname: true, email: true } },
+          items: true
         },
         orderBy: { createdAt: 'desc' },
         skip,
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
 
     const allOrdersForStats = await prisma.order.findMany({
       where: whereClause,
-      include: { items: true }
+      include: { items: { select: { qty: true, price: true } } }
     });
 
     const totalUnits = allOrdersForStats.reduce(
@@ -116,9 +116,19 @@ export async function PATCH(req: Request) {
       data: { paymentStatus }
     });
 
-    return NextResponse.json(updatedOrder);
-  } catch (error) {
-    console.error('Error updating order:', error);
-    return NextResponse.json({ error: 'Server error' }, { status: 500 });
-  }
+    return NextResponse.json({
+          success: true,
+          message: 'Order updated successfully',
+          data: updatedOrder
+        });
+      } catch (error) {
+        console.error('Error updating order:', error);
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+          return NextResponse.json(
+            { success: false, message: 'Order not found' },
+            { status: 404 }
+          );
+        }
+        return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+      }
 }
