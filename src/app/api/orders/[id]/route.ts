@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { prisma } from '@/lib/prisma';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { Role } from '@prisma/client';
 
 export async function GET(req: Request, context: { params: { id: string } }) {
   const { id } = await context.params; 
@@ -45,10 +46,11 @@ export async function GET(req: Request, context: { params: { id: string } }) {
     });
 
     if (!order) {
-      return NextResponse.json({ message: 'Order not found' }, { status: 404 });
-    }
-    if (session.user.role !== 'ADMIN' && order.userId !== session.user.id) {
-      return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+        return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+      }
+
+    if (session.user.role !== Role.ADMIN && order.userId !== session.user.id) {
+      return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
     }
 
     const formattedOrder = {
