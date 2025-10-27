@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
 
       return {
         productId: variant.productId,
+        productName: variant.product.title,
         variantId: variant.id,
         qty: item.qty,
         price,
@@ -128,7 +129,9 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `${item.colorName ?? ''} ${item.size ?? ''}`.trim() || 'Product',
+            name: `${item.productName} — ${item.colorName || ''} ${item.size || ''}`,
+            description: `Qty: ${item.qty} • Price: $${item.price}`,
+
             metadata: {
               productId: item.productId,
               variantId: item.variantId,
