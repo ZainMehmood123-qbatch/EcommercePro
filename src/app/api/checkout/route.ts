@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { prisma } from '@/lib/prisma';
 import type { CartItem } from '@/types/cart';
+import { PaymentStatus } from '@prisma/client';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-09-30.clover'
@@ -98,7 +99,7 @@ export async function POST(req: NextRequest) {
           stripeCustomerId: customerId!,
           tax,
           total: calculatedTotal,
-          paymentStatus: 'PENDING',
+          paymentStatus: PaymentStatus.PENDING,
           items: {
             create: itemsWithValidatedData.map((item) => ({
               productId: item.productId,
