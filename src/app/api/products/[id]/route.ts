@@ -1,29 +1,41 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-//import { productUpdateSchema } from '@/validations/productSchema';
-import type { ProductType } from '@/types/product';
+import { Prisma, ProductStatus } from '@prisma/client';
 
-interface Params {
-  id: string;
-}
-
-export async function PUT(req: Request, { params }: { params: Params }) {
+export async function PUT(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const body: Partial<ProductType> = await req.json();
+    const body = await req.json();
 
     const updatedProduct = await prisma.product.update({
       where: { id: params.id },
       data: {
         title: body.title,
-        status: 'ACTIVE'
+        status: ProductStatus.ACTIVE
       },
       include: { variants: { where: { isDeleted: false } } }
     });
 
-    return NextResponse.json({ success: true, data: updatedProduct });
+    return NextResponse.json(
+      { success: true, data: updatedProduct },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error updating product:', error);
-    return NextResponse.json({ error: 'Failed to update product' }, { status: 500 });
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { success: false, message: 'Product not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Failed to update product' },
+      { status: 500 }
+    );
   }
 }
 
@@ -34,14 +46,25 @@ export async function DELETE(
   try {
     await prisma.product.update({
       where: { id: params.id },
-      data: { status: 'INACTIVE' }
+      data: { status: ProductStatus.INACTIVE }
     });
 
-    return NextResponse.json({ message: 'Product marked as INACTIVE' });
-  } catch (error) {
-    console.error('Error updating product status:', error);
     return NextResponse.json(
-      { error: 'Failed to update product' },
+      { success: true, message: 'Product marked as inactive' },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error('Error marking product inactive:', error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { success: false, message: 'Product not found' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Failed to delete product' },
       { status: 500 }
     );
   }
