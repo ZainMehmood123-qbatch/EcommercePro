@@ -1,22 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Table, Card, Button, Spin } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
 import {
-  ExportOutlined,
-  ShoppingCartOutlined,
   AppstoreOutlined,
-  DollarOutlined
+  DollarOutlined,
+  ExportOutlined,
+  ShoppingCartOutlined
 } from '@ant-design/icons';
+import { Button, Card, Spin, Table } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import { useEffect, useState } from 'react';
 
 import SearchComponent from '@/components/dashboard/search-bar';
 import OrderDetailsSidebar from '@/components/OrderDetailsSidebar';
 
-import { OrderType, FetchedOrder, FetchedOrderItem } from '@/types/order';
+import { FetchedOrder, FetchedOrderItem, OrderType } from '@/types/order';
 
-import './orderss.css';
 import toast from 'react-hot-toast';
+import './orderss.css';
 
 interface ApiResponse {
   orders: (FetchedOrder & { items: FetchedOrderItem[] })[];
