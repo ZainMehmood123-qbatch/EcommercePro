@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { Prisma } from '@prisma/client';
+import { Prisma, ProductStatus, Role } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { ProductType, ProductVariant } from '@/types/product';
 import { getServerSession } from 'next-auth';
@@ -13,11 +13,11 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
 
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const limit = parseInt(searchParams.get('limit') || '8', 10);
+    const page = parseInt(searchParams.get('page') ?? '1', 10);
+    const limit = parseInt(searchParams.get('limit') ?? '8', 10);
     const skip = (page - 1) * limit;
-    const search = searchParams.get('search') || '';
-    const sort = searchParams.get('sort') || 'newest';
+    const search = searchParams.get('search') ?? '';
+    const sort = searchParams.get('sort') ?? 'newest';
 
     let orderBy: Prisma.ProductOrderByWithRelationInput;
 
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
     }
 
     const baseWhere: Prisma.ProductWhereInput = {
-      status: 'ACTIVE',
+      status: ProductStatus.ACTIVE,
       ...(search
         ? {
             title: {
@@ -50,20 +50,20 @@ export async function GET(req: NextRequest) {
     };
 
     const where: Prisma.ProductWhereInput =
-      role === 'ADMIN'
-        ? baseWhere 
+      role === Role.ADMIN
+        ? baseWhere
         : {
             ...baseWhere,
             variants: {
-              some: { isDeleted: false } 
+              some: { isDeleted: false }
             }
           };
 
     const products = await prisma.product.findMany({
-      skip,
-      take: limit,
       where,
       orderBy,
+      skip,
+      take: limit,
       include: {
         variants: {
           where: { isDeleted: false }
@@ -73,21 +73,44 @@ export async function GET(req: NextRequest) {
 
     const total = await prisma.product.count({ where });
 
-    return NextResponse.json({ data: products, total });
+    return NextResponse.json(
+      { success: true, data: products, total },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error fetching products:', error);
-    return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { success: false, message: 'Database query failed' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch products' },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.role !== Role.ADMIN) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized' },
+        { status: 403 }
+      );
+    }
+
     const body: ProductType = await req.json();
+    console.log('Incoming body:', JSON.stringify(body, null, 2));
 
     const newProduct = await prisma.product.create({
       data: {
         title: body.title,
-        status: 'ACTIVE',
+        status: ProductStatus.ACTIVE,
         variants: {
           create: (body.variants ?? []).map((v: ProductVariant) => ({
             colorName: v.colorName,
@@ -102,13 +125,23 @@ export async function POST(req: NextRequest) {
       include: { variants: true }
     });
 
-    return NextResponse.json(newProduct, { status: 201 });
+  return NextResponse.json(
+      { success: true, data: newProduct },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating product:', error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      return NextResponse.json(
+        { success: false, message: 'Database error occurred' },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json(
       { success: false, message: 'Failed to create product' },
       { status: 500 }
     );
   }
 }
-

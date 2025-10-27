@@ -36,3 +36,17 @@ export interface ProductResponse {
   data: ProductType[];
   total: number;
 }
+
+export interface CreateProductInput {
+  title: string;
+  variants?: CreateProductVariantInput[];
+}
+
+export interface CreateProductVariantInput {
+  colorName: string;
+  colorCode: string;
+  size: string;
+  stock: number;
+  price: number;
+  image: string;
+}

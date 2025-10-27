@@ -125,18 +125,20 @@ export default function ProductModal({ visible, onClose, product }: Props) {
   // Save / Update Product
   const handleSave = async () => {
     try {
-      const { title } = await form.validateFields(['title']);
-      if (!title) return;
+      const values = await form.validateFields(); 
       setLoading(true);
 
-      if (product) {
-        await dispatch(updateProduct({ id: product.id, title })).unwrap();
-        toast.success('Product updated');
-      } else {
-        await dispatch(createProduct({ title })).unwrap();
-        toast.success('Product created');
-      }
-
+    if (product) {
+      await dispatch(updateProduct({ id: product.id, title: values.title })).unwrap();
+      toast.success('Product updated');
+    } else {
+      const payload = {
+        title: values.title,
+        ...(values.variants?.length ? { variants: values.variants } : {})
+      };
+      await dispatch(createProduct(payload)).unwrap();
+      toast.success('Product created');
+    }
       onClose();
     } catch (err) {
       console.error(err);
