@@ -23,6 +23,7 @@ const Shoppingbag: React.FC = () => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
 
   // Load cart items
@@ -87,6 +88,9 @@ const Shoppingbag: React.FC = () => {
 
   // Checkout (Stripe)
   const handlePlaceOrder = async () => {
+
+    if(loading) return;
+    setLoading(true);
     if (!items.length) {
       toast.error('Your cart is empty!');
       return;
@@ -112,6 +116,7 @@ const Shoppingbag: React.FC = () => {
     } catch (err) {
       console.error(err);
       toast.error('Checkout failed. Try again!');
+      setLoading(false);
     }
   };
 
@@ -297,13 +302,15 @@ const Shoppingbag: React.FC = () => {
                 >
                   Delete Selected
                 </Button>
-                <Button
+                  <Button
                   type="primary"
                   size="large"
                   className="sb-placeorder"
                   onClick={handlePlaceOrder}
+                  loading={loading} 
+                  disabled={loading}
                 >
-                  Place Order
+                  {loading ? 'Processing...' : 'Place Order'}
                 </Button>
               </div>
             </div>
