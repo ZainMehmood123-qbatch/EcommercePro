@@ -26,10 +26,14 @@ export async function POST(req: NextRequest) {
     }
 
     const variantIds = items.map((i) => i.variantId);
-    const duplicates = variantIds.filter((id, index) => variantIds.indexOf(id) !== index);
+    const duplicates = variantIds.filter(
+      (id, index) => variantIds.indexOf(id) !== index
+    );
     if (duplicates.length > 0) {
       return NextResponse.json(
-        { error: `Duplicate variants not allowed: ${[...new Set(duplicates)].join(', ')}` },
+        {
+          error: `Duplicate variants not allowed: ${[...new Set(duplicates)].join(', ')}`
+        },
         { status: 400 }
       );
     }
@@ -40,7 +44,10 @@ export async function POST(req: NextRequest) {
     });
 
     if (variants.length !== items.length) {
-      return NextResponse.json({ error: 'Some variants not found' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Some variants not found' },
+        { status: 400 }
+      );
     }
 
     let subtotal = 0;
@@ -73,10 +80,15 @@ export async function POST(req: NextRequest) {
     const calculatedTotal = subtotal + tax;
 
     if (Math.abs(calculatedTotal - total) > 0.01) {
-      return NextResponse.json({ error: 'Total mismatch detected' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Total mismatch detected' },
+        { status: 400 }
+      );
     }
 
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    });
     let customerId = user?.stripeCustomerId;
 
     if (!customerId) {
@@ -124,8 +136,8 @@ export async function POST(req: NextRequest) {
       return newOrder;
     });
 
-    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = itemsWithValidatedData.map(
-      (item) => ({
+    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
+      itemsWithValidatedData.map((item) => ({
         price_data: {
           currency: 'usd',
           product_data: {
@@ -142,25 +154,26 @@ export async function POST(req: NextRequest) {
           unit_amount: Math.round(item.price * 100)
         },
         quantity: item.qty
-      })
-    );
+      }));
 
-    const stripeSession = await stripe.checkout.sessions.create({
-      customer: customerId!,
-      mode: 'payment',
-      payment_method_types: ['card'],
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
-      line_items,
-      metadata: {
-        userId: session.user.id,
-        orderId: order.id
+    const stripeSession = await stripe.checkout.sessions.create(
+      {
+        customer: customerId!,
+        mode: 'payment',
+        payment_method_types: ['card'],
+        success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success`,
+        cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
+        line_items,
+        metadata: {
+          userId: session.user.id,
+          orderId: order.id
+        }
+      },
+      {
+        // this ensures the same session isn't created twice
+        idempotencyKey: `checkout_${order.id}`
       }
-    },
-   {
-    // this ensures the same session isn't created twice
-    idempotencyKey: `checkout_${order.id}`
-  });
+    );
 
     await prisma.order.update({
       where: { id: order.id },
