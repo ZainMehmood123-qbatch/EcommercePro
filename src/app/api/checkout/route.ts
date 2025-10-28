@@ -51,30 +51,41 @@ export async function POST(req: NextRequest) {
     }
 
     let subtotal = 0;
+    const stockErrors: string[] = [];
+
     const itemsWithValidatedData = items.map((item) => {
       const variant = variants.find((v) => v.id === item.variantId);
-      if (!variant) throw new Error('Variant not found');
-
-      if (variant.stock < item.qty) {
-        throw new Error(
-          `Not enough stock for ${variant.product.title} (${variant.colorName ?? ''} ${variant.size ?? ''})`
-        );
+      if (!variant) {
+        stockErrors.push(`Variant not found for ${item.product}`);
+        return null;
       }
 
-      const price = variant.price;
-      subtotal += price * item.qty;
+      if (variant.stock < item.qty) {
+        stockErrors.push(
+          `Not enough stock for ${variant.product.title} (${variant.colorName ?? ''} ${variant.size ?? ''})`
+        );
+        return null;
+      }
 
-      return {
-        productId: variant.productId,
-        productName: variant.product.title,
-        variantId: variant.id,
-        qty: item.qty,
-        price,
-        colorName: variant.colorName,
-        colorCode: variant.colorCode,
-        size: variant.size
-      };
-    });
+  const price = variant.price;
+  subtotal += price * item.qty;
+
+  return {
+    productId: variant.productId,
+    productName: variant.product.title,
+    variantId: variant.id,
+    qty: item.qty,
+    price,
+    colorName: variant.colorName,
+    colorCode: variant.colorCode,
+    size: variant.size
+  };
+}).filter((item): item is NonNullable<typeof item> => item !== null);
+
+    if (stockErrors.length > 0) {
+      return NextResponse.json({ error: stockErrors.join('\n\n') }, { status: 400 });
+    }
+
 
     const tax = subtotal * 0.1;
     const calculatedTotal = subtotal + tax;

@@ -86,39 +86,84 @@ const Shoppingbag: React.FC = () => {
     toast.success('Selected items deleted');
   };
 
+  // // Checkout (Stripe)
+  // const handlePlaceOrder = async () => {
+
+  //   if(loading) return;
+  //   setLoading(true);
+  //   if (!items.length) {
+  //     toast.error('Your cart is empty!');
+  //     return;
+  //   }
+
+  //   const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
+  //   const tax = subTotal * 0.1;
+  //   const total = subTotal + tax;
+
+  //   try {
+  //     const res = await fetch('/api/checkout', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({ items, total })
+  //     });
+
+  //     const data = await res.json();
+  //     if (!res.ok) throw new Error(data.error || 'Checkout failed');
+
+  //     if (userId) clearCart(userId);
+  //     toast.success('Redirecting to checkout...');
+  //     window.location.href = data.url;
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error('Checkout failed. Try again!');
+  //     setLoading(false);
+  //   }
+  // };
+
   // Checkout (Stripe)
-  const handlePlaceOrder = async () => {
+const handlePlaceOrder = async () => {
+  if (loading) return;
+  setLoading(true);
 
-    if(loading) return;
-    setLoading(true);
-    if (!items.length) {
-      toast.error('Your cart is empty!');
-      return;
+  if (!items.length) {
+    toast.error('Your cart is empty!');
+    setLoading(false);
+    return;
+  }
+
+  const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
+  const tax = subTotal * 0.1;
+  const total = subTotal + tax;
+
+  try {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items, total })
+    });
+
+    const data = await res.json();
+    
+    if (!res.ok) {
+      const message =
+        data?.error || data?.message || 'Checkout failed due to server error.';
+      throw new Error(message);
     }
 
-    const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
-    const tax = subTotal * 0.1;
-    const total = subTotal + tax;
+    if (userId) clearCart(userId);
 
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items, total })
-      });
+    toast.success('Redirecting to checkout...');
+    window.location.href = data.url;
+  } catch (err) {
+    console.error('Checkout error:', err);
+    const errorMessage =
+      err instanceof Error ? err.message : 'Checkout failed. Try again!';
+    toast.error(errorMessage);
+  } finally {
+    setLoading(false);
+  }
+};
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Checkout failed');
-
-      if (userId) clearCart(userId);
-      toast.success('Redirecting to checkout...');
-      window.location.href = data.url;
-    } catch (err) {
-      console.error(err);
-      toast.error('Checkout failed. Try again!');
-      setLoading(false);
-    }
-  };
 
   // Table columns (styled)
   const columns: TableColumnsType<CartItem> = [
