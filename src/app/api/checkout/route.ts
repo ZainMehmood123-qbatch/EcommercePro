@@ -156,7 +156,11 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         orderId: order.id
       }
-    });
+    },
+   {
+    // this ensures the same session isn't created twice
+    idempotencyKey: `checkout_${order.id}`
+  });
 
     await prisma.order.update({
       where: { id: order.id },
