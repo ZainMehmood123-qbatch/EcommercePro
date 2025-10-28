@@ -192,7 +192,6 @@ export default function DashboardCard({ product }: DashboardCardProps) {
           </div>
         </div>
 
-
         <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2'>
 
           <div className='flex items-center bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-1 border-2 border-gray-200 shadow-sm hover:shadow-md transition-all duration-300'>
@@ -212,20 +211,22 @@ export default function DashboardCard({ product }: DashboardCardProps) {
               className='border-none shadow-none h-9 w-9 text-gray-700 hover:text-[#007BFF] bg-transparent hover:bg-white hover:scale-110 rounded-md transition-all duration-200 disabled:opacity-40'
             />
           </div>
-          <Button
-            type='primary'
-            size='large'
-            icon={<ShoppingCartOutlined className='text-base' />}
-            onClick={handleAddToCart}
-            disabled={!selectedVariant || stock === 0}
-            className='!font-inter !text-sm !font-semibold !flex !justify-center !items-center !gap-2 !px-6 !py-2 !rounded-lg !bg-gradient-to-r !from-[#007BFF] !to-[#0056b3] hover:!from-[#0056b3] hover:!to-[#003d82] !border-none !shadow-md hover:!shadow-xl hover:!scale-105 !transition-all !duration-300 disabled:!bg-gray-300 disabled:!cursor-not-allowed disabled:!scale-100 flex-1 sm:flex-none'
-          >
-            {!selectedVariant
-              ? 'Select Variant'
-              : stock === 0
-              ? 'Out of Stock'
-              : 'Add to Cart'}
-          </Button>
+            <Button
+              type='primary'
+              size='large'
+              icon={<ShoppingCartOutlined className='text-base' />}
+              onClick={handleAddToCart}
+              disabled={!selectedVariant || stock === 0}
+              className={`!font-inter !text-sm !font-semibold !flex !justify-center !items-center !gap-2 !px-6 !py-2 !rounded-lg !bg-gradient-to-r !from-[#007BFF] !to-[#0056b3] hover:!from-[#0056b3] hover:!to-[#003d82] !border-none !shadow-md hover:!shadow-xl hover:!scale-105 !transition-all !duration-300 disabled:!bg-gray-300 disabled:!cursor-not-allowed disabled:!scale-100 flex-1 sm:flex-none 
+                ${stock === 0 ? '!text-white' : ''} 
+              `}
+            >
+              {!selectedVariant
+                ? 'Select Variant'
+                : stock === 0
+                ? 'Out of Stock'
+                : 'Add to Cart'}
+            </Button>
         </div>
       </div>
     </Card>
