@@ -19,7 +19,6 @@ type TableRowSelection<T extends object = object> = TableProps<T>['rowSelection'
 const Shoppingbag: React.FC = () => {
   const { data: session, status } = useSession();
   const userId = session?.user?.id;
-
   const [items, setItems] = useState<CartItem[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
