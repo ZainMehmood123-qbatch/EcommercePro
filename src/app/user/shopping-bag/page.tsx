@@ -27,22 +27,17 @@ const Shoppingbag: React.FC = () => {
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
   
-
-
-// 🧠 Reset stock errors automatically when cart updates
 useEffect(() => {
   if (stockErrors.length > 0) {
     setStockErrors([]);
   }
 }, [items]);
 
-  // Load cart items
   useEffect(() => {
     if (!userId) return;
     setItems(getCartItems(userId));
   }, [userId]);
 
-  // Keep localStorage synced
   useEffect(() => {
     if (!userId) return;
     updateCart(userId, items);
@@ -67,7 +62,6 @@ useEffect(() => {
     });
   };
 
-  // Delete single item
   const deleteItem = (key: React.Key) => {
     if (!userId) return;
     setItems((prev) => {
@@ -78,7 +72,6 @@ useEffect(() => {
     toast.success('Item deleted');
   };
 
-  // Delete selected items
   const deleteSelectedItems = () => {
     if (!selectedRowKeys.length) {
       toast.error('No items selected');
@@ -151,7 +144,6 @@ const handlePlaceOrder = async () => {
   if (loading) return;
   setLoading(true);
 
-  // Prevent retry if previous stock errors exist
   if (stockErrors.length > 0) {
     stockErrors.forEach((msg) => toast.error(msg));
     setLoading(false); 
