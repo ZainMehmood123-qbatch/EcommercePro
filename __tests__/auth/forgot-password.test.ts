@@ -11,7 +11,6 @@ afterAll(() => {
   jest.restoreAllMocks();
 });
 
-
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: {
