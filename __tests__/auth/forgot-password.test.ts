@@ -2,7 +2,6 @@ import { POST } from '@/app/api/auth/forgot-password/route';
 import { prisma } from '@/lib/prisma';
 import jwt from 'jsonwebtoken';
 
-
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {});
   jest.spyOn(console, 'error').mockImplementation(() => {});

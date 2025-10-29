@@ -88,69 +88,26 @@ useEffect(() => {
     toast.success('Selected items deleted');
   };
 
-  // Checkout (Stripe)
-//   const handlePlaceOrder = async () => {
-//     if (loading) return;
-//     setLoading(true);
-
-//      // Prevent retry if previous stock errors exist
-//     if (stockErrors.length > 0) {
-//       stockErrors.forEach((msg) => toast.error(msg));
-//       return;
-//     }
-
-//     if (!items.length) {
-//       toast.error('Your cart is empty!');
-//       setLoading(false);
-//       return;
-//     }
-
-//   const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
-//   const tax = subTotal * 0.1;
-//   const total = subTotal + tax;
-
-//   try {
-//     const res = await fetch('/api/checkout', {
-//       method: 'POST',
-//       headers: { 'Content-Type': 'application/json' },
-//       body: JSON.stringify({ items, total })
-//     });
-
-//     const data = await res.json();
-
-//     if (!res.ok) {
-//       const message =
-//         data?.error || data?.message || 'Checkout failed due to server error.';
-//       throw new Error(message);
-//     }
-
-//     setStockErrors([]);
-//     if (userId) clearCart(userId);
-
-//     toast.success('Redirecting to checkout...');
-//     window.location.href = data.url;
-//   } catch (err) {
-//     console.error('Checkout error:', err);
-//     const errorMessage =
-//       err instanceof Error ? err.message : 'Checkout failed. Try again!';
-//     toast.error(errorMessage);
-//   } finally {
-//     setLoading(false);
-//   }
-// };
-
 const handlePlaceOrder = async () => {
   if (loading) return;
   setLoading(true);
 
-  if (stockErrors.length > 0) {
-    stockErrors.forEach((msg) => toast.error(msg));
-    setLoading(false); 
+  if (!items.length) {
+    toast.error('Your cart is empty!');
+    setLoading(false);
     return;
   }
 
-  if (!items.length) {
-    toast.error('Your cart is empty!');
+  // Prevent redundant API hit if cart already has known stock issues
+  const outOfStockItems = items.filter(
+    (item) => item.qty > (item.availableStock ?? item.stock ?? 0)
+  );
+
+  if (outOfStockItems.length > 0) {
+    outOfStockItems.forEach((item) => {
+      const available = item.availableStock ?? item.stock ?? 0;
+      toast.error(`${item.product} — only ${available} left in stock`);
+    });
     setLoading(false);
     return;
   }
@@ -163,26 +120,55 @@ const handlePlaceOrder = async () => {
     const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items, total })
+      body: JSON.stringify({
+        // Strip frontend-only fields like availableStock before sending
+        items: items.map(({ availableStock, ...rest }) => {
+          void availableStock;
+          return rest;
+        }),
+        total
+      })
     });
+
 
     const data = await res.json();
 
     if (!res.ok) {
       const message =
-        data?.error || data?.message || 'Checkout failed due to server error.';
+        data?.error || 'Checkout failed due to stock issue.';
 
-      // Detect and store stock-related errors
-      if (message.toLowerCase().includes('stock')) {
-        setStockErrors([message]);
+      // Update local cart with the latest stock info if API returns it
+      if (data?.updatedStocks?.length) {
+        setItems((prev) =>
+          prev.map((item) => {
+            const match = data.updatedStocks.find(
+              (s: { variantId: string; }) => s.variantId === item.variantId
+            );
+            return match
+              ? { ...item, availableStock: match.availableStock }
+              : item;
+          })
+        );
+
+        // Show stock updates for all affected products
+        const combinedMsg = data.updatedStocks
+          .map(
+            (s: { productName: CartItem; colorName: CartItem; size: CartItem; availableStock: CartItem; }) =>
+              `${s.productName} (${s.colorName || ''} ${s.size || ''}) — only ${
+                s.availableStock
+              } left in stock`
+          )
+          .join('\n');
+
+        toast.error(`⚠️ Stock updated:\n${combinedMsg}`, {
+          duration: 7000
+        });
       }
 
       throw new Error(message);
     }
 
-    // Clear old stock errors if checkout success
-    setStockErrors([]);
-
+    // Success flow
     if (userId) clearCart(userId);
     toast.success('Redirecting to checkout...');
     window.location.href = data.url;
@@ -196,6 +182,7 @@ const handlePlaceOrder = async () => {
     setLoading(false);
   }
 };
+
 
   // Table columns (styled)
   const columns: TableColumnsType<CartItem> = [

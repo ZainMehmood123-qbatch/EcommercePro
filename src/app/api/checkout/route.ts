@@ -85,8 +85,17 @@ export async function POST(req: NextRequest) {
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
     if (stockErrors.length > 0) {
+      const updatedStocks = variants.map(v => ({
+        variantId: v.id,
+        availableStock: v.stock,
+        productName: v.product.title,
+        colorName: v.colorName,
+        size: v.size
+      }));
       return NextResponse.json(
-        { error: stockErrors.join('\n\n') },
+        { error: stockErrors.join('\n\n'),
+          updatedStocks
+         },
         { status: 400 }
       );
     }

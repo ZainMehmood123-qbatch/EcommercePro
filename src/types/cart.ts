@@ -13,5 +13,6 @@ export interface CartItem {
   qty: number;
   price: number;
   stock: number; 
+  availableStock?: number; // frontend-only field
 }
 
