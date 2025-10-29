@@ -8,6 +8,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { Button, Dropdown } from 'antd';
 import { Bell, ShoppingBag, User } from 'lucide-react';
 import { subscribeCartChange, getCartItems } from '@/lib/cart';
+import { toast } from 'react-hot-toast';
 
 const Navbar = ({ title = 'E-commerce' }) => {
   const { data: session, status } = useSession();
@@ -55,14 +56,18 @@ console.log('status:', status, session?.user?.id);
     {
       key: 'logout',
       label: (
-        <button
-          onClick={() => {
-            signOut({ callbackUrl: '/' });
-          }}
-          className='w-full text-left text-red-500 bg-transparent border-none px-2 py-1 hover:bg-gray-50'
-        >
-          Logout
-        </button>
+      <button
+        onClick={async () => {
+          await signOut({ redirect: false });
+          toast.success('Successfully logged out!', { duration: 3000 });
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+        }}
+        className="w-full text-left text-red-500 bg-transparent border-none px-2 py-1 hover:bg-gray-50"
+      >
+        Logout
+      </button>
       )
     }
   ];
