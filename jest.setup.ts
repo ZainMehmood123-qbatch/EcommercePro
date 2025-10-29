@@ -15,3 +15,11 @@ jest.mock('@/lib/stripeCustomer', () => ({
 jest.mock('@/lib/mailer', () => ({
   sendMail: jest.fn()
 }));
+jest.mock('next-auth', () => ({
+  __esModule: true,
+  default: jest.fn()
+}));
+
+jest.mock('bcryptjs', () => ({
+  compare: jest.fn()
+}));
