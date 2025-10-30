@@ -92,3 +92,11 @@ model OrderItem {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @default(now())
 }
+
+model OrderSummary {
+  id           Int      @id @default(autoincrement())
+  totalOrders  Int
+  totalUnits   Int
+  totalAmount  Float
+  lastUpdated  DateTime @default(now())
+}

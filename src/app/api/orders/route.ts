@@ -61,20 +61,22 @@ export async function GET(req: NextRequest) {
       prisma.order.count({ where: whereClause })
     ]);
 
-    const allOrdersForStats = await prisma.order.findMany({
-      where: whereClause,
-      include: { items: { select: { qty: true, price: true } } }
-    });
+    // const allOrdersForStats = await prisma.order.findMany({
+    //   where: whereClause,
+    //   include: { items: { select: { qty: true, price: true } } }
+    // });
 
-    const totalUnits = allOrdersForStats.reduce(
-      (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
-      0
-    );
+    // const totalUnits = allOrdersForStats.reduce(
+    //   (sum, o) => sum + o.items.reduce((s, i) => s + i.qty, 0),
+    //   0
+    // );
 
-    const totalAmount = allOrdersForStats.reduce(
-      (sum, o) => sum + o.items.reduce((s, i) => s + i.price * i.qty, 0),
-      0
-    );
+    // const totalAmount = allOrdersForStats.reduce(
+    //   (sum, o) => sum + o.items.reduce((s, i) => s + i.price * i.qty, 0),
+    //   0
+    // );
+
+    const summary = await prisma.orderSummary.findFirst();
 
     return NextResponse.json(
       {
@@ -82,11 +84,16 @@ export async function GET(req: NextRequest) {
         totalCount,
         page,
         limit,
+        // stats: {
+        //   totalOrders: totalCount,
+        //   totalUnits,
+        //   totalAmount
+        // }
         stats: {
-          totalOrders: totalCount,
-          totalUnits,
-          totalAmount
-        }
+        totalOrders: summary?.totalOrders || 0,
+        totalUnits: summary?.totalUnits || 0,
+        totalAmount: summary?.totalAmount || 0
+  }
       },
       { status: 200 }
     );
