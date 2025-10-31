@@ -1,11 +1,11 @@
 title,colorName,colorCode,size,stock,price,image
-Classic T-Shirt,Red,#FF0000,M,50,19.99,https://example.com/images/tshirt-red-m.jpg
-Classic T-Shirt,Blue,#0000FF,L,40,19.99,https://example.com/images/tshirt-blue-l.jpg
-Denim Jeans,Black,#000000,32,30,49.99,https://example.com/images/jeans-black-32.jpg
-Denim Jeans,Blue,#1E90FF,34,25,49.99,https://example.com/images/jeans-blue-34.jpg
-Sneakers,White,#FFFFFF,9,60,59.99,https://example.com/images/sneakers-white-9.jpg
-Sneakers,Black,#000000,10,45,59.99,https://example.com/images/sneakers-black-10.jpg
-Leather Jacket,Brown,#8B4513,L,20,129.99,https://example.com/images/jacket-brown-l.jpg
-Leather Jacket,Black,#000000,M,15,129.99,https://example.com/images/jacket-black-m.jpg
-Hoodie,Gray,#808080,L,35,39.99,https://example.com/images/hoodie-gray-l.jpg
-Hoodie,Navy,#000080,M,40,39.99,https://example.com/images/hoodie-navy-m.jpg
+Classic T-Shirt,Red,#FF0000,M,50,19.99,/red.png
+Classic T-Shirt,Black,#000000,L,40,19.99,/black.png
+Denim Jeans,Black,#000000,32,30,49.99,/black.png
+Denim Jeans,White,#FFFFFF,34,25,49.99,/white.png
+Sneakers,White,#FFFFFF,9,60,59.99,/white.png
+Sneakers,Black,#000000,10,45,59.99,/black.png
+Leather Jacket,Yellow,#FFFF00,L,20,129.99,/yellow.png
+Leather Jacket,Black,#000000,M,15,129.99,/black.png
+Hoodie,Red,#FF0000,L,35,39.99,/red.png
+Hoodie,Yellow,#FFFF00,M,40,39.99,/yellow.png
