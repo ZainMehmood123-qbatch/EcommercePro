@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { Modal, Upload, Button } from 'antd';
+import { Modal, Upload, Button, message } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
 import {
   UploadOutlined,
@@ -26,6 +26,40 @@ export default function AddMultipleProductsModal({ visible, onClose }: Props) {
     setFileList((prev) => prev.filter((f) => f.uid !== file.uid));
   };
 
+const handleUpload = async () => {
+  if (!fileList.length || !fileList[0].originFileObj) {
+    message.error('Please select a CSV file first!');
+    return;
+  }
+
+  const file = fileList[0].originFileObj;
+
+  // ✅ Optional: Check file type (only CSV allowed)
+  if (!file.name.endsWith('.csv')) {
+    message.error('Only CSV files are allowed!');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file as Blob);
+
+  try {
+    const response = await fetch('http://localhost:8000/products/upload-csv', {
+      method: 'POST',
+      body: formData
+    });
+
+    if (!response.ok) throw new Error('Upload failed');
+
+    message.success('CSV uploaded successfully! Products will be processed in background.');
+    onClose?.();
+  } catch (err) {
+    message.error('Error uploading CSV. Please try again.');
+    console.error(err);
+  }
+};
+
+
   return (
     <Modal
       title={
@@ -43,6 +77,7 @@ export default function AddMultipleProductsModal({ visible, onClose }: Props) {
           key="upload"
           type="primary"
           className="bg-blue-600 hover:bg-blue-700"
+          onClick={handleUpload}
         >
           Upload File
         </Button>
