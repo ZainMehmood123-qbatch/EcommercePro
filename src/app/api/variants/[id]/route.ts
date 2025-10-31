@@ -3,16 +3,20 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import type { ProductVariant } from '@/types/product';
 
-interface Params {
-  id: string;
-}
-
-export async function PUT(req: Request, { params }: { params: Params }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: 'Variant ID is required' },
+        { status: 400 }
+      );
+    }
+
     const body: Partial<ProductVariant> = await req.json();
 
     const updatedVariant = await prisma.productVariant.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         colorName: body.colorName,
         colorCode: body.colorCode,
@@ -23,10 +27,7 @@ export async function PUT(req: Request, { params }: { params: Params }) {
       }
     });
 
-    return NextResponse.json(
-      { success: true, data: updatedVariant },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, data: updatedVariant }, { status: 200 });
   } catch (error) {
     console.error('Error updating variant:', error);
 
@@ -44,15 +45,24 @@ export async function PUT(req: Request, { params }: { params: Params }) {
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: Params }) {
+
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
+    if (!id) {
+      return NextResponse.json(
+        { success: false, message: 'Variant ID is required' },
+        { status: 400 }
+      );
+    }
+
     await prisma.productVariant.update({
-      where: { id: params.id },
+      where: { id },
       data: { isDeleted: true }
     });
 
-   return NextResponse.json(
-      { success: true, message: 'Variant marked as deleted'},
+    return NextResponse.json(
+      { success: true, message: 'Variant marked as deleted' },
       { status: 200 }
     );
   } catch (error) {
@@ -71,3 +81,4 @@ export async function DELETE(req: Request, { params }: { params: Params }) {
     );
   }
 }
+
