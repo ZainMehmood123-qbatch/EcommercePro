@@ -17,10 +17,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def root():
-    recalculate_summary.delay()
-    return {"message": "Recalculation started!"}
-
 # new route
 app.include_router(products.router, prefix="/products", tags=["Products"])

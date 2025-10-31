@@ -9,6 +9,7 @@ import {
   DeleteOutlined,
   FileOutlined
 } from '@ant-design/icons';
+import toast from 'react-hot-toast';
 
 interface Props {
   visible: boolean;
@@ -34,7 +35,7 @@ const handleUpload = async () => {
 
   const file = fileList[0].originFileObj;
 
-  // ✅ Optional: Check file type (only CSV allowed)
+  // Optional: Check file type (only CSV allowed)
   if (!file.name.endsWith('.csv')) {
     message.error('Only CSV files are allowed!');
     return;
@@ -50,10 +51,11 @@ const handleUpload = async () => {
     });
 
     if (!response.ok) throw new Error('Upload failed');
-
+    toast.success('CSV uploaded successfully! Products will be processed in background.');
     message.success('CSV uploaded successfully! Products will be processed in background.');
     onClose?.();
   } catch (err) {
+    toast.error('Error uploading CSV. Please try again.');
     message.error('Error uploading CSV. Please try again.');
     console.error(err);
   }

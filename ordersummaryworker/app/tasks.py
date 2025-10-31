@@ -12,16 +12,16 @@ from sqlalchemy import func
 def recalculate_summary():
     db = SessionLocal()
     try:
-        # ✅ Total number of orders
+        # Total number of orders
         total_orders = db.query(func.count(Order.id)).scalar() or 0
 
-        # ✅ Total quantity of all items
+        # Total quantity of all items
         total_units = db.query(func.sum(OrderItem.qty)).scalar() or 0
 
-        # ✅ Total sales amount (sum of qty * price)
+        # Total sales amount (sum of qty * price)
         total_amount = db.query(func.sum(OrderItem.qty * OrderItem.price)).scalar() or 0
 
-        # ✅ Either update existing summary or create a new one
+        # Either update existing summary or create a new one
         summary = db.query(OrderSummary).first()
         if summary:
             summary.totalOrders = total_orders
