@@ -14,10 +14,8 @@ export async function POST(req: Request) {
     const body: SignupFormValues = await req.json();
     const { error, value } = signupSchema.validate(body);
     if (error) {
-      return NextResponse.json(
-        { error: error.details[0].message },
-        { status: 400 }
-      );
+      const details = error.details.map((d) => d.message).join(', ');
+      return NextResponse.json({ error: details }, { status: 400 });
     }
 
     const { fullname, email, mobile, password } = value;
@@ -53,7 +51,6 @@ export async function POST(req: Request) {
   } catch (err: unknown) {
     console.error('Signup Error:', err);
     const message = err instanceof Error ? err.message : 'Something went wrong';
-
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
