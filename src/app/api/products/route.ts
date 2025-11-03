@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+
 import { Prisma, ProductStatus, Role } from '@prisma/client';
+
+import { getServerSession } from 'next-auth';
+
 import { prisma } from '@/lib/prisma';
 import type { ProductType, ProductVariant } from '@/types/product';
-import { getServerSession } from 'next-auth';
+
 import { authOptions } from '../auth/[...nextauth]/route';
 
 export async function GET(req: NextRequest) {
@@ -73,13 +77,8 @@ export async function GET(req: NextRequest) {
 
     const total = await prisma.product.count({ where });
 
-    return NextResponse.json(
-      { success: true, data: products, total },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, data: products, total }, { status: 200 });
   } catch (error) {
-    console.error('Error fetching products:', error);
-
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return NextResponse.json(
         { success: false, message: 'Database query failed' },
@@ -97,15 +96,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+
     if (session?.user?.role !== Role.ADMIN) {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
     }
 
     const body: ProductType = await req.json();
-    console.log('Incoming body:', JSON.stringify(body, null, 2));
 
     const newProduct = await prisma.product.create({
       data: {
@@ -125,13 +121,8 @@ export async function POST(req: NextRequest) {
       include: { variants: true }
     });
 
-  return NextResponse.json(
-      { success: true, data: newProduct },
-      { status: 201 }
-    );
+    return NextResponse.json({ success: true, data: newProduct }, { status: 201 });
   } catch (error) {
-    console.error('Error creating product:', error);
-
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return NextResponse.json(
         { success: false, message: 'Database error occurred' },
