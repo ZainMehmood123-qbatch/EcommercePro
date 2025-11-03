@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import {
   Modal,
   Input,
@@ -40,6 +40,8 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   product: ProductType | null;
+  products: ProductType[]; 
+  setProducts: Dispatch<SetStateAction<ProductType[]>>; 
 }
 
 export default function ProductModal({ visible, onClose, product }: Props) {

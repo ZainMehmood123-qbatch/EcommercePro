@@ -51,6 +51,11 @@ export default function ProductsPage() {
               `/api/products?page=${page}&limit=${limit}&search=${search}&sort=${sortKey}`
             );
             const result = await res.json();
+            
+            if (!res.ok) {
+              toast.error(result?.message || 'Something went wrong while fetching products');
+              return;
+            }
 
             if (result?.data && Array.isArray(result.data)) {
               const transformed = result.data.map((p: ProductType) => {
@@ -73,8 +78,8 @@ export default function ProductsPage() {
               }
 
       } catch (err) {
-        console.error('Failed to fetch products', err);
-        message.error('Failed to fetch products');
+        console.error('Fetch error:', err);
+        toast.error('Network error. Please check your connection.');
       } finally {
         setLoading(false);
       }
@@ -104,27 +109,34 @@ export default function ProductsPage() {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (record: ProductType) => {
-    try {
-      const res = await fetch(`/api/products/${record.id}`, {
-        method: 'DELETE'
-      });
+const handleDelete = async (record: ProductType) => {
+  try {
+    const res = await fetch(`/api/products/${record.id}`, {
+      method: 'DELETE'
+    });
 
-      if (res.ok) {
-        message.success('Product deleted successfully');
-        setProducts((prev) => prev.filter((p) => p.id !== record.id));
-        setTotal((prev) => prev - 1);
-        toast.success('Product deleted successfully');
-      } else {
-        const error = await res.json();
-        message.error(`${error.error}`);
-        toast.error('Product cannot be deleted');
-      }
-    } catch (error) {
-      console.error('Delete error:', error);
-      message.error('Error deleting product');
+    const result = await res.json();
+
+    if (!res.ok) {
+      const errorMsg = result?.error || 'Failed to delete product';
+      console.error('API delete error:', errorMsg);
+
+      message.error(errorMsg);
+      toast.error(errorMsg);
+      return;
     }
-  };
+    message.success('Product deleted successfully');
+    toast.success('Product deleted successfully');
+    setProducts((prev) => prev.filter((p) => p.id !== record.id));
+    setTotal((prev) => prev - 1);
+    
+  } catch (error) {
+    console.error('Delete error:', error);
+    const msg = 'Network error. Please try again.';
+    message.error(msg);
+    toast.error(msg);
+  }
+};
 
   const columns: ColumnsType<ProductType> = [
     {
