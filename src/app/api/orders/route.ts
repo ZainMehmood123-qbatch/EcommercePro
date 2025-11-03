@@ -1,11 +1,12 @@
-import { getServerSession } from 'next-auth';
 import { NextRequest, NextResponse } from 'next/server';
+
+import { getServerSession } from 'next-auth';
 
 import { Prisma, Role } from '@prisma/client';
 
 import { prisma } from '@/lib/prisma';
-import { authOptions } from '../auth/[...nextauth]/route';
 
+import { authOptions } from '../auth/[...nextauth]/route';
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,10 +40,7 @@ export async function GET(req: NextRequest) {
       whereClause = { userId };
       if (search) {
         whereClause = {
-          AND: [
-            { userId },
-            { id: { contains: search.replace('ORD-', ''), mode: 'insensitive' } }
-          ]
+          AND: [{ userId }, { id: { contains: search.replace('ORD-', ''), mode: 'insensitive' } }]
         };
       }
     }
@@ -69,32 +67,24 @@ export async function GET(req: NextRequest) {
         page,
         limit,
         stats: {
-        totalOrders: summary?.totalOrders || 0,
-        totalUnits: summary?.totalUnits || 0,
-        totalAmount: summary?.totalAmount || 0
-  }
+          totalOrders: summary?.totalOrders || 0,
+          totalUnits: summary?.totalUnits || 0,
+          totalAmount: summary?.totalAmount || 0
+        }
       },
       { status: 200 }
     );
   } catch (err) {
-    console.error('Failed to fetch orders:', err);
-    return NextResponse.json(
-      { error: 'Failed to fetch orders' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
   }
 }
-
 
 export async function PATCH(req: Request) {
   try {
     const { orderId, paymentStatus } = await req.json();
 
     if (!orderId || !paymentStatus) {
-      return NextResponse.json(
-        { error: 'Missing orderId or paymentStatus' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing orderId or paymentStatus' }, { status: 400 });
     }
 
     const updatedOrder = await prisma.order.update({
@@ -103,18 +93,15 @@ export async function PATCH(req: Request) {
     });
 
     return NextResponse.json({
-          success: true,
-          message: 'Order updated successfully',
-          data: updatedOrder
-        });
-      } catch (error) {
-        console.error('Error updating order:', error);
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-          return NextResponse.json(
-            { success: false, message: 'Order not found' },
-            { status: 404 }
-          );
-        }
-        return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
-      }
+      success: true,
+      message: 'Order updated successfully',
+      data: updatedOrder
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+      return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+  }
 }
