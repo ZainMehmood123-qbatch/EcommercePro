@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
+
 import { getServerSession } from 'next-auth';
-import { prisma } from '@/lib/prisma';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
 import { Role } from '@prisma/client';
 
+import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
 export async function GET(req: Request, context: { params: { id: string } }) {
-  const { id } = await context.params; 
+  const { id } = await context.params;
 
   try {
     const session = await getServerSession({ req, ...authOptions });
@@ -32,7 +35,7 @@ export async function GET(req: Request, context: { params: { id: string } }) {
                 title: true
               }
             },
-            variant: { 
+            variant: {
               select: {
                 colorName: true,
                 colorCode: true,
@@ -46,8 +49,8 @@ export async function GET(req: Request, context: { params: { id: string } }) {
     });
 
     if (!order) {
-        return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
-      }
+      return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+    }
 
     if (session.user.role !== Role.ADMIN && order.userId !== session.user.id) {
       return NextResponse.json({ success: false, message: 'Forbidden' }, { status: 403 });
@@ -55,7 +58,7 @@ export async function GET(req: Request, context: { params: { id: string } }) {
 
     const formattedOrder = {
       ...order,
-      items: order.items.map(item => ({
+      items: order.items.map((item) => ({
         qty: item.qty,
         price: item.price,
         product: item.product,
@@ -68,10 +71,6 @@ export async function GET(req: Request, context: { params: { id: string } }) {
 
     return NextResponse.json(formattedOrder);
   } catch (error) {
-    console.error('Order fetch failed:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }
