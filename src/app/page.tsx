@@ -95,11 +95,11 @@ const Dashboardpage: React.FC = () => {
 
   return (
     <>
-      {loading && (
+      {loading ? (
         <div className={'fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]'}>
-          <Spin size={'large'}/>
+          <Spin size={'large'} />
         </div>
-      )}
+      ) : null}
 
       <Navbar title='E-commerce' />
 
