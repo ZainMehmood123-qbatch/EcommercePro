@@ -36,6 +36,31 @@ export const variantSchema = Joi.object<ProductVariant>({
   updatedAt: Joi.string().optional()
 });
 
+export const getProductsSchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1)
+    .messages({
+      'number.base': 'Page number must be a number',
+      'number.min': 'Page number must be at least 1'
+    }),
+
+  limit: Joi.number().integer().min(1).max(100).default(10)
+    .messages({
+      'number.base': 'Limit must be a number',
+      'number.min': 'Limit must be at least 1',
+      'number.max': 'Limit cannot exceed 100'
+    }),
+
+  search: Joi.string().allow('').optional()
+    .messages({
+      'string.base': 'Search must be a string'
+    }),
+
+  sort: Joi.string().valid('newest', 'oldest', 'price_asc', 'price_desc').default('newest')
+    .messages({
+      'any.only': 'Sort must be one of: newest, oldest, price_asc, price_desc'
+    })
+});
+
 export const productCreateSchema = Joi.object<ProductType>({
   id: Joi.string().optional(),
   title: Joi.string().min(3).max(100).required().messages({
@@ -65,3 +90,4 @@ export const productUpdateSchema = Joi.object<ProductType>({
   createdAt: Joi.string().optional(),
   updatedAt: Joi.string().optional()
 });
+

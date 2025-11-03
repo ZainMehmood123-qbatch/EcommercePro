@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { validationMap } from '@/lib/schemaMap'; 
+import { validationMap } from '@/lib/schemaMap';
 
 export const runtime = 'nodejs';
 
@@ -16,13 +16,20 @@ export async function middleware(req: ValidatedNextRequest) {
     '/_next/static',
     '/_next/image',
     '/favicon.ico',
-    '.png', '.jpg', '.jpeg', '.svg', '.webp'
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.svg',
+    '.webp'
   ];
-  if (ignoredPaths.some((path) => pathname.includes(path) || pathname.endsWith(path))) {
+  if (
+    ignoredPaths.some(
+      (path) => pathname.includes(path) || pathname.endsWith(path)
+    )
+  ) {
     return NextResponse.next();
   }
 
-  // Validation before API hit
   if (pathname.startsWith('/api')) {
     const matched = validationMap.find((rule) => {
       if (rule.method !== req.method) return false;
@@ -32,8 +39,13 @@ export async function middleware(req: ValidatedNextRequest) {
 
     if (matched) {
       try {
-        const body = await req.json();
+        // Only parse JSON for methods that have a body
+        let body = {};
+        if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+          body = await req.json();
+        }
 
+        // Validate only if schema exists
         const { error } = matched.schema.validate(body, { abortEarly: false });
         if (error) {
           return NextResponse.json(
@@ -41,23 +53,26 @@ export async function middleware(req: ValidatedNextRequest) {
             { status: 400 }
           );
         }
-      
+
+        // Create new request with validated body
         const validatedBody = JSON.stringify(body);
         const validatedRequest = new Request(req.url, {
           method: req.method,
           headers: req.headers,
-          body: validatedBody
+          body: ['POST', 'PUT', 'PATCH'].includes(req.method)
+            ? validatedBody
+            : undefined
         });
+
         req.validatedRequest = validatedRequest;
       } catch (e) {
-        console.error('Middleware validation error:', e);
+        console.error('Validation middleware error:', e);
         return NextResponse.json(
           { success: false, message: 'Invalid JSON body' },
           { status: 400 }
         );
       }
     }
-    return NextResponse.next();
   }
 
   const token = await getToken({
@@ -66,15 +81,23 @@ export async function middleware(req: ValidatedNextRequest) {
     secureCookie: process.env.NODE_ENV === 'production'
   });
 
-  const publicRoutes = ['/', '/auth/login', '/auth/signup', '/auth/reset-password', '/auth/forgot-password'];
+  const publicRoutes = [
+    '/',
+    '/auth/login',
+    '/auth/signup',
+    '/auth/reset-password',
+    '/auth/forgot-password'
+  ];
   const sharedRoutes = ['/order-details'];
   const userRoutes = ['/user/shopping-bag', '/user/orders'];
   const adminRoutes = ['/admin/orders', '/admin/products'];
 
   if (publicRoutes.includes(pathname)) {
     if (token && (pathname === '/auth/login' || pathname === '/auth/signup')) {
-      if (token.role === 'ADMIN') return NextResponse.redirect(new URL('/admin/orders', req.url));
-      if (token.role === 'USER') return NextResponse.redirect(new URL('/user/shopping-bag', req.url));
+      if (token.role === 'ADMIN')
+        return NextResponse.redirect(new URL('/admin/orders', req.url));
+      if (token.role === 'USER')
+        return NextResponse.redirect(new URL('/user/shopping-bag', req.url));
     }
     return NextResponse.next();
   }
@@ -86,12 +109,14 @@ export async function middleware(req: ValidatedNextRequest) {
 
   if (userRoutes.some((r) => pathname.startsWith(r))) {
     if (!token) return NextResponse.redirect(new URL('/auth/login', req.url));
-    if (token.role !== 'USER') return NextResponse.redirect(new URL('/unauthorized', req.url));
+    if (token.role !== 'USER')
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
   }
 
   if (adminRoutes.some((r) => pathname.startsWith(r))) {
     if (!token) return NextResponse.redirect(new URL('/auth/login', req.url));
-    if (token.role !== 'ADMIN') return NextResponse.redirect(new URL('/unauthorized', req.url));
+    if (token.role !== 'ADMIN')
+      return NextResponse.redirect(new URL('/unauthorized', req.url));
   }
 
   return NextResponse.next();
