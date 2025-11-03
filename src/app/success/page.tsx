@@ -1,17 +1,14 @@
 'use client';
 
-import { CheckCircleOutlined } from '@ant-design/icons';
-import { Button, Result } from 'antd';
 import Link from 'next/link';
 
-export default function SuccessPage() {
+import { CheckCircleOutlined } from '@ant-design/icons';
+import { Button, Result } from 'antd';
+
+const SuccessPage = () => {
   return (
     <div className='flex justify-center items-center h-screen bg-gray-50'>
       <Result
-        icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
-        status='success'
-        title='Payment Successful!'
-        subTitle='Thank you for your purchase. Your order has been placed successfully.'
         extra={[
           <Link key='orders' href='/user/orders'>
             <Button type='primary'>View My Orders</Button>
@@ -20,7 +17,13 @@ export default function SuccessPage() {
             <Button>Continue Shopping</Button>
           </Link>
         ]}
+        icon={<CheckCircleOutlined style={{ color: '#52c41a' }} />}
+        status='success'
+        subTitle='Thank you for your purchase. Your order has been placed successfully.'
+        title='Payment Successful!'
       />
     </div>
   );
-}
+};
+
+export default SuccessPage;
