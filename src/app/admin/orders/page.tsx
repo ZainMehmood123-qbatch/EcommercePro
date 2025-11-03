@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+
 import {
   AppstoreOutlined,
   DollarOutlined,
@@ -8,14 +10,14 @@ import {
 } from '@ant-design/icons';
 import { Button, Card, Spin, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import { useEffect, useState } from 'react';
+
+import toast from 'react-hot-toast';
 
 import SearchComponent from '@/components/dashboard/search-bar';
 import OrderDetailsSidebar from '@/components/OrderDetailsSidebar';
 
 import { FetchedOrder, FetchedOrderItem, OrderType } from '@/types/order';
 
-import toast from 'react-hot-toast';
 import './orderss.css';
 
 interface ApiResponse {
@@ -49,7 +51,6 @@ const OrdersPage = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
-
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -152,13 +153,10 @@ const OrdersPage = () => {
       dataIndex: 'status',
       render: (_, record: OrderType) => {
         const status = record.paymentStatus?.toUpperCase();
+
         console.log('status is', status);
-        const color =
-          status === 'PENDING'
-            ? 'orange'
-            : status === 'PAID'
-              ? 'green'
-              : 'blue';
+        const color = status === 'PENDING' ? 'orange' : status === 'PAID' ? 'green' : 'blue';
+
         return (
           <span
             style={{
@@ -176,111 +174,106 @@ const OrdersPage = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (_: unknown, record: OrderType) => (
-        <div className="flex gap-2">
+        <div className={'flex gap-2'}>
           <Button
-            type="text"
+            className={'hover:bg-blue-50 hover:text-blue-600 transition-all'}
             icon={<ExportOutlined />}
-            className="hover:bg-blue-50 hover:text-blue-600 transition-all"
+            type={'text'}
             onClick={() => handleViewOrderDetails(record.id)}
           />
-          {record.paymentStatus === 'PAID' && (
+          {record.paymentStatus === 'PAID' ? (
             <Button
-              type="primary"
+              className={
+                '!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600 transition-all duration-200'
+              }
               loading={updatingOrderId === record.id}
-              className="!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600 transition-all duration-200"
+              type={'primary'}
               onClick={() => handleMarkCompleted(record.id)}
             >
-              {updatingOrderId === record.id ? 'Updating...' : (
-                <>
-                  Mark Completed
-                </>
-              )}
+              {updatingOrderId === record.id ? 'Updating...' : <>Mark Completed</>}
             </Button>
-          )}
+          ) : null}
         </div>
       )
     }
   ];
 
-
   if (initialLoading) {
     return (
-      <div className="loader">
-        <Spin size="large" />
+      <div className={'loader'}>
+        <Spin size={'large'} />
       </div>
     );
   }
 
   return (
-    <div className='ado-whole' style={{ position: 'relative' }}>
-      {loading && (
-        <div className="loader-overlay">
-          <Spin size="large" />
+    <div className={'ado-whole'} style={{ position: 'relative' }}>
+      {loading ? (
+        <div className={'loader-overlay'}>
+          <Spin size={'large'} />
         </div>
-      )}
+      ) : null}
 
-      <div className='ado-uppergrid'>
-        <Card className='p-1'>
-          <div className='ado-cards'>
+      <div className={'ado-uppergrid'}>
+        <Card className={'p-1'}>
+          <div className={'ado-cards'}>
             <div>
-              <p className='ado-cardtitles'>Total Orders:</p>
-              <h2 className='ado-cardcontent'>{totalOrders}</h2>
+              <p className={'ado-cardtitles'}>Total Orders:</p>
+              <h2 className={'ado-cardcontent'}>{totalOrders}</h2>
             </div>
-            <div className='ado-cardicons'>
+            <div className={'ado-cardicons'}>
               <ShoppingCartOutlined />
             </div>
           </div>
         </Card>
-        <Card className='p-1'>
-          <div className='ado-cards'>
+        <Card className={'p-1'}>
+          <div className={'ado-cards'}>
             <div>
-              <p className='ado-cardtitles'>Total Units:</p>
-              <h2 className='ado-cardcontent'>{totalUnits}</h2>
+              <p className={'ado-cardtitles'}>Total Units:</p>
+              <h2 className={'ado-cardcontent'}>{totalUnits}</h2>
             </div>
-            <div className='ado-cardicons'>
+            <div className={'ado-cardicons'}>
               <AppstoreOutlined />
             </div>
           </div>
         </Card>
-        <Card className='p-1'>
-          <div className='ado-cards'>
+        <Card className={'p-1'}>
+          <div className={'ado-cards'}>
             <div>
-              <p className='ado-cardtitles'>Total Amount:</p>
-              <h2 className='ado-cardcontent'>
-                ${totalAmount.toLocaleString()}
-              </h2>
+              <p className={'ado-cardtitles'}>Total Amount:</p>
+              <h2 className={'ado-cardcontent'}>${totalAmount.toLocaleString()}</h2>
             </div>
-            <div className='ado-cardicons'>
+            <div className={'ado-cardicons'}>
               <DollarOutlined />
             </div>
           </div>
         </Card>
       </div>
 
-      <div className='ado-innernav'>
-        <h1 className='ado-title'>Orders</h1>
+      <div className={'ado-innernav'}>
+        <h1 className={'ado-title'}>Orders</h1>
         <SearchComponent
+          placeholder={'Search by user and orderID'}
           searchTerm={localSearch}
           setSearchTerm={setLocalSearch}
-          placeholder='Search by user and orderID'
         />
       </div>
       <Table
-        rowKey="id"
+        className={'ado-wholetable'}
         columns={columns}
         dataSource={orders}
-        className='ado-wholetable'
         pagination={{
           current: pageNum,
           pageSize: limit,
           total: total,
           onChange: (page) => setPageNum(page)
         }}
+        rowKey={'id'}
       />
 
       <OrderDetailsSidebar
-        orderId={selectedOrderId}
         open={sidebarOpen}
+        orderId={selectedOrderId}
         onClose={handleCloseSidebar}
       />
     </div>
