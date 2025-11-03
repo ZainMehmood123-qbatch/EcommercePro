@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import Stripe from 'stripe';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
-import { prisma } from '@/lib/prisma';
-import type { CartItem } from '@/types/cart';
+
 import { PaymentStatus } from '@prisma/client';
+
+import { prisma } from '@/lib/prisma';
+
+import type { CartItem } from '@/types/cart';
+
+import { authOptions } from '../auth/[...nextauth]/route';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-09-30.clover'
@@ -13,22 +18,22 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+
     if (!session?.user?.id || !session.user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();
-    console.log('Incoming order body:', JSON.stringify(body, null, 2));
 
     const { items, total } = body as { items: CartItem[]; total: number };
+
     if (!items?.length) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
     }
 
     const variantIds = items.map((i) => i.variantId);
-    const duplicates = variantIds.filter(
-      (id, index) => variantIds.indexOf(id) !== index
-    );
+    const duplicates = variantIds.filter((id, index) => variantIds.indexOf(id) !== index);
+
     if (duplicates.length > 0) {
       return NextResponse.json(
         {
@@ -44,10 +49,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (variants.length !== items.length) {
-      return NextResponse.json(
-        { error: 'Some variants not found' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Some variants not found' }, { status: 400 });
     }
 
     let subtotal = 0;
@@ -56,8 +58,10 @@ export async function POST(req: NextRequest) {
     const itemsWithValidatedData = items
       .map((item) => {
         const variant = variants.find((v) => v.id === item.variantId);
+
         if (!variant) {
           stockErrors.push(`Variant not found for ${item.product}`);
+
           return null;
         }
 
@@ -65,10 +69,12 @@ export async function POST(req: NextRequest) {
           stockErrors.push(
             `Not enough stock for ${variant.product.title} (${variant.colorName ?? ''} ${variant.size ?? ''})`
           );
+
           return null;
         }
 
         const price = variant.price;
+
         subtotal += price * item.qty;
 
         return {
@@ -85,29 +91,22 @@ export async function POST(req: NextRequest) {
       .filter((item): item is NonNullable<typeof item> => item !== null);
 
     if (stockErrors.length > 0) {
-      const updatedStocks = variants.map(v => ({
+      const updatedStocks = variants.map((v) => ({
         variantId: v.id,
         availableStock: v.stock,
         productName: v.product.title,
         colorName: v.colorName,
         size: v.size
       }));
-      return NextResponse.json(
-        { error: stockErrors.join('\n\n'),
-          updatedStocks
-         },
-        { status: 400 }
-      );
+
+      return NextResponse.json({ error: stockErrors.join('\n\n'), updatedStocks }, { status: 400 });
     }
 
     const tax = subtotal * 0.1;
     const calculatedTotal = subtotal + tax;
 
     if (Math.abs(calculatedTotal - total) > 0.01) {
-      return NextResponse.json(
-        { error: 'Total mismatch detected' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Total mismatch detected' }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
@@ -160,8 +159,8 @@ export async function POST(req: NextRequest) {
       return newOrder;
     });
 
-    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
-      itemsWithValidatedData.map((item) => ({
+    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = itemsWithValidatedData.map(
+      (item) => ({
         price_data: {
           currency: 'usd',
           product_data: {
@@ -178,7 +177,8 @@ export async function POST(req: NextRequest) {
           unit_amount: Math.round(item.price * 100)
         },
         quantity: item.qty
-      }));
+      })
+    );
 
     const stripeSession = await stripe.checkout.sessions.create(
       {
@@ -206,7 +206,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ url: stripeSession.url }, { status: 200 });
   } catch (err) {
-    console.error('Checkout error:', err);
     return NextResponse.json(
       { error: (err as Error).message || 'Something went wrong' },
       { status: 500 }
