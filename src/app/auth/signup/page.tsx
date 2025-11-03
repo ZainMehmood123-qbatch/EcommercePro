@@ -21,6 +21,50 @@ export default function SignupPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // const onFinish = async (values: SignupFormValues) => {
+  //   setLoading(true);
+
+  //   if (values.password !== values.confirmPassword) {
+  //     toast.error('Passwords do not match');
+  //     setLoading(false);
+  //     return;
+  //   }
+
+  //   const formattedValues = {
+  //     ...values,
+  //     email: values.email.toLowerCase().trim()
+  //   };
+
+  //   const { confirmPassword, ...payload } = formattedValues;
+  //   console.log(confirmPassword);
+
+  //   try {
+  //     const res = await fetch('/api/auth/signup', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(payload)
+  //     });
+      
+  //     if (!res) {
+  //       toast.error('No response from server. Please try again.');
+  //       return;
+  //     }
+      
+  //     if (res.ok) {
+  //       toast.success('Your account has been created successfully!');
+  //       router.push('/auth/login');
+  //     } else {
+  //       const data = await res.json();
+  //       toast.error(data.message || 'Signup failed');
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     toast.error('Something went wrong. Please try again.');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const onFinish = async (values: SignupFormValues) => {
     setLoading(true);
 
@@ -45,16 +89,22 @@ export default function SignupPage() {
         body: JSON.stringify(payload)
       });
 
-      if (res.ok) {
-        toast.success('Your account has been created successfully!');
-        router.push('/auth/login');
-      } else {
-        const data = await res.json();
-        toast.error(data.message || 'Signup failed');
+      if (!res) {
+        toast.error('No response from server. Please try again.');
+        return;
       }
-    } catch (error) {
-      console.error(error);
-      toast.error('Something went wrong. Please try again.');
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data.error || data.message || 'Signup failed.');
+        return;
+      }
+      toast.success(data.message || 'Your account has been created successfully!');
+      router.push('/auth/login');
+    } catch (err: unknown) {
+      console.error('Signup error:', err);
+      toast.error('Unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
