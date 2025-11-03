@@ -1,11 +1,14 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+
+import Link from 'next/link';
+
 import { Table, Button, Spin } from 'antd';
 import moment from 'moment';
 import { ArrowLeftOutlined, ExportOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
-import Link from 'next/link';
+
 import { RootState, AppDispatch } from '@/store';
 import { fetchOrders, setPage } from '@/store/slice/orders-slice';
 import { FetchedOrder } from '@/types/order';
@@ -17,9 +20,7 @@ import './orders.css';
 
 const Orders: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { data: orders, totalCount, currentPage } = useSelector(
-    (state: RootState) => state.orders
-  );
+  const { data: orders, totalCount, currentPage } = useSelector((state: RootState) => state.orders);
 
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -40,9 +41,7 @@ const Orders: React.FC = () => {
     const loadOrders = async () => {
       setLoading(true);
       try {
-        await dispatch(
-          fetchOrders({ page: currentPage, limit: 10, search: debouncedSearch })
-        );
+        await dispatch(fetchOrders({ page: currentPage, limit: 10, search: debouncedSearch }));
       } finally {
         setLoading(false);
       }
@@ -66,9 +65,9 @@ const Orders: React.FC = () => {
       title: 'Date',
       dataIndex: 'date',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <div className="order-titlenames">
+        <div className='order-titlenames'>
           <span>{moment(record.createdAt).format('DD/MM/YYYY')}</span>
-          <span className="block mt-2 text-[10px] text-gray-500">
+          <span className='block mt-2 text-[10px] text-gray-500'>
             {moment(record.createdAt).format('hh:mm:ss A')}
           </span>
         </div>
@@ -92,9 +91,7 @@ const Orders: React.FC = () => {
       title: 'Amount',
       dataIndex: 'amount',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <span className='order-titlenames'>
-          ${Number(record.total ?? 0).toFixed(2)}
-        </span>
+        <span className='order-titlenames'>${Number(record.total ?? 0).toFixed(2)}</span>
       )
     },
     {
@@ -129,9 +126,9 @@ const Orders: React.FC = () => {
       dataIndex: 'actions',
       render: (_: FetchedOrder, record: FetchedOrder) => (
         <Button
-          type='text'
-          icon={<ExportOutlined />}
           className='order-titlenames hover:bg-blue-50 hover:text-blue-600 transition-all'
+          icon={<ExportOutlined />}
+          type='text'
           onClick={() => handleViewOrderDetails(record.id)}
         />
       )
@@ -160,36 +157,34 @@ const Orders: React.FC = () => {
 
           <div className='mt-10 pr-4'>
             <SearchComponent
+              placeholder='Search by Order ID'
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
-              placeholder='Search by Order ID'
             />
           </div>
         </div>
 
         <Table
+          bordered
+          className='order-wholetable'
           columns={columns}
           dataSource={orders}
-          rowKey='id'
           pagination={{
             current: currentPage,
             pageSize: 10,
             total: totalCount,
             onChange: (page) => dispatch(setPage(page)),
             showSizeChanger: false,
-            showTotal: (total) => (
-              <span className='order-count'>{total} Total Count</span>
-            )
+            showTotal: (total) => <span className='order-count'>{total} Total Count</span>
           }}
-          bordered
-          scroll={{ x: 1000 }}
           rowClassName={() => 'h-12'}
-          className='order-wholetable'
+          rowKey='id'
+          scroll={{ x: 1000 }}
         />
 
         <OrderDetailsSidebar
-          orderId={selectedOrderId}
           open={sidebarOpen}
+          orderId={selectedOrderId}
           onClose={handleCloseSidebar}
         />
       </div>
