@@ -16,16 +16,21 @@ import { useState, useEffect } from 'react';
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const [loading,setLoading]=useState(false);
-  const [mounted,setMounted]=useState(false);
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-   useEffect(() => {
-      const timer = setTimeout(() => setMounted(true), 400);
-      return () => clearTimeout(timer);
-    }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
   const onFinish = async (values: ResetPasswordFormValues) => {
     try {
       setLoading(true);
+      if (values.password !== values.confirmPassword) {
+        toast.error('Passwords do not match');
+        return;
+      }
+
       const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -35,6 +40,7 @@ export default function ResetPasswordPage() {
       const data = await res.json();
       if (res.ok) {
         toast.success(data.message);
+        setTimeout(() => window.location.href = '/auth/login', 1500);
       } else {
         toast.error(data.error || 'Reset failed');
       }
@@ -48,16 +54,16 @@ export default function ResetPasswordPage() {
   if (!mounted) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-        <Spin size="large"/>
+        <Spin size="large" />
       </div>
     );
   }
 
   return (
     <div>
-{loading && (
+      {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
-          <Spin size="large"/>
+          <Spin size="large" />
         </div>
       )}
       <AuthTitle text='Reset Password' />
@@ -69,9 +75,14 @@ export default function ResetPasswordPage() {
           type='confirmPassword'
           dependency='password'
         />
-         <Button htmlType='submit' className='auth-button'>
-          Reset Password
+        <Button
+          htmlType='submit'
+          className='auth-button'
+          disabled={loading}
+        >
+          {loading ? 'Resetting...' : 'Reset Password'}
         </Button>
+
       </AuthForm>
     </div>
   );

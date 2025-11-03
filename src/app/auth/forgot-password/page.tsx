@@ -1,6 +1,6 @@
 'use client';
 
-import { Button,Spin } from 'antd';
+import { Button, Spin } from 'antd';
 import toast from 'react-hot-toast';
 
 import Link from 'next/link';
@@ -12,17 +12,17 @@ import FormField from '@/components/auth/fields/form-field';
 import { ForgotPasswordFormValues } from '@/types/auth';
 
 import '../auth.css';
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-   useEffect(() => {
-      const timer = setTimeout(() => setMounted(true), 400);
-      return () => clearTimeout(timer);
-    }, []);
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
   const onFinish = async (values: ForgotPasswordFormValues) => {
     setLoading(true);
     try {
@@ -34,9 +34,10 @@ export default function ForgotPasswordPage() {
 
       const data = await res.json();
       if (res.ok) {
-        toast.success(data.message);
-        router.push('/auth/login');
-      } else {
+        toast.success('If this email exists, a reset link was sent.');
+        setTimeout(() => router.push('/auth/login'), 2000);
+      }
+      else {
         toast.error(data.error || 'Failed to send reset email');
       }
     } catch (err) {
@@ -45,26 +46,32 @@ export default function ForgotPasswordPage() {
     }
     setLoading(false);
   };
-if (!mounted) {
+  if (!mounted) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-[9999]">
-        <Spin size="large"/>
+        <Spin size="large" />
       </div>
     );
   }
   return (
     <div>
-  {loading && (
+      {loading && (
         <div className="fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]">
-          <Spin size="large"/>
+          <Spin size="large" />
         </div>
       )}
       <AuthTitle text='Forgot Password' />
       <AuthForm name='forgotPassword' onFinish={onFinish}>
         <FormField label='Email Address' name='email' type='email' />
-         <Button htmlType='submit' className='auth-button'>
-          Forgot Password
+        <Button
+          htmlType='submit'
+          className='auth-button'
+          loading={loading}
+          disabled={loading}
+        >
+          {loading ? 'Sending...' : 'Forgot Password'}
         </Button>
+
       </AuthForm>
       <p className='auth-da'>
         No, I remember my password{' '}

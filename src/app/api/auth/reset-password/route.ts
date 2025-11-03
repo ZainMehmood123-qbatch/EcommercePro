@@ -6,8 +6,20 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 
-// yeh mene middleware mei kr lia hai. isko yahan sy baad mei hata lunga ... 
-const schema = Joi.object({});
+// Joi schema for validation
+const schema = Joi.object({
+  token: Joi.string().required(),
+  password: Joi.string()
+    .pattern(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
+    )
+    .required()
+    .messages({
+      'string.pattern.base':
+        'Password must be at least 6 characters, include uppercase, lowercase, number, and special character',
+      'any.required': 'Password is required'
+    })
+});
 
 export async function POST(req: Request) {
   try {
@@ -40,7 +52,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const user = await prisma.user.findUnique({ where: { email: decoded.email } });
+    const user = await prisma.user.findUnique({
+  where: { email: decoded.email },
+  select: { id: true, resetTokenVersion: true }
+});
+
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 400 });
     }
@@ -61,7 +77,7 @@ export async function POST(req: Request) {
         }
       });
 
-    return NextResponse.json({ message: 'Password updated successfully' });
+    return NextResponse.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
     console.log(error);
     return NextResponse.json(
