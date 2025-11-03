@@ -1,12 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+
+import Link from 'next/link';
+
 import { useSession } from 'next-auth/react';
 import { Button, Flex, Table, InputNumber, Image, Spin } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
-import Link from 'next/link';
+
 import toast from 'react-hot-toast';
+
 import { clearCart, getCartItems, updateCart } from '@/lib/cart';
 import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
 import { CartItem } from '@/types/cart';
@@ -25,12 +29,12 @@ const Shoppingbag: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
-  
-useEffect(() => {
-  if (stockErrors.length > 0) {
-    setStockErrors([]);
-  }
-}, [items]);
+
+  useEffect(() => {
+    if (stockErrors.length > 0) {
+      setStockErrors([]);
+    }
+  }, [items]);
 
   useEffect(() => {
     if (!userId) return;
@@ -49,13 +53,18 @@ useEffect(() => {
         if (item.key === key) {
           if (newQty > item.stock) {
             toast.error(`Only ${item.stock} items available in stock`);
+
             return { ...item, qty: item.stock };
           }
+
           return { ...item, qty: Math.max(1, newQty) };
         }
+
         return item;
       });
+
       if (userId) updateCart(userId, updated);
+
       return updated;
     });
   };
@@ -64,7 +73,9 @@ useEffect(() => {
     if (!userId) return;
     setItems((prev) => {
       const updated = prev.filter((item) => item.key !== key);
+
       updateCart(userId, updated);
+
       return updated;
     });
     toast.success('Item deleted');
@@ -73,13 +84,16 @@ useEffect(() => {
   const deleteSelectedItems = () => {
     if (!selectedRowKeys.length) {
       toast.error('No items selected');
+
       return;
     }
     if (!userId) return;
 
     setItems((prev) => {
       const updated = prev.filter((item) => !selectedRowKeys.includes(item.key));
+
       updateCart(userId, updated);
+
       return updated;
     });
 
@@ -87,100 +101,104 @@ useEffect(() => {
     toast.success('Selected items deleted');
   };
 
-const handlePlaceOrder = async () => {
-  if (loading) return;
-  setLoading(true);
+  const handlePlaceOrder = async () => {
+    if (loading) return;
+    setLoading(true);
 
-  if (!items.length) {
-    toast.error('Your cart is empty!');
-    setLoading(false);
-    return;
-  }
+    if (!items.length) {
+      toast.error('Your cart is empty!');
+      setLoading(false);
 
-  // Prevent redundant API hit if cart already has known stock issues
-  const outOfStockItems = items.filter(
-    (item) => item.qty > (item.availableStock ?? item.stock ?? 0)
-  );
-
-  if (outOfStockItems.length > 0) {
-    outOfStockItems.forEach((item) => {
-      const available = item.availableStock ?? item.stock ?? 0;
-      toast.error(`${item.product} — only ${available} left in stock`);
-    });
-    setLoading(false);
-    return;
-  }
-
-  const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
-  const tax = subTotal * 0.1;
-  const total = subTotal + tax;
-
-  try {
-    const res = await fetch('/api/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        // Strip frontend-only fields like availableStock before sending
-        items: items.map(({ availableStock, ...rest }) => {
-          void availableStock;
-          return rest;
-        }),
-        total
-      })
-    });
-
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      const message =
-        data?.error || 'Checkout failed due to stock issue.';
-
-      // Update local cart with the latest stock info if API returns it
-      if (data?.updatedStocks?.length) {
-        setItems((prev) =>
-          prev.map((item) => {
-            const match = data.updatedStocks.find(
-              (s: { variantId: string; }) => s.variantId === item.variantId
-            );
-            return match
-              ? { ...item, availableStock: match.availableStock }
-              : item;
-          })
-        );
-
-        // Show stock updates for all affected products
-        const combinedMsg = data.updatedStocks
-          .map(
-            (s: { productName: CartItem; colorName: CartItem; size: CartItem; availableStock: CartItem; }) =>
-              `${s.productName} (${s.colorName || ''} ${s.size || ''}) — only ${
-                s.availableStock
-              } left in stock`
-          )
-          .join('\n');
-
-        toast.error(`⚠️ Stock updated:\n${combinedMsg}`, {
-          duration: 7000
-        });
-      }
-
-      throw new Error(message);
+      return;
     }
 
-    // Success flow
-    if (userId) clearCart(userId);
-    toast.success('Redirecting to checkout...');
-    window.location.href = data.url;
+    // Prevent redundant API hit if cart already has known stock issues
+    const outOfStockItems = items.filter(
+      (item) => item.qty > (item.availableStock ?? item.stock ?? 0)
+    );
 
-  } catch (err) {
-    console.error('Checkout error:', err);
-    const errorMessage =
-      err instanceof Error ? err.message : 'Checkout failed. Try again!';
-    toast.error(errorMessage);
-  } finally {
-    setLoading(false);
-  }
-};
+    if (outOfStockItems.length > 0) {
+      outOfStockItems.forEach((item) => {
+        const available = item.availableStock ?? item.stock ?? 0;
+
+        toast.error(`${item.product} — only ${available} left in stock`);
+      });
+      setLoading(false);
+
+      return;
+    }
+
+    const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
+    const tax = subTotal * 0.1;
+    const total = subTotal + tax;
+
+    try {
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          // Strip frontend-only fields like availableStock before sending
+          items: items.map(({ availableStock, ...rest }) => {
+            void availableStock;
+
+            return rest;
+          }),
+          total
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        const message = data?.error || 'Checkout failed due to stock issue.';
+
+        // Update local cart with the latest stock info if API returns it
+        if (data?.updatedStocks?.length) {
+          setItems((prev) =>
+            prev.map((item) => {
+              const match = data.updatedStocks.find(
+                (s: { variantId: string }) => s.variantId === item.variantId
+              );
+
+              return match ? { ...item, availableStock: match.availableStock } : item;
+            })
+          );
+
+          // Show stock updates for all affected products
+          const combinedMsg = data.updatedStocks
+            .map(
+              (s: {
+                productName: CartItem;
+                colorName: CartItem;
+                size: CartItem;
+                availableStock: CartItem;
+              }) =>
+                `${s.productName} (${s.colorName || ''} ${s.size || ''}) — only ${
+                  s.availableStock
+                } left in stock`
+            )
+            .join('\n');
+
+          toast.error(`⚠️ Stock updated:\n${combinedMsg}`, {
+            duration: 7000
+          });
+        }
+
+        throw new Error(message);
+      }
+
+      // Success flow
+      if (userId) clearCart(userId);
+      toast.success('Redirecting to checkout...');
+      window.location.href = data.url;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Checkout failed. Try again!';
+
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Table columns (styled)
   const columns: TableColumnsType<CartItem> = [
@@ -189,17 +207,17 @@ const handlePlaceOrder = async () => {
       dataIndex: 'product',
       className: '!pl-1',
       render: (_, record) => (
-        <div className="flex items-center gap-2">
+        <div className='flex items-center gap-2'>
           <Image
-            src={record.image || '/fallback.png'}
-            alt="product"
-            width={24}
+            alt='product'
+            fallback='/fallback.png'
             height={24}
             preview={{ mask: <span>Preview</span> }}
-            fallback="/fallback.png"
+            src={record.image || '/fallback.png'}
             style={{ objectFit: 'cover' }}
+            width={24}
           />
-          <span className="sb-pvalues">{record.product}</span>
+          <span className='sb-pvalues'>{record.product}</span>
         </div>
       )
     },
@@ -208,19 +226,15 @@ const handlePlaceOrder = async () => {
       dataIndex: 'colorName',
       render: (_, record) => {
         if (!record.colorName && !record.colorCode) {
-          return <span className="sb-productcolorname">White</span>;
+          return <span className='sb-productcolorname'>White</span>;
         }
+
         return (
-          <div className="sb-colors">
-            {record.colorCode && (
-              <span
-                className="sb-productcolorcode"
-                style={{ backgroundColor: record.colorCode }}
-              ></span>
-            )}
-            <span className="sb-pvalues">
-              {record.colorName || record.colorCode}
-            </span>
+          <div className='sb-colors'>
+            {record.colorCode ? (
+              <span className='sb-productcolorcode' style={{ backgroundColor: record.colorCode }} />
+            ) : null}
+            <span className='sb-pvalues'>{record.colorName || record.colorCode}</span>
           </div>
         );
       }
@@ -228,38 +242,38 @@ const handlePlaceOrder = async () => {
     {
       title: 'Size',
       dataIndex: 'size',
-      render: (value) => <span className="sb-pvalues">{value ?? 'L'}</span>
+      render: (value) => <span className='sb-pvalues'>{value ?? 'L'}</span>
     },
     {
       title: 'Price Per Unit',
       dataIndex: 'price',
-      render: (price) => <span className="sb-pvalues">Rs. {price}</span>
+      render: (price) => <span className='sb-pvalues'>Rs. {price}</span>
     },
     {
       title: 'Qty',
       dataIndex: 'qty',
       render: (_, record) => (
-        <Flex align="center" gap="small">
+        <Flex align='center' gap='small'>
           <Button
-            size="small"
-            className="sb-signcolors"
-            onClick={() => updateQty(record.key, record.qty - 1)}
+            className='sb-signcolors'
             disabled={record.qty <= 1}
+            size='small'
+            onClick={() => updateQty(record.key, record.qty - 1)}
           >
             -
           </Button>
           <InputNumber
-            min={1}
+            className='sb-number'
             max={record.stock}
+            min={1}
             value={record.qty}
-            className="sb-number"
             onChange={(value) => updateQty(record.key, value || 1)}
           />
           <Button
-            size="small"
-            className="sb-signcolors"
-            onClick={() => updateQty(record.key, record.qty + 1)}
+            className='sb-signcolors'
             disabled={record.qty >= record.stock}
+            size='small'
+            onClick={() => updateQty(record.key, record.qty + 1)}
           >
             +
           </Button>
@@ -270,9 +284,7 @@ const handlePlaceOrder = async () => {
       title: 'Total Price',
       dataIndex: 'total',
       render: (_, record) => (
-        <span className="sb-pvalues">
-          Rs. {(record.qty * record.price).toLocaleString()}
-        </span>
+        <span className='sb-pvalues'>Rs. {(record.qty * record.price).toLocaleString()}</span>
       )
     },
     {
@@ -281,8 +293,8 @@ const handlePlaceOrder = async () => {
       render: (_, record) => (
         <Button
           danger
-          type="text"
           icon={<DeleteOutlined />}
+          type='text'
           onClick={() => {
             setItemToDelete(record);
             setIsModalOpen(true);
@@ -303,8 +315,8 @@ const handlePlaceOrder = async () => {
 
   if (status === 'loading') {
     return (
-      <div className="loader">
-        <Spin size="large" />
+      <div className='loader'>
+        <Spin size='large' />
       </div>
     );
   }
@@ -312,21 +324,24 @@ const handlePlaceOrder = async () => {
   return (
     <>
       <Navbar />
-      <Flex gap="middle" vertical className="sb-innerbody">
-        <Flex align="center" gap="middle">
-          <div className="sb-innerbodyy">
-            <Link href="/">
-              <ArrowLeftOutlined className="sb-arrowleft" />
+      <Flex vertical className='sb-innerbody' gap='middle'>
+        <Flex align='center' gap='middle'>
+          <div className='sb-innerbodyy'>
+            <Link href='/'>
+              <ArrowLeftOutlined className='sb-arrowleft' />
             </Link>
-            <h4 className="sb-title">Your Shopping Bag</h4>
+            <h4 className='sb-title'>Your Shopping Bag</h4>
           </div>
         </Flex>
 
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center mt-20 space-y-4">
-            <p className="text-gray-500 text-base">No items in cart</p>
-            <Link href="/">
-              <Button type="primary" className="!bg-white !text-[#007BFF] !text-md !p-6 !rounded-none !border-[#e1e1e1]">
+          <div className='flex flex-col items-center justify-center text-center mt-20 space-y-4'>
+            <p className='text-gray-500 text-base'>No items in cart</p>
+            <Link href='/'>
+              <Button
+                className='!bg-white !text-[#007BFF] !text-md !p-6 !rounded-none !border-[#e1e1e1]'
+                type='primary'
+              >
                 Continue Shopping
               </Button>
             </Link>
@@ -334,17 +349,17 @@ const handlePlaceOrder = async () => {
         ) : (
           <>
             <Table<CartItem>
-              rowSelection={rowSelection}
+              bordered
+              className='sb-wholetable'
               columns={columns}
               dataSource={items}
               pagination={{ pageSize: 10 }}
-              scroll={{ x: 950 }}
-              bordered
               rowClassName={() => 'h-12'}
-              className="sb-wholetable"
+              rowSelection={rowSelection}
+              scroll={{ x: 950 }}
             />
 
-            <div className="sb-summary">
+            <div className='sb-summary'>
               <p>
                 Sub Total: <b>Rs. {subTotal.toLocaleString()}</b>
               </p>
@@ -354,23 +369,23 @@ const handlePlaceOrder = async () => {
               <p>
                 Total: <b>Rs. {total.toLocaleString()}</b>
               </p>
-              <div className="sb-buttons">
+              <div className='sb-buttons'>
                 <Button
                   danger
-                  size="large"
-                  className="!mb-3"
+                  className='!mb-3'
                   disabled={!selectedRowKeys.length}
+                  size='large'
                   onClick={deleteSelectedItems}
                 >
                   Delete Selected
                 </Button>
-                  <Button
-                  type="primary"
-                  size="large"
-                  className="sb-placeorder"
-                  onClick={handlePlaceOrder}
-                  loading={loading} 
+                <Button
+                  className='sb-placeorder'
                   disabled={loading}
+                  loading={loading}
+                  size='large'
+                  type='primary' 
+                  onClick={handlePlaceOrder}
                 >
                   {loading ? 'Processing...' : 'Place Order'}
                 </Button>
@@ -379,18 +394,18 @@ const handlePlaceOrder = async () => {
           </>
         )}
 
-        {isModalOpen && (
+        {isModalOpen ? (
           <DeleteConfirmationModal
             isOpen={isModalOpen}
+            productName={itemToDelete?.product}
             onClose={() => setIsModalOpen(false)}
             onConfirm={() => {
               if (itemToDelete) deleteItem(itemToDelete.key);
               setIsModalOpen(false);
               setItemToDelete(null);
             }}
-            productName={itemToDelete?.product}
           />
-        )}
+        ) : null}
       </Flex>
     </>
   );
