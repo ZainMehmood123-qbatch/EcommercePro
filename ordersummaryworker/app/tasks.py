@@ -50,58 +50,6 @@ def recalculate_summary():
     finally:
         db.close()
 
-
-# @celery.task(name="app.tasks.import_products_from_csv")
-# def import_products_from_csv(file_content: str):
-#     """Background task to import products + variants from uploaded CSV."""
-#     db = SessionLocal()
-#     try:
-#         reader = csv.DictReader(io.StringIO(file_content))
-#         for row in reader:
-#             title = row.get("title")
-#             color = row.get("colorName")
-#             size = row.get("size")
-#             price = float(row.get("price") or 0)
-#             stock = int(row.get("stock") or 0)
-#             image = row.get("image")
-
-#             product = db.query(Product).filter(Product.title == title).first()
-#             if not product:
-#                 product = Product(id=str(uuid.uuid4()), title=title)
-#                 db.add(product)
-#                 db.commit()
-
-#             existing_variant = (
-#                 db.query(ProductVariant)
-#                 .filter(
-#                     ProductVariant.productId == product.id,
-#                     ProductVariant.colorName == color,
-#                     ProductVariant.size == size,
-#                 )
-#                 .first()
-#             )
-#             if not existing_variant:
-#                 variant = ProductVariant(
-#                     id=str(uuid.uuid4()),
-#                     productId=product.id,
-#                     colorName=color,
-#                     colorCode=row.get("colorCode"),
-#                     size=size,
-#                     stock=stock,
-#                     price=price,
-#                     image=image,
-#                 )
-#                 db.add(variant)
-
-#         db.commit()
-#         print("✅ Products imported successfully!")
-#     except Exception as e:
-#         db.rollback()
-#         print("❌ Error importing products:", e)
-#     finally:
-#         db.close()
-
-
 @celery.task(name="app.tasks.import_products_from_csv")
 def import_products_from_csv(file_path: str):
     """Background task — process CSV file in streaming (chunked) manner."""

@@ -44,7 +44,6 @@ export async function middleware(req: ValidatedNextRequest) {
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
           body = await req.json();
         }
-
         // Validate only if schema exists
         const { error } = matched.schema.validate(body, { abortEarly: false });
         if (error) {
