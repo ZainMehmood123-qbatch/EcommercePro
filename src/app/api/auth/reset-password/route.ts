@@ -6,20 +6,8 @@ import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/prisma';
 
-// Joi schema for validation
-const schema = Joi.object({
-  token: Joi.string().required(),
-  password: Joi.string()
-    .pattern(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/
-    )
-    .required()
-    .messages({
-      'string.pattern.base':
-        'Password must be at least 6 characters, include uppercase, lowercase, number, and special character',
-      'any.required': 'Password is required'
-    })
-});
+// yeh mene middleware mei kr lia hai. isko yahan sy baad mei hata lunga ... 
+const schema = Joi.object({});
 
 export async function POST(req: Request) {
   try {
