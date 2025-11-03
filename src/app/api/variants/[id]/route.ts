@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+
 import { Prisma } from '@prisma/client';
+
+import { prisma } from '@/lib/prisma';
+
 import type { ProductVariant } from '@/types/product';
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Variant ID is required' },
@@ -29,13 +33,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     return NextResponse.json({ success: true, data: updatedVariant }, { status: 200 });
   } catch (error) {
-    console.error('Error updating variant:', error);
-
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      return NextResponse.json(
-        { success: false, message: 'Variant not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: 'Variant not found' }, { status: 404 });
     }
 
     return NextResponse.json(
@@ -45,10 +44,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 }
 
-
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Variant ID is required' },
@@ -66,13 +65,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
       { status: 200 }
     );
   } catch (error) {
-    console.error('Error deleting variant:', error);
-
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
-      return NextResponse.json(
-        { success: false, message: 'Variant not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: 'Variant not found' }, { status: 404 });
     }
 
     return NextResponse.json(
@@ -81,4 +75,3 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
     );
   }
 }
-
