@@ -71,7 +71,6 @@ const eslintConfig = [
         module: 'readonly',
         console: 'readonly',
         process: 'readonly',
-        // ✅ Add Jest globals here
         jest: 'readonly',
         describe: 'readonly',
         it: 'readonly',

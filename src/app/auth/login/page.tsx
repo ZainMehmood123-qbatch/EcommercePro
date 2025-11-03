@@ -29,32 +29,55 @@ export default function LoginPage() {
 
   const onFinish = async (values: LoginFormValues) => {
     setLoading(true);
-
-    const res = await signIn('credentials', {
+    try {
+      const res = await signIn('credentials', {
       email: values.email,
       password: values.password,
       remember: remember ? 'true' : 'false', 
       redirect: false
     });
 
-    if (res && res.error) {
-      toast.error('Wrong Email/Password, please enter correct credentials');
-      setLoading(false);
-      return;
-    }
-
-    if (res && res.ok) {
-      toast.success('Login successfully!');
-      const sessionRes = await fetch('/api/auth/session');
-      const session = await sessionRes.json();
-      if (session?.user?.role === 'ADMIN') {
-        router.push('/admin/products');
-      } else {
-        router.push('/');
+     if (!res) {
+        toast.error('No response from server. Please try again.');
+        return;
       }
-    }
 
-    setLoading(false);
+     if (res.error) {
+        if (res.error.includes('CredentialsSignin')) {
+          toast.error('Invalid email or password.');
+        } else {
+          toast.error(res.error || 'Something went wrong while logging in.');
+        }
+        return;
+      }
+
+    if (res.ok) {
+        toast.success('Login successful!');
+        try {
+          const sessionRes = await fetch('/api/auth/session');
+          if (!sessionRes.ok) {
+            toast.error('Failed to fetch session. Please try again.');
+            return;
+          }
+
+          const session = await sessionRes.json();
+
+          if (session?.user?.role === 'ADMIN') {
+            router.push('/admin/products');
+          } else {
+            router.push('/');
+          }
+        } catch (err) {
+          toast.error('Unexpected error while fetching session.');
+          console.error('Session fetch error:', err);
+        }
+      }
+    } catch (err) {
+      toast.error('Something went wrong. Please try again later.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (!mounted) {
