@@ -2,26 +2,25 @@ import bcrypt from 'bcryptjs';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import NextAuth, { NextAuthOptions, User } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
-import { encode as jwtEncode, decode as jwtDecode } from 'next-auth/jwt';
+import { encode as jwtEncode, decode as jwtDecode, JWT } from 'next-auth/jwt';
+
 import { prisma } from '@/lib/prisma';
 import { getOrCreateStripeCustomer } from '@/lib/stripeCustomer';
 
 const JWT_SECRET = process.env.NEXTAUTH_SECRET;
+
 if (!JWT_SECRET) throw new Error('NEXTAUTH_SECRET is not defined');
 
 export const authOptions: NextAuthOptions = {
-  session: { 
+  session: {
     strategy: 'jwt'
   },
   secret: JWT_SECRET,
   jwt: {
     async encode({ token, secret, maxAge }) {
       if (!token) return '';
-      const maxAgeNew = token.exp
-        ? (token.exp as number) - Math.floor(Date.now() / 1000)
-        : maxAge;
-      
+      const maxAgeNew = token.exp ? (token.exp as number) - Math.floor(Date.now() / 1000) : maxAge;
+
       return jwtEncode({ token, secret, maxAge: maxAgeNew });
     },
     async decode({ token, secret }) {
@@ -47,12 +46,11 @@ export const authOptions: NextAuthOptions = {
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
         });
+
         if (!user || !user.password) return null;
 
-        const isPasswordValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
+        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
         if (!isPasswordValid) return null;
 
         return {
@@ -91,6 +89,7 @@ export const authOptions: NextAuthOptions = {
         user.id = existingUser.id;
         user.role = existingUser.role as 'ADMIN' | 'USER';
       }
+
       return true;
     },
 
@@ -98,15 +97,17 @@ export const authOptions: NextAuthOptions = {
       if (trigger === 'signIn' && user) {
         const now = Math.floor(Date.now() / 1000);
         let maxAge: number;
-        
+
         if (account?.provider === 'credentials') {
           const remember = user.remember ?? false;
-          maxAge = remember ? 30 * 24 * 60 * 60 : 2 * 60; 
+
+          maxAge = remember ? 30 * 24 * 60 * 60 : 2 * 60;
         } else {
           maxAge = 30 * 24 * 60 * 60;
         }
-        
+
         const exp = now + maxAge;
+
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
@@ -146,4 +147,5 @@ export const authOptions: NextAuthOptions = {
 };
 
 const handler = NextAuth(authOptions);
+
 export { handler as GET, handler as POST };
