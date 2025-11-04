@@ -34,7 +34,7 @@ const Shoppingbag: React.FC = () => {
     if (stockErrors.length > 0) {
       setStockErrors([]);
     }
-  }, [items]);
+  }, [items, stockErrors.length]);
 
   useEffect(() => {
     if (!userId) return;
@@ -207,17 +207,17 @@ const Shoppingbag: React.FC = () => {
       dataIndex: 'product',
       className: '!pl-1',
       render: (_, record) => (
-        <div className='flex items-center gap-2'>
+        <div className={'flex items-center gap-2'}>
           <Image
-            alt='product'
-            fallback='/fallback.png'
+            alt={'product'}
+            fallback={'/fallback.png'}
             height={24}
             preview={{ mask: <span>Preview</span> }}
             src={record.image || '/fallback.png'}
             style={{ objectFit: 'cover' }}
             width={24}
           />
-          <span className='sb-pvalues'>{record.product}</span>
+          <span className={'sb-pvalues'}>{record.product}</span>
         </div>
       )
     },
@@ -226,15 +226,18 @@ const Shoppingbag: React.FC = () => {
       dataIndex: 'colorName',
       render: (_, record) => {
         if (!record.colorName && !record.colorCode) {
-          return <span className='sb-productcolorname'>White</span>;
+          return <span className={'sb-productcolorname'}>White</span>;
         }
 
         return (
-          <div className='sb-colors'>
+          <div className={'sb-colors'}>
             {record.colorCode ? (
-              <span className='sb-productcolorcode' style={{ backgroundColor: record.colorCode }} />
+              <span
+                className={'sb-productcolorcode'}
+                style={{ backgroundColor: record.colorCode }}
+              />
             ) : null}
-            <span className='sb-pvalues'>{record.colorName || record.colorCode}</span>
+            <span className={'sb-pvalues'}>{record.colorName || record.colorCode}</span>
           </div>
         );
       }
@@ -242,37 +245,37 @@ const Shoppingbag: React.FC = () => {
     {
       title: 'Size',
       dataIndex: 'size',
-      render: (value) => <span className='sb-pvalues'>{value ?? 'L'}</span>
+      render: (value) => <span className={'sb-pvalues'}>{value ?? 'L'}</span>
     },
     {
       title: 'Price Per Unit',
       dataIndex: 'price',
-      render: (price) => <span className='sb-pvalues'>Rs. {price}</span>
+      render: (price) => <span className={'sb-pvalues'}>Rs. {price}</span>
     },
     {
       title: 'Qty',
       dataIndex: 'qty',
       render: (_, record) => (
-        <Flex align='center' gap='small'>
+        <Flex align={'center'} gap={'small'}>
           <Button
-            className='sb-signcolors'
+            className={'sb-signcolors'}
             disabled={record.qty <= 1}
-            size='small'
+            size={'small'}
             onClick={() => updateQty(record.key, record.qty - 1)}
           >
             -
           </Button>
           <InputNumber
-            className='sb-number'
+            className={'sb-number'}
             max={record.stock}
             min={1}
             value={record.qty}
             onChange={(value) => updateQty(record.key, value || 1)}
           />
           <Button
-            className='sb-signcolors'
+            className={'sb-signcolors'}
             disabled={record.qty >= record.stock}
-            size='small'
+            size={'small'}
             onClick={() => updateQty(record.key, record.qty + 1)}
           >
             +
@@ -284,7 +287,7 @@ const Shoppingbag: React.FC = () => {
       title: 'Total Price',
       dataIndex: 'total',
       render: (_, record) => (
-        <span className='sb-pvalues'>Rs. {(record.qty * record.price).toLocaleString()}</span>
+        <span className={'sb-pvalues'}>Rs. {(record.qty * record.price).toLocaleString()}</span>
       )
     },
     {
@@ -294,7 +297,7 @@ const Shoppingbag: React.FC = () => {
         <Button
           danger
           icon={<DeleteOutlined />}
-          type='text'
+          type={'text'}
           onClick={() => {
             setItemToDelete(record);
             setIsModalOpen(true);
@@ -315,8 +318,8 @@ const Shoppingbag: React.FC = () => {
 
   if (status === 'loading') {
     return (
-      <div className='loader'>
-        <Spin size='large' />
+      <div className={'loader'}>
+        <Spin size={'large'} />
       </div>
     );
   }
@@ -324,23 +327,25 @@ const Shoppingbag: React.FC = () => {
   return (
     <>
       <Navbar />
-      <Flex vertical className='sb-innerbody' gap='middle'>
-        <Flex align='center' gap='middle'>
-          <div className='sb-innerbodyy'>
-            <Link href='/'>
-              <ArrowLeftOutlined className='sb-arrowleft' />
+      <Flex vertical className={'sb-innerbody'} gap={'middle'}>
+        <Flex align={'center'} gap={'middle'}>
+          <div className={'sb-innerbodyy'}>
+            <Link href={'/'}>
+              <ArrowLeftOutlined className={'sb-arrowleft'} />
             </Link>
-            <h4 className='sb-title'>Your Shopping Bag</h4>
+            <h4 className={'sb-title'}>Your Shopping Bag</h4>
           </div>
         </Flex>
 
         {items.length === 0 ? (
-          <div className='flex flex-col items-center justify-center text-center mt-20 space-y-4'>
-            <p className='text-gray-500 text-base'>No items in cart</p>
-            <Link href='/'>
+          <div className={'flex flex-col items-center justify-center text-center mt-20 space-y-4'}>
+            <p className={'text-gray-500 text-base'}>No items in cart</p>
+            <Link href={'/'}>
               <Button
-                className='!bg-white !text-[#007BFF] !text-md !p-6 !rounded-none !border-[#e1e1e1]'
-                type='primary'
+                className={
+                  '!bg-white !text-[#007BFF] !text-md !p-6 !rounded-none !border-[#e1e1e1]'
+                }
+                type={'primary'}
               >
                 Continue Shopping
               </Button>
@@ -350,7 +355,7 @@ const Shoppingbag: React.FC = () => {
           <>
             <Table<CartItem>
               bordered
-              className='sb-wholetable'
+              className={'sb-wholetable'}
               columns={columns}
               dataSource={items}
               pagination={{ pageSize: 10 }}
@@ -359,7 +364,7 @@ const Shoppingbag: React.FC = () => {
               scroll={{ x: 950 }}
             />
 
-            <div className='sb-summary'>
+            <div className={'sb-summary'}>
               <p>
                 Sub Total: <b>Rs. {subTotal.toLocaleString()}</b>
               </p>
@@ -369,22 +374,22 @@ const Shoppingbag: React.FC = () => {
               <p>
                 Total: <b>Rs. {total.toLocaleString()}</b>
               </p>
-              <div className='sb-buttons'>
+              <div className={'sb-buttons'}>
                 <Button
                   danger
-                  className='!mb-3'
+                  className={'!mb-3'}
                   disabled={!selectedRowKeys.length}
-                  size='large'
+                  size={'large'}
                   onClick={deleteSelectedItems}
                 >
                   Delete Selected
                 </Button>
                 <Button
-                  className='sb-placeorder'
+                  className={'sb-placeorder'}
                   disabled={loading}
                   loading={loading}
-                  size='large'
-                  type='primary' 
+                  size={'large'}
+                  type={'primary'}
                   onClick={handlePlaceOrder}
                 >
                   {loading ? 'Processing...' : 'Place Order'}

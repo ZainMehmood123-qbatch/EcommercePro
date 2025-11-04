@@ -65,9 +65,9 @@ const Orders: React.FC = () => {
       title: 'Date',
       dataIndex: 'date',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <div className='order-titlenames'>
+        <div className={'order-titlenames'}>
           <span>{moment(record.createdAt).format('DD/MM/YYYY')}</span>
-          <span className='block mt-2 text-[10px] text-gray-500'>
+          <span className={'block mt-2 text-[10px] text-gray-500'}>
             {moment(record.createdAt).format('hh:mm:ss A')}
           </span>
         </div>
@@ -77,21 +77,21 @@ const Orders: React.FC = () => {
       title: 'Order #',
       dataIndex: 'orderNo',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <span className='order-titlenames'>ORD-{record.id.substring(0, 8)}</span>
+        <span className={'order-titlenames'}>ORD-{record.id.substring(0, 8)}</span>
       )
     },
     {
       title: 'Product(s)',
       dataIndex: 'products',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <span className='order-titlenames'>{record.items?.length ?? 0}</span>
+        <span className={'order-titlenames'}>{record.items?.length ?? 0}</span>
       )
     },
     {
       title: 'Amount',
       dataIndex: 'amount',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <span className='order-titlenames'>${Number(record.total ?? 0).toFixed(2)}</span>
+        <span className={'order-titlenames'}>${Number(record.total ?? 0).toFixed(2)}</span>
       )
     },
     {
@@ -126,9 +126,9 @@ const Orders: React.FC = () => {
       dataIndex: 'actions',
       render: (_: FetchedOrder, record: FetchedOrder) => (
         <Button
-          className='order-titlenames hover:bg-blue-50 hover:text-blue-600 transition-all'
+          className={'order-titlenames hover:bg-blue-50 hover:text-blue-600 transition-all'}
           icon={<ExportOutlined />}
-          type='text'
+          type={'text'}
           onClick={() => handleViewOrderDetails(record.id)}
         />
       )
@@ -137,8 +137,8 @@ const Orders: React.FC = () => {
 
   if (loading) {
     return (
-      <div className='loader'>
-        <Spin size='large' />
+      <div className={'loader'}>
+        <Spin size={'large'} />
       </div>
     );
   }
@@ -146,18 +146,18 @@ const Orders: React.FC = () => {
   return (
     <>
       <Navbar />
-      <div className='order-whole'>
-        <div className='flex justify-between'>
-          <div className='order-navbar'>
-            <Link href='/'>
-              <ArrowLeftOutlined className='order-arrowleft' />
+      <div className={'order-whole'}>
+        <div className={'flex justify-between'}>
+          <div className={'order-navbar'}>
+            <Link href={'/'}>
+              <ArrowLeftOutlined className={'order-arrowleft'} />
             </Link>
-            <h4 className='order-title'>Orders</h4>
+            <h4 className={'order-title'}>Orders</h4>
           </div>
 
-          <div className='mt-10 pr-4'>
+          <div className={'mt-10 pr-4'}>
             <SearchComponent
-              placeholder='Search by Order ID'
+              placeholder={'Search by Order ID'}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
             />
@@ -166,7 +166,7 @@ const Orders: React.FC = () => {
 
         <Table
           bordered
-          className='order-wholetable'
+          className={'order-wholetable'}
           columns={columns}
           dataSource={orders}
           pagination={{
@@ -175,10 +175,10 @@ const Orders: React.FC = () => {
             total: totalCount,
             onChange: (page) => dispatch(setPage(page)),
             showSizeChanger: false,
-            showTotal: (total) => <span className='order-count'>{total} Total Count</span>
+            showTotal: (total) => <span className={'order-count'}>{total} Total Count</span>
           }}
           rowClassName={() => 'h-12'}
-          rowKey='id'
+          rowKey={'id'}
           scroll={{ x: 1000 }}
         />
 
