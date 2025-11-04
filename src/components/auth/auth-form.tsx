@@ -4,24 +4,24 @@ import React from 'react';
 
 import { Form } from 'antd';
 
-export default function AuthForm({
+const AuthForm = ({
   name,
   onFinish,
   children
 }: {
   name: string;
-  onFinish: (values: any) => void;
+  onFinish: (values: unknown) => void;
   children: React.ReactNode;
-}) {
-  return (
-    <Form
-      name={name}
-      layout='vertical'
-      validateTrigger="onBlur"
-      onFinish={onFinish}
-      autoComplete='off'
-    >
-      {children}
-    </Form>
-  );
-}
+}) => (
+  <Form
+    autoComplete={'off'}
+    layout={'vertical'}
+    name={name}
+    validateTrigger={'onBlur'}
+    onFinish={onFinish}
+  >
+    {children}
+  </Form>
+);
+
+export default AuthForm;
