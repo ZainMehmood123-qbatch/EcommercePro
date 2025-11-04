@@ -101,17 +101,17 @@ const Dashboardpage: React.FC = () => {
         </div>
       ) : null}
 
-      <Navbar title='E-commerce' />
+      <Navbar title={'E-commerce'} />
 
-      <div className='dashboard-whole'>
-        <div className='dashboard-innerheader'>
-          <p className='dashboard-title'>Our Products</p>
+      <div className={'dashboard-whole'}>
+        <div className={'dashboard-innerheader'}>
+          <p className={'dashboard-title'}>Our Products</p>
 
-          <div className='dashboard-innerheadericons'>
+          <div className={'dashboard-innerheadericons'}>
             <SearchComponent
+              placeholder={'Search products'}
               searchTerm={localSearch}
               setSearchTerm={setLocalSearch}
-              placeholder='Search products'
             />
 
             <GenericDropdown
@@ -122,17 +122,17 @@ const Dashboardpage: React.FC = () => {
           </div>
         </div>
 
-        <div className='dashboard-product'>
+        <div className={'dashboard-product'}>
           {products.map((product, index) => (
             <DashboardCard key={`${product.id}-${index}`} product={product} />
           ))}
         </div>
 
-        <div className='dashboard-footer'>
-          {loadingMore ? <Spin size='large' /> : null}
+        <div className={'dashboard-footer'}>
+          {loadingMore ? <Spin size={'large'} /> : null}
           {!hasMore && !loading && !loadingMore ? (
             <DelayedMessage delay={800}>
-              <p className='dashboard-footercontent'>No more products</p>
+              <p className={'dashboard-footercontent'}>No more products</p>
             </DelayedMessage>
           ) : null}
         </div>
@@ -251,7 +251,6 @@ export default Dashboardpage;
 //   window.addEventListener('scroll', handleScroll);
 //   return () => window.removeEventListener('scroll', handleScroll);
 // }, [loading, products.length, total, pageWindow, localSearch, sort, limit, dispatch]);
-
 
 //   return (
 //     <>
