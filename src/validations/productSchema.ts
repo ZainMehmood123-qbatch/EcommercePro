@@ -1,4 +1,5 @@
 import Joi from 'joi';
+
 import type { ProductVariant, ProductType } from '@/types/product';
 
 export const variantSchema = Joi.object<ProductVariant>({
@@ -27,8 +28,8 @@ export const variantSchema = Joi.object<ProductVariant>({
   }),
   isDeleted: Joi.boolean().optional(),
   image: Joi.string()
-    .allow('', null) 
-    .pattern(/^(https?:\/\/|\/|[a-zA-Z0-9_\-]+\.(jpg|jpeg|png|webp))/, 'valid image path')
+    .allow('', null)
+    .pattern(/^(https?:\/\/|\/|[a-zA-Z0-9_\\-]+\.(jpg|jpeg|png|webp))/, 'valid image path')
     .messages({
       'string.pattern.name': 'Please provide a valid image URL or path'
     }),
@@ -37,25 +38,24 @@ export const variantSchema = Joi.object<ProductVariant>({
 });
 
 export const getProductsSchema = Joi.object({
-  page: Joi.number().integer().min(1).default(1)
-    .messages({
-      'number.base': 'Page number must be a number',
-      'number.min': 'Page number must be at least 1'
-    }),
+  page: Joi.number().integer().min(1).default(1).messages({
+    'number.base': 'Page number must be a number',
+    'number.min': 'Page number must be at least 1'
+  }),
 
-  limit: Joi.number().integer().min(1).max(100).default(10)
-    .messages({
-      'number.base': 'Limit must be a number',
-      'number.min': 'Limit must be at least 1',
-      'number.max': 'Limit cannot exceed 100'
-    }),
+  limit: Joi.number().integer().min(1).max(100).default(10).messages({
+    'number.base': 'Limit must be a number',
+    'number.min': 'Limit must be at least 1',
+    'number.max': 'Limit cannot exceed 100'
+  }),
 
-  search: Joi.string().allow('').optional()
-    .messages({
-      'string.base': 'Search must be a string'
-    }),
+  search: Joi.string().allow('').optional().messages({
+    'string.base': 'Search must be a string'
+  }),
 
-  sort: Joi.string().valid('newest', 'oldest', 'price_asc', 'price_desc').default('newest')
+  sort: Joi.string()
+    .valid('newest', 'oldest', 'price_asc', 'price_desc')
+    .default('newest')
     .messages({
       'any.only': 'Sort must be one of: newest, oldest, price_asc, price_desc'
     })
@@ -68,12 +68,9 @@ export const productCreateSchema = Joi.object<ProductType>({
     'string.min': 'Product title must be at least 3 characters',
     'string.max': 'Product title cannot exceed 100 characters'
   }),
-  variants: Joi.array()
-    .items(variantSchema)
-    .default([])
-    .messages({
-      'array.base': 'Variants must be an array'
-    }),
+  variants: Joi.array().items(variantSchema).default([]).messages({
+    'array.base': 'Variants must be an array'
+  }),
   createdAt: Joi.string().optional(),
   updatedAt: Joi.string().optional()
 });
@@ -81,13 +78,9 @@ export const productCreateSchema = Joi.object<ProductType>({
 export const productUpdateSchema = Joi.object<ProductType>({
   id: Joi.string().optional(),
   title: Joi.string().min(3).max(100).required(),
-  variants: Joi.array()
-    .items(variantSchema)
-    .default([]) 
-    .messages({
-      'array.base': 'Variants must be an array'
-    }),
+  variants: Joi.array().items(variantSchema).default([]).messages({
+    'array.base': 'Variants must be an array'
+  }),
   createdAt: Joi.string().optional(),
   updatedAt: Joi.string().optional()
 });
-

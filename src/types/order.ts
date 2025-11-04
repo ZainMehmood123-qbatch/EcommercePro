@@ -1,12 +1,13 @@
 'use client';
 import React from 'react';
+
 import { ProductBase } from './product';
 
 export interface FetchedOrder {
   id: string;
   createdAt: string;
   userId: string;
-  items?: FetchedOrderProduct[]; 
+  items?: FetchedOrderProduct[];
   total?: number;
   paymentStatus?: string;
 }
@@ -19,7 +20,7 @@ export interface FetchedOrderItem {
   colorName?: string;
   colorCode?: string;
   size?: string;
-  image?: string; 
+  image?: string;
 }
 
 export interface CreateOrderRequest {
@@ -35,7 +36,7 @@ export interface FetchedOrderProduct {
   colorName?: string;
   colorCode?: string;
   size?: string;
-  image?: string; 
+  image?: string;
 }
 
 export interface OrderType {
@@ -64,7 +65,7 @@ export interface OrderDetailType {
     colorName?: string;
     colorCode?: string;
     size?: string;
-  }[]; 
+  }[];
 }
 
 export interface OrderItemInput {
@@ -76,5 +77,5 @@ export interface OrderItemInput {
   colorName?: string;
   colorCode?: string;
   size?: string;
-  image?: string; 
+  image?: string;
 }

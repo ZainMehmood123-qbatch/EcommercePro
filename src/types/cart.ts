@@ -3,8 +3,8 @@ import React from 'react';
 // /types/cart.ts
 export interface CartItem {
   key: React.Key;
-  id: string;          // productId
-  variantId: string;   // ProductVariant.id
+  id: string; // productId
+  variantId: string; // ProductVariant.id
   product: string;
   image: string;
   colorName?: string;
@@ -12,7 +12,6 @@ export interface CartItem {
   size?: string;
   qty: number;
   price: number;
-  stock: number; 
+  stock: number;
   availableStock?: number; // frontend-only field
 }
-

@@ -1,7 +1,9 @@
 // src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+
 import { getToken } from 'next-auth/jwt';
+
 import { validationMap } from '@/lib/schemaMap';
 
 export const runtime = 'nodejs';
@@ -22,11 +24,8 @@ export async function middleware(req: ValidatedNextRequest) {
     '.svg',
     '.webp'
   ];
-  if (
-    ignoredPaths.some(
-      (path) => pathname.includes(path) || pathname.endsWith(path)
-    )
-  ) {
+
+  if (ignoredPaths.some((path) => pathname.includes(path) || pathname.endsWith(path))) {
     return NextResponse.next();
   }
 
@@ -34,6 +33,7 @@ export async function middleware(req: ValidatedNextRequest) {
     const matched = validationMap.find((rule) => {
       if (rule.method !== req.method) return false;
       if (rule.path instanceof RegExp) return rule.path.test(pathname);
+
       return rule.path === pathname;
     });
 
@@ -41,11 +41,14 @@ export async function middleware(req: ValidatedNextRequest) {
       try {
         // Only parse JSON for methods that have a body
         let body = {};
+
         if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
           body = await req.json();
         }
+
         // Validate only if schema exists
         const { error } = matched.schema.validate(body, { abortEarly: false });
+
         if (error) {
           return NextResponse.json(
             { success: false, errors: error.details.map((e) => e.message) },
@@ -58,18 +61,15 @@ export async function middleware(req: ValidatedNextRequest) {
         const validatedRequest = new Request(req.url, {
           method: req.method,
           headers: req.headers,
-          body: ['POST', 'PUT', 'PATCH'].includes(req.method)
-            ? validatedBody
-            : undefined
+          body: ['POST', 'PUT', 'PATCH'].includes(req.method) ? validatedBody : undefined
         });
 
         req.validatedRequest = validatedRequest;
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.error('Validation middleware error:', e);
-        return NextResponse.json(
-          { success: false, message: 'Invalid JSON body' },
-          { status: 400 }
-        );
+
+        return NextResponse.json({ success: false, message: 'Invalid JSON body' }, { status: 400 });
       }
     }
   }
@@ -93,29 +93,28 @@ export async function middleware(req: ValidatedNextRequest) {
 
   if (publicRoutes.includes(pathname)) {
     if (token && (pathname === '/auth/login' || pathname === '/auth/signup')) {
-      if (token.role === 'ADMIN')
-        return NextResponse.redirect(new URL('/admin/orders', req.url));
+      if (token.role === 'ADMIN') return NextResponse.redirect(new URL('/admin/orders', req.url));
       if (token.role === 'USER')
         return NextResponse.redirect(new URL('/user/shopping-bag', req.url));
     }
+
     return NextResponse.next();
   }
 
   if (sharedRoutes.some((r) => pathname.startsWith(r))) {
     if (!token) return NextResponse.redirect(new URL('/auth/login', req.url));
+
     return NextResponse.next();
   }
 
   if (userRoutes.some((r) => pathname.startsWith(r))) {
     if (!token) return NextResponse.redirect(new URL('/auth/login', req.url));
-    if (token.role !== 'USER')
-      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    if (token.role !== 'USER') return NextResponse.redirect(new URL('/unauthorized', req.url));
   }
 
   if (adminRoutes.some((r) => pathname.startsWith(r))) {
     if (!token) return NextResponse.redirect(new URL('/auth/login', req.url));
-    if (token.role !== 'ADMIN')
-      return NextResponse.redirect(new URL('/unauthorized', req.url));
+    if (token.role !== 'ADMIN') return NextResponse.redirect(new URL('/unauthorized', req.url));
   }
 
   return NextResponse.next();

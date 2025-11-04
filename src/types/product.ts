@@ -18,7 +18,7 @@ export interface ProductVariant {
   size: string;
   stock: number;
   price: number;
-  image: string; 
+  image: string;
   isDeleted?: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -28,7 +28,7 @@ export interface ProductVariant {
 export interface ProductType extends ProductBase {
   variants: ProductVariant[];
   key?: React.Key;
-  qty?: number; 
+  qty?: number;
 }
 
 // Response format from backend (paginated or full list)

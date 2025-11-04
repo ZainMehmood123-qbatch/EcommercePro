@@ -11,7 +11,7 @@ export interface SignupFormValues {
 export interface LoginFormValues {
   email: string;
   password: string;
-  remember:boolean
+  remember: boolean;
 }
 
 export interface ForgotPasswordFormValues {
