@@ -135,7 +135,6 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
     }
   };
 
-  // Save or update product
   const handleSave = async () => {
     try {
       const values = await form.validateFields();
@@ -154,11 +153,19 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
         await dispatch(createProduct(payload)).unwrap();
         toast.success('Product created');
       }
+
       onClose();
-    } catch (err) {
+    } catch (error) {
+      const message =
+        typeof error === 'string'
+          ? error
+          : error instanceof Error
+            ? error.message
+            : 'Error saving product';
+
+      toast.error(message);
       // eslint-disable-next-line no-console
-      console.error(err);
-      message.error('Error saving product');
+      console.error('Save product error:', error);
     } finally {
       setLoading(false);
     }

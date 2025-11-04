@@ -124,6 +124,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, data: newProduct }, { status: 201 });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Duplicate variant: same color and size already exist for this product.'
+          },
+          { status: 400 }
+        );
+      }
+
       return NextResponse.json(
         { success: false, message: 'Database error occurred' },
         { status: 500 }

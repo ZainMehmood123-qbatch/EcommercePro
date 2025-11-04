@@ -61,7 +61,33 @@ export const fetchProducts = createAsyncThunk<
   }
 });
 
-// create Product
+// // create Product
+// export const createProduct = createAsyncThunk<
+//   ProductType,
+//   CreateProductInput,
+//   { rejectValue: string }
+// >('products/createProduct', async ({ title, variants }, { rejectWithValue }) => {
+//   try {
+//     const body: CreateProductInput = { title };
+
+//     if (variants?.length) body.variants = variants;
+
+//     const res = await fetch('/api/products', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(body)
+//     });
+
+//     const data = await res.json();
+
+//     if (!res.ok) throw new Error('Failed to create product');
+
+//     return data.data;
+//   } catch (err) {
+//     return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
+//   }
+// });
+
 export const createProduct = createAsyncThunk<
   ProductType,
   CreateProductInput,
@@ -78,9 +104,12 @@ export const createProduct = createAsyncThunk<
       body: JSON.stringify(body)
     });
 
-    if (!res.ok) throw new Error('Failed to create product');
+    const data = await res.json();
 
-    const data = (await res.json()) as { success: boolean; data: ProductType };
+    // 🔍 Use backend's message if available
+    if (!res.ok) {
+      return rejectWithValue(data.message || 'Failed to create product');
+    }
 
     return data.data;
   } catch (err) {
