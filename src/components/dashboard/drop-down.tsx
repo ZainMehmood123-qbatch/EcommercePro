@@ -1,4 +1,3 @@
- /* eslint-disable no-unused-vars */
 'use client';
 
 import React from 'react';
@@ -14,10 +13,10 @@ export interface GenericDropdownItem {
 }
 
 export interface GenericDropdownProps {
-  items: GenericDropdownItem[];             
-  selectedKey: string;                        
-  onSelect: (key: string) => void;          
-  className?: string;                         
+  items: GenericDropdownItem[];
+  selectedKey: string;
+  onSelect: (key: string) => void;
+  className?: string;
 }
 
 const GenericDropdown: React.FC<GenericDropdownProps> = ({
@@ -26,13 +25,12 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
   onSelect,
   className = ''
 }) => {
-
   const handleMenuClick: MenuProps['onClick'] = (e) => {
     onSelect(e.key);
   };
 
   const menuProps = {
-    items: items.map(item => ({
+    items: items.map((item) => ({
       key: item.key,
       label: item.label,
       icon: item.icon
@@ -42,7 +40,8 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
   };
 
   const getCurrentLabel = () => {
-    const currentItem = items.find(item => item.key === selectedKey);
+    const currentItem = items.find((item) => item.key === selectedKey);
+
     return currentItem?.label || (items[0]?.label ?? '');
   };
 
@@ -60,11 +59,11 @@ const GenericDropdown: React.FC<GenericDropdownProps> = ({
             ${className}
           `}
         >
-          <Space size='small' className="flex-1">
-            <span className='text-xs sm:text-sm font-medium text-gray-700 truncate'>
+          <Space className={'flex-1'} size={'small'}>
+            <span className={'text-xs sm:text-sm font-medium text-gray-700 truncate'}>
               {getCurrentLabel()}
             </span>
-            <DownOutlined className='text-xs sm:text-sm text-gray-500' />
+            <DownOutlined className={'text-xs sm:text-sm text-gray-500'} />
           </Space>
         </Button>
       </Dropdown>
