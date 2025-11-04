@@ -1,35 +1,35 @@
-'use client';
+// 'use client';
 
-import { useEffect, useState, useCallback, SetStateAction } from 'react';
+// import { useEffect, useState, useCallback, SetStateAction } from 'react';
 
-import { Table, Avatar, Button, message, Input, Spin } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
-import {
-  EditOutlined,
-  DeleteOutlined,
-  SortAscendingOutlined,
-  SortDescendingOutlined,
-  CalendarOutlined
-} from '@ant-design/icons';
+// import { Table, Avatar, Button, message, Input, Spin } from 'antd';
+// import type { ColumnsType } from 'antd/es/table';
+// import {
+//   EditOutlined,
+//   DeleteOutlined,
+//   SortAscendingOutlined,
+//   SortDescendingOutlined,
+//   CalendarOutlined
+// } from '@ant-design/icons';
 
-import toast from 'react-hot-toast';
+// import toast from 'react-hot-toast';
 
-import ProductModal from '@/components/admin-dashboard/modal';
-import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
-import AddMultipleProductsModal from '@/components/admin-dashboard/addmultipleproducts-modal';
-import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/drop-down';
+// import ProductModal from '@/components/admin-dashboard/modal';
+// import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
+// import AddMultipleProductsModal from '@/components/admin-dashboard/addmultipleproducts-modal';
+// import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/drop-down';
 
-import './products.css';
-import { ProductType } from '@/types/product';
+// import './products.css';
+// import { ProductType } from '@/types/product';
 
-const productSortItems: GenericDropdownItem[] = [
-  { key: 'name_asc', label: 'Name: A to Z', icon: <SortAscendingOutlined /> },
-  { key: 'name_desc', label: 'Name: Z to A', icon: <SortDescendingOutlined /> },
-  { key: 'newest', label: 'Newest First', icon: <CalendarOutlined /> },
-  { key: 'oldest', label: 'Oldest First', icon: <CalendarOutlined /> }
-];
+// const productSortItems: GenericDropdownItem[] = [
+//   { key: 'name_asc', label: 'Name: A to Z', icon: <SortAscendingOutlined /> },
+//   { key: 'name_desc', label: 'Name: Z to A', icon: <SortDescendingOutlined /> },
+//   { key: 'newest', label: 'Newest First', icon: <CalendarOutlined /> },
+//   { key: 'oldest', label: 'Oldest First', icon: <CalendarOutlined /> }
+// ];
 
-// export default function ProductsPage() {
+// const ProductsPage = () => {
 //   const [products, setProducts] = useState<ProductType[]>([]);
 //   const [loading, setLoading] = useState(true);
 //   const [pageNum, setPageNum] = useState(1);
@@ -124,12 +124,12 @@ const productSortItems: GenericDropdownItem[] = [
 //         const errorMsg = result?.error || 'Failed to delete product';
 
 //         console.error('API delete error:', errorMsg);
-
 //         message.error(errorMsg);
 //         toast.error(errorMsg);
 
 //         return;
 //       }
+
 //       message.success('Product deleted successfully');
 //       toast.success('Product deleted successfully');
 //       setProducts((prev) => prev.filter((p) => p.id !== record.id));
@@ -264,80 +264,88 @@ const productSortItems: GenericDropdownItem[] = [
 //       ) : null}
 //     </div>
 //   );
-// }
+// };
+
+// export default ProductsPage;
+
+'use client';
+
+import { useEffect, useState, useCallback } from 'react';
+
+import { Table, Avatar, Button, message, Input, Spin } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import {
+  EditOutlined,
+  DeleteOutlined,
+  SortAscendingOutlined,
+  SortDescendingOutlined,
+  CalendarOutlined
+} from '@ant-design/icons';
+
+import ProductModal from '@/components/admin-dashboard/modal';
+import DeleteConfirmationModal from '@/components/dashboard/delete-confirmation-modal';
+import AddMultipleProductsModal from '@/components/admin-dashboard/addmultipleproducts-modal';
+import GenericDropdown, { GenericDropdownItem } from '@/components/dashboard/drop-down';
+
+import './products.css';
+import { ProductType } from '@/types/product';
+import { useAppDispatch, useAppSelector } from '@/store';
+import {
+  deleteProduct,
+  fetchProducts,
+  resetProducts,
+  setSearch,
+  setSort
+} from '@/store/slice/products-slice';
+
+const productSortItems: GenericDropdownItem[] = [
+  { key: 'name_asc', label: 'Name: A to Z', icon: <SortAscendingOutlined /> },
+  { key: 'name_desc', label: 'Name: Z to A', icon: <SortDescendingOutlined /> },
+  { key: 'newest', label: 'Newest First', icon: <CalendarOutlined /> },
+  { key: 'oldest', label: 'Oldest First', icon: <CalendarOutlined /> }
+];
 
 const ProductsPage = () => {
-  const [products, setProducts] = useState<ProductType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pageNum, setPageNum] = useState(1);
-  const [limit] = useState(12);
-  const [total, setTotal] = useState(0);
-  const [localSearch, setLocalSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [sort, setSort] = useState<string>('newest');
+  const dispatch = useAppDispatch();
+  const { products, page, total, search, sort, loading } = useAppSelector(
+    (state) => state.products
+  );
+
+  const [localSearch, setLocalSearch] = useState(search);
+  const [debouncedSearch, setDebouncedSearch] = useState(localSearch);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductType | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<ProductType | null>(null);
   const [visible, setVisible] = useState(false);
 
-  const fetchProducts = useCallback(
-    async (page: number, search = debouncedSearch, sortKey = sort) => {
-      setLoading(true);
-      try {
-        const res = await fetch(
-          `/api/products?page=${page}&limit=${limit}&search=${search}&sort=${sortKey}`
-        );
-        const result = await res.json();
-
-        if (!res.ok) {
-          toast.error(result?.message || 'Something went wrong while fetching products');
-
-          return;
-        }
-
-        if (result?.data && Array.isArray(result.data)) {
-          const transformed = result.data.map((p: ProductType) => {
-            const firstVariant = p.variants?.[0];
-
-            return {
-              id: p.id,
-              title: p.title,
-              price: firstVariant?.price ?? 0,
-              stock: firstVariant?.stock ?? 0,
-              image: firstVariant?.image ?? '/placeholder.png',
-              variants: p.variants || []
-            };
-          });
-
-          setProducts(transformed);
-          setTotal(result.total || 0);
-        } else {
-          setProducts([]);
-          setTotal(0);
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        toast.error('Network error. Please check your connection.');
-      } finally {
-        setLoading(false);
-      }
+  // Fetch products
+  const loadProducts = useCallback(
+    (pageToLoad: number) => {
+      dispatch(fetchProducts({ page: pageToLoad, search: debouncedSearch, sort }));
     },
-    [debouncedSearch, sort, limit]
+    [dispatch, debouncedSearch, sort]
   );
 
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(localSearch);
-      setPageNum(1);
     }, 500);
 
     return () => clearTimeout(handler);
   }, [localSearch]);
 
+  // Sync redux search state
   useEffect(() => {
-    fetchProducts(pageNum);
-  }, [pageNum, debouncedSearch, sort, fetchProducts]);
+    dispatch(setSearch(debouncedSearch));
+  }, [debouncedSearch, dispatch]);
+
+  // Fetch when search or sort changes
+  useEffect(() => {
+    dispatch(resetProducts());
+    loadProducts(1);
+  }, [debouncedSearch, sort, dispatch, loadProducts]);
 
   const handleEdit = (product: ProductType) => {
     setSelectedProduct(product);
@@ -349,35 +357,15 @@ const ProductsPage = () => {
     setIsModalVisible(true);
   };
 
-  const handleDelete = async (record: ProductType) => {
-    try {
-      const res = await fetch(`/api/products/${record.id}`, {
-        method: 'DELETE'
+  const handleDelete = (record: ProductType) => {
+    dispatch(deleteProduct(record.id))
+      .unwrap()
+      .then(() => {
+        message.success('Product deleted successfully');
+      })
+      .catch((err) => {
+        message.error(err || 'Failed to delete product');
       });
-
-      const result = await res.json();
-
-      if (!res.ok) {
-        const errorMsg = result?.error || 'Failed to delete product';
-
-        console.error('API delete error:', errorMsg);
-        message.error(errorMsg);
-        toast.error(errorMsg);
-
-        return;
-      }
-
-      message.success('Product deleted successfully');
-      toast.success('Product deleted successfully');
-      setProducts((prev) => prev.filter((p) => p.id !== record.id));
-      setTotal((prev) => prev - 1);
-    } catch (error) {
-      console.error('Delete error:', error);
-      const msg = 'Network error. Please try again.';
-
-      message.error(msg);
-      toast.error(msg);
-    }
   };
 
   const columns: ColumnsType<ProductType> = [
@@ -444,9 +432,8 @@ const ProductsPage = () => {
           <GenericDropdown
             items={productSortItems}
             selectedKey={sort}
-            onSelect={(val: SetStateAction<string>) => {
-              setSort(val);
-              setPageNum(1);
+            onSelect={(val: string) => {
+              dispatch(setSort(val));
             }}
           />
           <Button type={'primary'} onClick={handleCreate}>
@@ -464,10 +451,10 @@ const ProductsPage = () => {
         columns={columns}
         dataSource={products}
         pagination={{
-          current: pageNum,
-          pageSize: limit,
+          current: page,
+          pageSize: 12,
           total: total,
-          onChange: (page) => setPageNum(page)
+          onChange: (p) => loadProducts(p)
         }}
         rowKey={'id'}
       />
@@ -476,7 +463,9 @@ const ProductsPage = () => {
         <ProductModal
           product={selectedProduct}
           products={products}
-          setProducts={setProducts}
+          setProducts={function (): void {
+            throw new Error('Function not implemented.');
+          }}
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
         />
@@ -491,9 +480,7 @@ const ProductsPage = () => {
             setProductToDelete(null);
           }}
           onConfirm={() => {
-            if (productToDelete) {
-              handleDelete(productToDelete);
-            }
+            if (productToDelete) handleDelete(productToDelete);
             setIsDeleteModalOpen(false);
             setProductToDelete(null);
           }}

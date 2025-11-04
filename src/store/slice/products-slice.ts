@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import type { ProductType, ProductResponse, ProductVariant, CreateProductInput } from '@/types/product';
+import toast from 'react-hot-toast';
 
 interface ProductsState {
   products: ProductType[];
@@ -96,19 +97,27 @@ export const updateProduct = createAsyncThunk<ProductType, { id: string; title: 
   }
 );
 
-// Delete Product
 export const deleteProduct = createAsyncThunk<string, string, { rejectValue: string }>(
   'products/deleteProduct',
   async (id, { rejectWithValue }) => {
     try {
       const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete product');
-      return id;
+      const result = await res.json();
+
+      // Check both HTTP status and API success
+      if (!res.ok || result?.success === false) {
+        const msg = result?.message || 'Failed to delete product';
+
+        return rejectWithValue(msg);
+      }
+
+      return id; // return deleted product id for reducer
     } catch (err) {
       return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
     }
   }
 );
+
 
 // Create Variant
 export const createVariant = createAsyncThunk<ProductVariant, { productId: string; variant: ProductVariant }, { rejectValue: string }>(
@@ -208,9 +217,17 @@ const productsSlice = createSlice({
       const index = state.products.findIndex(p => p.id === action.payload.id);
       if (index !== -1) state.products[index] = action.payload;
     });
-    builder.addCase(deleteProduct.fulfilled, (state, action) => {
-      state.products = state.products.filter(p => p.id !== action.payload);
-    });
+    builder
+  .addCase(deleteProduct.fulfilled, (state, action) => {
+    // Remove deleted product from the list
+    state.products = state.products.filter((p) => p.id !== action.payload);
+    state.total = Math.max(state.total - 1, 0);
+        toast.success('Product deleted successfully');
+  })
+  .addCase(deleteProduct.rejected, (state, action) => {
+    toast.error(action.payload || 'Failed to delete product');
+  });
+
 
     builder.addCase(createVariant.fulfilled, (state, action) => {
       const product = state.products.find(p => p.id === action.payload.productId);

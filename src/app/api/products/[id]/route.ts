@@ -30,18 +30,27 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: Request,
+  context: { params: Promise<{ id: string }> } 
+) {
+  const { id } = await context.params;
+
+  console.log('🗑️ DELETE request for product id:', id);
+
   try {
-    await prisma.product.update({
-      where: { id: params.id },
+    const updatedProduct = await prisma.product.update({
+      where: { id },
       data: { status: ProductStatus.INACTIVE }
     });
 
     return NextResponse.json(
-      { success: true, message: 'Product marked as inactive' },
+      { success: true, message: 'Product marked as inactive', data: updatedProduct },
       { status: 200 }
     );
   } catch (error) {
+    console.error('❌ Prisma delete error:', error);
+
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return NextResponse.json({ success: false, message: 'Product not found' }, { status: 404 });
     }
