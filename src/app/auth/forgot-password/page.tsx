@@ -32,7 +32,7 @@ const ForgotPasswordPage = () => {
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+        body: JSON.stringify(values)
       });
 
       const data = await res.json();
@@ -44,6 +44,7 @@ const ForgotPasswordPage = () => {
         toast.error(data.error || 'Failed to send reset email');
       }
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error(err);
       toast.error('Something went wrong');
     } finally {
@@ -53,30 +54,31 @@ const ForgotPasswordPage = () => {
 
   if (!mounted) {
     return (
-      <div className='fixed inset-0 flex items-center justify-center bg-white z-[9999]'>
-        <Spin size='large' />
+      <div className={'fixed inset-0 flex items-center justify-center bg-white z-[9999]'}>
+        <Spin size={'large'} />
       </div>
     );
   }
 
   return (
     <div>
-      {loading ? (<div className='fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]'>
-          <Spin size='large' />
+      {loading ? (
+        <div className={'fixed inset-0 flex items-center justify-center bg-white/60 z-[9999]'}>
+          <Spin size={'large'} />
         </div>
       ) : null}
 
-      <AuthTitle text='Forgot Password' />
-      <AuthForm name='forgotPassword' onFinish={onFinish}>
-        <FormField label='Email Address' name='email' type='email' />
-        <Button className="auth-button" disabled={loading} htmlType="submit" loading={loading}>
+      <AuthTitle text={'Forgot Password'} />
+      <AuthForm name={'forgotPassword'} onFinish={onFinish}>
+        <FormField label={'Email Address'} name={'email'} type={'email'} />
+        <Button className={'auth-button'} disabled={loading} htmlType={'submit'} loading={loading}>
           {loading ? 'Sending...' : 'Forgot Password'}
         </Button>
       </AuthForm>
 
-      <p className='auth-da'>
+      <p className={'auth-da'}>
         No, I remember my password{' '}
-        <Link className="auth-text" href="/auth/login">
+        <Link className={'auth-text'} href={'/auth/login'}>
           Login
         </Link>
       </p>
