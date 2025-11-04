@@ -74,6 +74,7 @@ export async function GET(req: NextRequest) {
       },
       { status: 200 }
     );
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   } catch (err) {
     return NextResponse.json({ error: 'Failed to fetch orders' }, { status: 500 });
   }

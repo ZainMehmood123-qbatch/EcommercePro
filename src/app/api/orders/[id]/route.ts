@@ -70,6 +70,7 @@ export async function GET(req: Request, context: { params: { id: string } }) {
     };
 
     return NextResponse.json(formattedOrder);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   } catch (error) {
     return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }

@@ -30,6 +30,7 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({ message: 'Password reset email sent!' });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   } catch (err) {
     return NextResponse.json({ err: 'Something went wrong' }, { status: 500 });
   }

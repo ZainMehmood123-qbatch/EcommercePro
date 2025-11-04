@@ -68,6 +68,7 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, message: 'Password updated successfully' });
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
   } catch (error) {
     return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
   }
