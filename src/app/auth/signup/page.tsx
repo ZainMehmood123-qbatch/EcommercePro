@@ -43,6 +43,7 @@ const SignupPage = () => {
 
     const { confirmPassword, ...payload } = formattedValues;
 
+    // eslint-disable-next-line no-console
     console.log(confirmPassword);
 
     try {
@@ -69,6 +70,7 @@ const SignupPage = () => {
       toast.success(data.message || 'Your account has been created successfully!');
       router.push('/auth/login');
     } catch (err: unknown) {
+      // eslint-disable-next-line no-console
       console.error('Signup error:', err);
       toast.error('Unexpected error occurred. Please try again.');
     } finally {

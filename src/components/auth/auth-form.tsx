@@ -10,7 +10,7 @@ const AuthForm = ({
   children
 }: {
   name: string;
-  onFinish: (values: unknown) => void;
+  onFinish: (values: any) => void;
   children: React.ReactNode;
 }) => (
   <Form
