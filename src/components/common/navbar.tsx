@@ -2,13 +2,17 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+
 import { useSession, signOut } from 'next-auth/react';
 import { Button, Dropdown } from 'antd';
 import { Bell, ShoppingBag, User } from 'lucide-react';
-import { subscribeCartChange, getCartItems } from '@/lib/cart';
+
 import { toast } from 'react-hot-toast';
+
+import { subscribeCartChange, getCartItems } from '@/lib/cart';
 
 const Navbar = ({ title = 'E-commerce' }) => {
   const { data: session, status } = useSession();
@@ -17,15 +21,17 @@ const Navbar = ({ title = 'E-commerce' }) => {
   const [cartCount, setCartCount] = useState(0);
 
   const userId = session?.user?.id;
-console.log('status:', status, session?.user?.id);
+
   useEffect(() => {
     if (!userId) {
       setCartCount(0);
+
       return;
     }
 
     const updateCount = () => {
       const items = getCartItems(userId);
+
       setCartCount(items.length);
     };
 
@@ -48,65 +54,71 @@ console.log('status:', status, session?.user?.id);
     {
       key: 'orders',
       label: (
-        <Link href='/user/orders'>
-          <span className='text-[#007BFF]'>Orders</span>
+        <Link href={'/user/orders'}>
+          <span className={'text-[#007BFF]'}>Orders</span>
         </Link>
       )
     },
     {
       key: 'logout',
       label: (
-      <button
-        onClick={async () => {
-          await signOut({ redirect: false });
-          toast.success('Successfully logged out!', { duration: 3000 });
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 1500);
-        }}
-        className="w-full text-left text-red-500 bg-transparent border-none px-2 py-1 hover:bg-gray-50"
-      >
-        Logout
-      </button>
+        // eslint-disable-next-line react/button-has-type
+        <button
+          className={
+            'w-full text-left text-red-500 bg-transparent border-none px-2 py-1 hover:bg-gray-50'
+          }
+          onClick={async () => {
+            await signOut({ redirect: false });
+            toast.success('Successfully logged out!', { duration: 3000 });
+            setTimeout(() => {
+              window.location.href = '/';
+            }, 1500);
+          }}
+        >
+          Logout
+        </button>
       )
     }
   ];
 
   return (
-    <nav className='bg-white pt-3 px-4 py-4 lg:pt-3 lg:px-6 xl:pt-3 xl:px-9 flex items-center justify-between'>
-      <p className='font-inter font-bold text-base leading-4 text-black !m-0'>
-        {title}
-      </p>
-      <div className='flex items-center gap-5 relative'>
-        <div className='relative inline-block'>
+    <nav
+      className={
+        'bg-white pt-3 px-4 py-4 lg:pt-3 lg:px-6 xl:pt-3 xl:px-9 flex items-center justify-between'
+      }
+    >
+      <p className={'font-inter font-bold text-base leading-4 text-black !m-0'}>{title}</p>
+      <div className={'flex items-center gap-5 relative'}>
+        <div className={'relative inline-block'}>
           <ShoppingBag
+            className={'h-4 w-4 text-[#007BFF] cursor-pointer'}
             onClick={handleShoppingClick}
-            className='h-4 w-4 text-[#007BFF] cursor-pointer'
           />
-          {cartCount > 0 && (
-            <span className='absolute -top-1.5 -right-2 bg-red-500 text-white text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none'>
+          {cartCount > 0 ? (
+            <span
+              className={
+                'absolute -top-1.5 -right-2 bg-red-500 text-white text-[8px] font-bold rounded-full w-4 h-4 flex items-center justify-center leading-none'
+              }
+            >
               {cartCount}
             </span>
-          )}
+          ) : null}
         </div>
-        <Bell className='h-4 w-4 text-[#007BFF]' />
+        <Bell className={'h-4 w-4 text-[#007BFF]'} />
         {!isLoggedIn ? (
-          <Link
-            href='/auth/login'
-            className='text-[#007BFF] font-medium text-xs leading-3'
-          >
+          <Link className={'text-[#007BFF] font-medium text-xs leading-3'} href={'/auth/login'}>
             Login
           </Link>
         ) : (
           <Dropdown menu={{ items }} trigger={['click']}>
             <Button
-              type='text'
-              className='flex items-center text-[#007BFF] font-medium text-xs !border-none !shadow-none'
+              className={
+                'flex items-center text-[#007BFF] font-medium text-xs !border-none !shadow-none'
+              }
+              type={'text'}
             >
-              <User className='h-4 w-4 mr-1 text-[#007BFF]' />
-              <span className='text-[#007BFF]'>
-                {session?.user?.name || 'Account'}
-              </span>
+              <User className={'h-4 w-4 mr-1 text-[#007BFF]'} />
+              <span className={'text-[#007BFF]'}>{session?.user?.name || 'Account'}</span>
             </Button>
           </Dropdown>
         )}
