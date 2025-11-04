@@ -45,8 +45,12 @@ const Sidebar = () => {
         </nav>
       </div>
 
-      {/* Logout button */}
-      <Button onClick={() => signOut({ callbackUrl: '/auth/login' })}>
+      <Button
+        className={
+          '!text-red-500 !border !border-red-500 !rounded-lg !px-4 !mx-1 !py-5 !mb-1 !font-semibold !bg-red-100 transition-all !flex !items-center !gap-2 hover:!bg-red-50 hover:!text-red-600 '
+        }
+        onClick={() => signOut({ callbackUrl: '/auth/login' })}
+      >
         <LogoutOutlined />
         Logout
       </Button>
