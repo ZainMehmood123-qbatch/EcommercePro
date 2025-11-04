@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/named
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
 import { FetchedOrder, OrderDetailType, FetchedOrderProduct } from '@/types/order';
@@ -5,7 +6,7 @@ import { FetchedOrder, OrderDetailType, FetchedOrderProduct } from '@/types/orde
 // Fetch all orders
 export const fetchOrders = createAsyncThunk<
   { orders: FetchedOrder[]; totalCount: number; page: number },
-  { page: number; limit: number; search?: string },  
+  { page: number; limit: number; search?: string },
   { rejectValue: string }
 >('orders/fetchOrders', async ({ page, limit, search }, { rejectWithValue }) => {
   try {
@@ -15,15 +16,12 @@ export const fetchOrders = createAsyncThunk<
     });
 
     if (search) {
-      query.append('search', search); 
+      query.append('search', search);
     }
 
-    const res = await fetch(
-      `http://localhost:3000/api/orders?${query.toString()}`,
-      { credentials: 'include' }
-    );
-
-    console.log('response is =', res);
+    const res = await fetch(`http://localhost:3000/api/orders?${query.toString()}`, {
+      credentials: 'include'
+    });
 
     if (!res.ok) {
       throw new Error('Failed to fetch orders');
@@ -34,54 +32,54 @@ export const fetchOrders = createAsyncThunk<
     if (err instanceof Error) {
       return rejectWithValue(err.message);
     }
+
     return rejectWithValue('Something went wrong');
   }
 });
-
 
 // Fetch single order details
-export const fetchOrderDetails = createAsyncThunk<
-  OrderDetailType,
-  string,
-  { rejectValue: string }
->('orders/fetchOrderDetails', async (id, { rejectWithValue }) => {
-  try {
-    const res = await fetch(`http://localhost:3000/api/orders/${id}`, {
-      credentials: 'include'
-    });
+export const fetchOrderDetails = createAsyncThunk<OrderDetailType, string, { rejectValue: string }>(
+  'orders/fetchOrderDetails',
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`http://localhost:3000/api/orders/${id}`, {
+        credentials: 'include'
+      });
 
-    if (!res.ok) {
-      throw new Error('Failed to fetch order details');
+      if (!res.ok) {
+        throw new Error('Failed to fetch order details');
+      }
+
+      const data = await res.json();
+
+      const mappedOrder: OrderDetailType = {
+        id: data.id,
+        date: new Date(data.createdAt).toLocaleDateString(),
+        orderNo: `ORD-${data.id.substring(0, 8)}`,
+        user: data.user.fullname,
+        total: data.total,
+        items: data.items.map((item: FetchedOrderProduct, index: number) => ({
+          key: index,
+          title: item.product?.title ?? 'Untitled',
+          price: item.price ?? 0,
+          qty: item.qty ?? 0,
+          image: item.image ?? '/fallback.png',
+          colorName: item.colorName ?? '-',
+          colorCode: item.colorCode ?? '',
+          size: item.size ?? '-'
+        }))
+      };
+
+      return mappedOrder;
+    } catch (err) {
+      if (err instanceof Error) {
+        return rejectWithValue(err.message);
+      }
+
+      return rejectWithValue('Something went wrong');
     }
-
-    const data = await res.json();
-
-    const mappedOrder: OrderDetailType = {
-      id: data.id,
-      date: new Date(data.createdAt).toLocaleDateString(),
-      orderNo: `ORD-${data.id.substring(0, 8)}`,
-      user: data.user.fullname,
-      total: data.total,
-      items: data.items.map((item: FetchedOrderProduct, index: number) => ({
-        key: index,
-        title: item.product?.title ?? 'Untitled',
-        price: item.price ?? 0,
-        qty: item.qty ?? 0,
-        image: item.image ?? '/fallback.png', 
-        colorName: item.colorName ?? '-',
-        colorCode: item.colorCode ?? '',
-        size: item.size ?? '-'
-      }))
-    };
-
-    return mappedOrder;
-  } catch (err) {
-    if (err instanceof Error) {
-      return rejectWithValue(err.message);
-    }
-    return rejectWithValue('Something went wrong');
   }
-});
+);
 
 interface OrdersState {
   data: FetchedOrder[];
@@ -120,6 +118,7 @@ const ordersSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
       // orders list
       .addCase(fetchOrders.pending, (state) => {
         state.loading = true;
