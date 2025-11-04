@@ -2,16 +2,11 @@
 
 import React from 'react';
 import './auth.css';
-export default function AuthLayout({
-  children
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className='auth-layoutwhole'>
-      <div className='auth-layout'>
-        {children}
-      </div>
-    </div>
-  );
-}
+
+const AuthLayout = ({ children }: { children: React.ReactNode }) => (
+  <div className={'auth-layoutwhole'}>
+    <div className={'auth-layout'}>{children}</div>
+  </div>
+);
+
+export default AuthLayout;
