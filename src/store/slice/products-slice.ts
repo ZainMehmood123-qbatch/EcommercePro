@@ -1,6 +1,14 @@
+// eslint-disable-next-line import/named
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import type { ProductType, ProductResponse, ProductVariant, CreateProductInput } from '@/types/product';
+
 import toast from 'react-hot-toast';
+
+import type {
+  ProductType,
+  ProductResponse,
+  ProductVariant,
+  CreateProductInput
+} from '@/types/product';
 
 interface ProductsState {
   products: ProductType[];
@@ -35,67 +43,71 @@ interface FetchProductsArgs {
 }
 
 // Fetch Products
-export const fetchProducts = createAsyncThunk<ProductResponse, FetchProductsArgs, { rejectValue: string }>(
-  'products/fetchProducts',
-  async ({ page, search, sort }, { rejectWithValue }) => {
-    try {
-      const res = await fetch(`/api/products?page=${page}&limit=8&search=${encodeURIComponent(search)}&sort=${sort}`);
-      if (!res.ok) throw new Error('Failed to fetch products');
-      return await res.json();
-    } catch (err) {
-      return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
-    }
+export const fetchProducts = createAsyncThunk<
+  ProductResponse,
+  FetchProductsArgs,
+  { rejectValue: string }
+>('products/fetchProducts', async ({ page, search, sort }, { rejectWithValue }) => {
+  try {
+    const res = await fetch(
+      `/api/products?page=${page}&limit=8&search=${encodeURIComponent(search)}&sort=${sort}`
+    );
+
+    if (!res.ok) throw new Error('Failed to fetch products');
+
+    return await res.json();
+  } catch (err) {
+    return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
   }
-);
+});
 
 // create Product
 export const createProduct = createAsyncThunk<
-  ProductType,           
-  CreateProductInput,      
+  ProductType,
+  CreateProductInput,
   { rejectValue: string }
->(
-  'products/createProduct',
-  async ({ title, variants }, { rejectWithValue }) => {
-    try {
-      const body: CreateProductInput = { title };
-      if (variants?.length) body.variants = variants;
+>('products/createProduct', async ({ title, variants }, { rejectWithValue }) => {
+  try {
+    const body: CreateProductInput = { title };
 
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
+    if (variants?.length) body.variants = variants;
 
-      if (!res.ok) throw new Error('Failed to create product');
+    const res = await fetch('/api/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
 
-      const data = (await res.json()) as { success: boolean; data: ProductType };
-      return data.data;
-    } catch (err) {
-      return rejectWithValue(
-        err instanceof Error ? err.message : 'Something went wrong'
-      );
-    }
+    if (!res.ok) throw new Error('Failed to create product');
+
+    const data = (await res.json()) as { success: boolean; data: ProductType };
+
+    return data.data;
+  } catch (err) {
+    return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
   }
-);
-
+});
 
 // Update Product
-export const updateProduct = createAsyncThunk<ProductType, { id: string; title: string }, { rejectValue: string }>(
-  'products/updateProduct',
-  async ({ id, title }, { rejectWithValue }) => {
-    try {
-      const res = await fetch(`/api/products/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title })
-      });
-      if (!res.ok) throw new Error('Failed to update product');
-      return await res.json();
-    } catch (err) {
-      return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
-    }
+export const updateProduct = createAsyncThunk<
+  ProductType,
+  { id: string; title: string },
+  { rejectValue: string }
+>('products/updateProduct', async ({ id, title }, { rejectWithValue }) => {
+  try {
+    const res = await fetch(`/api/products/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title })
+    });
+
+    if (!res.ok) throw new Error('Failed to update product');
+
+    return await res.json();
+  } catch (err) {
+    return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
   }
-);
+});
 
 export const deleteProduct = createAsyncThunk<string, string, { rejectValue: string }>(
   'products/deleteProduct',
@@ -118,57 +130,65 @@ export const deleteProduct = createAsyncThunk<string, string, { rejectValue: str
   }
 );
 
-
 // Create Variant
-export const createVariant = createAsyncThunk<ProductVariant, { productId: string; variant: ProductVariant }, { rejectValue: string }>(
-  'products/createVariant',
-  async ({ productId, variant }, { rejectWithValue }) => {
-    try {
-      const res = await fetch('/api/variants', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...variant, productId })
-      });
-      if (!res.ok) throw new Error('Failed to create variant');
-      return await res.json();
-    } catch (err) {
-      return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
-    }
+export const createVariant = createAsyncThunk<
+  ProductVariant,
+  { productId: string; variant: ProductVariant },
+  { rejectValue: string }
+>('products/createVariant', async ({ productId, variant }, { rejectWithValue }) => {
+  try {
+    const res = await fetch('/api/variants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...variant, productId })
+    });
+
+    if (!res.ok) throw new Error('Failed to create variant');
+
+    return await res.json();
+  } catch (err) {
+    return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
   }
-);
+});
 
 // Update Variant
-export const updateVariant = createAsyncThunk<ProductVariant, ProductVariant, { rejectValue: string }>(
-  'products/updateVariant',
-  async (variant, { rejectWithValue }) => {
-    try {
-      if (!variant.id) throw new Error('Variant ID missing');
-      const res = await fetch(`/api/variants/${variant.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(variant)
-      });
-      if (!res.ok) throw new Error('Failed to update variant');
-      return await res.json();
-    } catch (err) {
-      return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
-    }
+export const updateVariant = createAsyncThunk<
+  ProductVariant,
+  ProductVariant,
+  { rejectValue: string }
+>('products/updateVariant', async (variant, { rejectWithValue }) => {
+  try {
+    if (!variant.id) throw new Error('Variant ID missing');
+    const res = await fetch(`/api/variants/${variant.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(variant)
+    });
+
+    if (!res.ok) throw new Error('Failed to update variant');
+
+    return await res.json();
+  } catch (err) {
+    return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
   }
-);
+});
 
 // Delete Variant
-export const deleteVariant = createAsyncThunk<{ productId: string; variantId: string }, { productId: string; variantId: string }, { rejectValue: string }>(
-  'products/deleteVariant',
-  async ({ productId, variantId }, { rejectWithValue }) => {
-    try {
-      const res = await fetch(`/api/variants/${variantId}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete variant');
-      return { productId, variantId };
-    } catch (err) {
-      return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
-    }
+export const deleteVariant = createAsyncThunk<
+  { productId: string; variantId: string },
+  { productId: string; variantId: string },
+  { rejectValue: string }
+>('products/deleteVariant', async ({ productId, variantId }, { rejectWithValue }) => {
+  try {
+    const res = await fetch(`/api/variants/${variantId}`, { method: 'DELETE' });
+
+    if (!res.ok) throw new Error('Failed to delete variant');
+
+    return { productId, variantId };
+  } catch (err) {
+    return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
   }
-);
+});
 
 const productsSlice = createSlice({
   name: 'products',
@@ -190,13 +210,13 @@ const productsSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-
     builder.addCase(fetchProducts.pending, (state) => {
       if (state.page === 1) state.loading = true;
       else state.loadingMore = true;
     });
     builder.addCase(fetchProducts.fulfilled, (state, action) => {
       const { data, total } = action.payload;
+
       if (state.page === 1) state.products = data;
       else state.products.push(...data);
       state.total = total;
@@ -214,38 +234,42 @@ const productsSlice = createSlice({
       state.products.push(action.payload);
     });
     builder.addCase(updateProduct.fulfilled, (state, action) => {
-      const index = state.products.findIndex(p => p.id === action.payload.id);
+      const index = state.products.findIndex((p) => p.id === action.payload.id);
+
       if (index !== -1) state.products[index] = action.payload;
     });
     builder
-  .addCase(deleteProduct.fulfilled, (state, action) => {
-    // Remove deleted product from the list
-    state.products = state.products.filter((p) => p.id !== action.payload);
-    state.total = Math.max(state.total - 1, 0);
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        // Remove deleted product from the list
+        state.products = state.products.filter((p) => p.id !== action.payload);
+        state.total = Math.max(state.total - 1, 0);
         toast.success('Product deleted successfully');
-  })
-  .addCase(deleteProduct.rejected, (state, action) => {
-    toast.error(action.payload || 'Failed to delete product');
-  });
-
+      })
+      .addCase(deleteProduct.rejected, (state, action) => {
+        toast.error(action.payload || 'Failed to delete product');
+      });
 
     builder.addCase(createVariant.fulfilled, (state, action) => {
-      const product = state.products.find(p => p.id === action.payload.productId);
+      const product = state.products.find((p) => p.id === action.payload.productId);
+
       if (product) product.variants.push(action.payload);
     });
     builder.addCase(updateVariant.fulfilled, (state, action) => {
-      const product = state.products.find(p =>
-        p.variants.some(v => v.id === action.payload.id)
+      const product = state.products.find((p) =>
+        p.variants.some((v) => v.id === action.payload.id)
       );
+
       if (product) {
-        const idx = product.variants.findIndex(v => v.id === action.payload.id);
+        const idx = product.variants.findIndex((v) => v.id === action.payload.id);
+
         if (idx !== -1) product.variants[idx] = action.payload;
       }
     });
     builder.addCase(deleteVariant.fulfilled, (state, action) => {
-      const product = state.products.find(p => p.id === action.payload.productId);
+      const product = state.products.find((p) => p.id === action.payload.productId);
+
       if (product) {
-        product.variants = product.variants.filter(v => v.id !== action.payload.variantId);
+        product.variants = product.variants.filter((v) => v.id !== action.payload.variantId);
       }
     });
   }
