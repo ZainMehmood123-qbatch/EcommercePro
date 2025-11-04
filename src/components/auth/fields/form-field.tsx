@@ -2,7 +2,6 @@
 
 import { Form, Input } from 'antd';
 import type { Rule, RuleObject } from 'antd/es/form';
-
 import type { StoreValue } from 'rc-field-form/lib/interface';
 
 interface FormFieldProps {
@@ -13,13 +12,7 @@ interface FormFieldProps {
   placeholder?: string;
 }
 
-export default function FormField({
-  label,
-  name,
-  type = 'text',
-  dependency,
-  placeholder
-}: FormFieldProps) {
+const FormField = ({ label, name, type = 'text', dependency, placeholder }: FormFieldProps) => {
   const rules: Rule[] = [{ required: true, message: `Please enter your ${label.toLowerCase()}` }];
 
   switch (type) {
@@ -48,6 +41,7 @@ export default function FormField({
             if (!value || getFieldValue(dependency) === value) {
               return Promise.resolve();
             }
+
             return Promise.reject(new Error('Passwords do not match!'));
           }
         }));
@@ -70,33 +64,22 @@ export default function FormField({
   }
 
   return (
-    // <Form.Item
-    //   label={label}
-    //   name={name}
-    //   rules={rules}
-    //   dependencies={dependency ? [dependency] : []}
-    // >
-    //   {type.includes('password') ? (
-    //     <Input.Password placeholder={label} />
-    //   ) : (
-    //     <Input type={type === 'text' ? undefined : type} placeholder={label} />
-    //   )}
-    // </Form.Item>
-
     <Form.Item
+      dependencies={dependency ? [dependency] : []}
       label={label}
       name={name}
       rules={rules}
-      dependencies={dependency ? [dependency] : []}
     >
       {type.includes('password') ? (
         <Input.Password placeholder={placeholder || `Enter your ${label.toLowerCase()}`} />
       ) : (
         <Input
-          type={type === 'text' ? undefined : type}
           placeholder={placeholder || `Enter your ${label.toLowerCase()}`}
+          type={type === 'text' ? undefined : type}
         />
       )}
     </Form.Item>
   );
-}
+};
+
+export default FormField;
