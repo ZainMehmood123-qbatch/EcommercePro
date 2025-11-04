@@ -1,5 +1,6 @@
 // lib/cart.ts
 import toast from 'react-hot-toast';
+
 import { CartItem } from '@/types/cart';
 
 type Listener = () => void;
@@ -13,8 +14,10 @@ function getCartKey(userId: string) {
 // ---- Subscription system ----
 export function subscribeCartChange(listener: Listener) {
   listeners.push(listener);
+
   return () => {
     const index = listeners.indexOf(listener);
+
     if (index > -1) listeners.splice(index, 1);
   };
 }
@@ -27,11 +30,12 @@ function notifyCartChange() {
 export function getCartItems(userId: string): CartItem[] {
   if (typeof window === 'undefined') return [];
   const data = localStorage.getItem(getCartKey(userId));
+
   return data ? (JSON.parse(data) as CartItem[]) : [];
 }
 
 // ---- Add item ----
-export function addToCart(userId: string, item: CartItem,stock:number) {
+export function addToCart(userId: string, item: CartItem, stock: number) {
   const items = getCartItems(userId);
 
   const existingIndex = items.findIndex(
@@ -49,6 +53,7 @@ export function addToCart(userId: string, item: CartItem,stock:number) {
       toast.success('Quantity updated in cart!');
     } else {
       toast.error(`Only ${stock} items available in stock!`);
+
       return;
     }
   } else {
@@ -57,6 +62,7 @@ export function addToCart(userId: string, item: CartItem,stock:number) {
       toast.success('Item added to cart!');
     } else {
       toast.error(`Only ${item.stock} items available in stock!`);
+
       return;
     }
   }
@@ -80,7 +86,7 @@ export function clearCart(userId: string) {
 // ---- Remove single item ----
 export function removeFromCart(userId: string, itemId: string) {
   const items = getCartItems(userId).filter((i) => i.id !== itemId);
+
   localStorage.setItem(getCartKey(userId), JSON.stringify(items));
   notifyCartChange();
 }
-
