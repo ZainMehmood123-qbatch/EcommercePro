@@ -179,7 +179,7 @@ const ordersSlice = createSlice({
         state.error = action.payload || 'Failed to fetch orders';
       })
       .addCase(markOrderCompleted.fulfilled, (state, action) => {
-        const updatedOrder = action.payload;
+        const updatedOrder = action.payload.data;
 
         // find and update that order in state.data
         const index = state.data.findIndex((o) => o.id === updatedOrder.id);
