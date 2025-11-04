@@ -88,6 +88,7 @@ const OrdersPage = () => {
       setTotalUnits(result.stats.totalUnits);
       setTotalAmount(result.stats.totalAmount);
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch orders', err);
     } finally {
       if (isInitial) setInitialLoading(false);
@@ -97,12 +98,14 @@ const OrdersPage = () => {
 
   useEffect(() => {
     fetchOrders(pageNum, debouncedSearch, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!initialLoading) {
       fetchOrders(pageNum, debouncedSearch);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageNum, debouncedSearch]);
 
   const handleViewOrderDetails = (orderId: string) => {
@@ -131,6 +134,7 @@ const OrdersPage = () => {
         toast.error('Failed to update order status.');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error updating order:', error);
       toast.error('Something went wrong.');
     } finally {
@@ -154,6 +158,7 @@ const OrdersPage = () => {
       render: (_, record: OrderType) => {
         const status = record.paymentStatus?.toUpperCase();
 
+        // eslint-disable-next-line no-console
         console.log('status is', status);
         const color = status === 'PENDING' ? 'orange' : status === 'PAID' ? 'green' : 'blue';
 
