@@ -1,15 +1,19 @@
 import { prisma } from '@/lib/prisma';
+
 import { stripe } from './stripe';
 
 export async function getOrCreateStripeCustomer(userId: string, email: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
+
   if (!user) throw new Error('User not found');
 
   if (user.stripeCustomerId) {
     try {
       await stripe.customers.retrieve(user.stripeCustomerId);
+
       return user.stripeCustomerId;
     } catch {
+      // eslint-disable-next-line no-console
       console.warn('Stripe customer not found in Stripe, creating new one...');
     }
   }
