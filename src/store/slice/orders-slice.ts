@@ -5,7 +5,12 @@ import { FetchedOrder, OrderDetailType, FetchedOrderProduct } from '@/types/orde
 
 // Fetch all orders
 export const fetchOrders = createAsyncThunk<
-  { orders: FetchedOrder[]; totalCount: number; page: number },
+  {
+    stats: FetchedOrder;
+    orders: FetchedOrder[];
+    totalCount: number;
+    page: number;
+  },
   { page: number; limit: number; search?: string },
   { rejectValue: string }
 >('orders/fetchOrders', async ({ page, limit, search }, { rejectWithValue }) => {
@@ -81,12 +86,43 @@ export const fetchOrderDetails = createAsyncThunk<OrderDetailType, string, { rej
   }
 );
 
+// PATCH: mark order as completed
+export const markOrderCompleted = createAsyncThunk(
+  'orders/markCompleted',
+  async (orderId: string, { rejectWithValue }) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, paymentStatus: 'COMPLETED' })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+
+        return rejectWithValue(errorData);
+      }
+
+      const updated = await res.json();
+
+      return updated;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 interface OrdersState {
   data: FetchedOrder[];
   totalCount: number;
   loading: boolean;
   error: string | null;
   currentPage: number;
+  stats: {
+    totalOrders: number;
+    totalUnits: number;
+    totalAmount: number;
+  };
   orderDetails: OrderDetailType | null;
   orderLoading: boolean;
   orderError: string | null;
@@ -98,6 +134,11 @@ const initialState: OrdersState = {
   loading: false,
   error: null,
   currentPage: 1,
+  stats: {
+    totalOrders: 0,
+    totalUnits: 0,
+    totalAmount: 0
+  },
   orderDetails: null,
   orderLoading: false,
   orderError: null
@@ -129,10 +170,23 @@ const ordersSlice = createSlice({
         state.data = action.payload.orders;
         state.totalCount = action.payload.totalCount;
         state.currentPage = action.payload.page;
+        if (action.payload.stats) {
+          state.stats = action.payload.stats;
+        }
       })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Failed to fetch orders';
+      })
+      .addCase(markOrderCompleted.fulfilled, (state, action) => {
+        const updatedOrder = action.payload;
+
+        // find and update that order in state.data
+        const index = state.data.findIndex((o) => o.id === updatedOrder.id);
+
+        if (index !== -1) {
+          state.data[index] = { ...state.data[index], ...updatedOrder };
+        }
       })
 
       // single order details

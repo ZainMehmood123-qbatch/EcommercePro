@@ -10,103 +10,52 @@ import {
 } from '@ant-design/icons';
 import { Button, Card, Spin, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-
 import toast from 'react-hot-toast';
+
+import { useDispatch, useSelector } from 'react-redux';
 
 import SearchComponent from '@/components/dashboard/search-bar';
 import OrderDetailsSidebar from '@/components/OrderDetailsSidebar';
+import { FetchedOrder } from '@/types/order';
 
-import { FetchedOrder, FetchedOrderItem, OrderType } from '@/types/order';
+import { RootState, AppDispatch } from '@/store';
+import { fetchOrders, setPage, markOrderCompleted } from '@/store/slice/orders-slice';
 
 import './orderss.css';
 
-interface ApiResponse {
-  orders: (FetchedOrder & { items: FetchedOrderItem[] })[];
-  totalCount: number;
-  page: number;
-  limit: number;
-  stats: {
-    totalOrders: number;
-    totalUnits: number;
-    totalAmount: number;
-  };
-}
-
 const OrdersPage = () => {
-  const [orders, setOrders] = useState<OrderType[]>([]);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [totalUnits, setTotalUnits] = useState(0);
-  const [totalAmount, setTotalAmount] = useState(0);
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    data: orders,
+    totalCount,
+    currentPage,
+    stats,
+    loading
+  } = useSelector((state: RootState) => state.orders);
 
-  const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-
-  const [pageNum, setPageNum] = useState(1);
-  const [limit] = useState(10);
-  const [total, setTotal] = useState(0);
-
-  const [localSearch, setLocalSearch] = useState<string>('');
-  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [localSearch, setLocalSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(localSearch);
-      setPageNum(1);
-    }, 500);
+    const handler = setTimeout(() => setDebouncedSearch(localSearch), 500);
 
     return () => clearTimeout(handler);
   }, [localSearch]);
 
-  const fetchOrders = async (page: number, search: string, isInitial = false) => {
-    if (isInitial) setInitialLoading(true);
-    else setLoading(true);
-
-    try {
-      const res = await fetch(
-        `/api/orders?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`
-      );
-      const result: ApiResponse = await res.json();
-
-      const mappedOrders: OrderType[] = result.orders.map((o) => ({
-        key: o.id,
-        id: o.id,
-        orderNo: `ORD-${o.id.slice(0, 8)}`,
-        date: new Date(o.createdAt).toLocaleDateString(),
-        user: o.userId ? `USR-${o.userId.slice(0, 8)}` : 'Me',
-        products: o.items?.length || 0,
-        amount: o.items?.reduce((sum, i) => sum + i.price * i.qty, 0) || 0,
-        paymentStatus: o.paymentStatus || 'PENDING'
-      }));
-
-      setOrders(mappedOrders);
-      setTotal(result.totalCount);
-      setTotalOrders(result.stats.totalOrders);
-      setTotalUnits(result.stats.totalUnits);
-      setTotalAmount(result.stats.totalAmount);
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch orders', err);
-    } finally {
-      if (isInitial) setInitialLoading(false);
-      else setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchOrders(pageNum, debouncedSearch, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const load = async () => {
+      setInitialLoading(true);
+      await dispatch(fetchOrders({ page: currentPage, limit: 10, search: debouncedSearch }));
+      setInitialLoading(false);
+    };
 
-  useEffect(() => {
-    if (!initialLoading) {
-      fetchOrders(pageNum, debouncedSearch);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageNum, debouncedSearch]);
+    load();
+  }, [dispatch, currentPage, debouncedSearch]);
 
   const handleViewOrderDetails = (orderId: string) => {
     setSelectedOrderId(orderId);
@@ -121,15 +70,10 @@ const OrdersPage = () => {
   const handleMarkCompleted = async (orderId: string) => {
     setUpdatingOrderId(orderId);
     try {
-      const res = await fetch('/api/orders', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId, paymentStatus: 'COMPLETED' })
-      });
+      const res = await dispatch(markOrderCompleted(orderId));
 
-      if (res.ok) {
-        toast.success('Order marked as completed successfully!');
-        await fetchOrders(pageNum, debouncedSearch);
+      if (markOrderCompleted.fulfilled.match(res)) {
+        toast.success('Order marked as completed!');
       } else {
         toast.error('Failed to update order status.');
       }
@@ -142,60 +86,47 @@ const OrdersPage = () => {
     }
   };
 
-  const columns: ColumnsType<OrderType> = [
-    { title: 'Date', dataIndex: 'date' },
-    { title: 'Order #', dataIndex: 'orderNo' },
-    { title: 'User', dataIndex: 'user' },
-    { title: 'Product(s)', dataIndex: 'products' },
+  const columns: ColumnsType<FetchedOrder> = [
+    { title: 'Date', dataIndex: 'createdAt', render: (v) => new Date(v).toLocaleDateString() },
+    { title: 'Order #', render: (_, r) => `ORD-${r.id.slice(0, 8)}` },
+    { title: 'User', render: (_, r) => (r.userId ? `USR-${r.userId.slice(0, 8)}` : 'Me') },
+    { title: 'Product(s)', render: (_, r) => r.items?.length || 0 },
     {
       title: 'Amount',
-      dataIndex: 'amount',
-      render: (a: number) => `$${a.toFixed(2)}`
+      render: (_, r) =>
+        `$${(r.items?.reduce((sum, i) => sum + i.price * i.qty, 0) ?? 0).toFixed(2)}`
     },
     {
       title: 'Status',
-      dataIndex: 'status',
-      render: (_, record: OrderType) => {
-        const status = record.paymentStatus?.toUpperCase();
-
-        // eslint-disable-next-line no-console
-        console.log('status is', status);
+      render: (_, r) => {
+        const status = r.paymentStatus?.toUpperCase();
         const color = status === 'PENDING' ? 'orange' : status === 'PAID' ? 'green' : 'blue';
 
         return (
-          <span
-            style={{
-              color,
-              fontWeight: 600,
-              textTransform: 'capitalize'
-            }}
-          >
-            {status}
-          </span>
+          <span style={{ color, fontWeight: 600, textTransform: 'capitalize' }}>{status}</span>
         );
       }
     },
     {
       title: 'Actions',
-      dataIndex: 'actions',
-      render: (_: unknown, record: OrderType) => (
+      render: (_, r) => (
         <div className={'flex gap-2'}>
           <Button
             className={'hover:bg-blue-50 hover:text-blue-600 transition-all'}
             icon={<ExportOutlined />}
             type={'text'}
-            onClick={() => handleViewOrderDetails(record.id)}
+            onClick={() => handleViewOrderDetails(r.id)}
           />
-          {record.paymentStatus === 'PAID' ? (
+          {r.paymentStatus === 'PAID' ? (
             <Button
               className={
-                '!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600 transition-all duration-200'
+                '!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600'
               }
-              loading={updatingOrderId === record.id}
+              loading={updatingOrderId === r.id}
               type={'primary'}
-              onClick={() => handleMarkCompleted(record.id)}
+              onClick={() => handleMarkCompleted(r.id)}
             >
-              {updatingOrderId === record.id ? 'Updating...' : <>Mark Completed</>}
+              {updatingOrderId === r.id ? 'Updating...' : 'Mark Completed'}
             </Button>
           ) : null}
         </div>
@@ -224,7 +155,7 @@ const OrdersPage = () => {
           <div className={'ado-cards'}>
             <div>
               <p className={'ado-cardtitles'}>Total Orders:</p>
-              <h2 className={'ado-cardcontent'}>{totalOrders}</h2>
+              <h2 className={'ado-cardcontent'}>{stats.totalOrders}</h2>
             </div>
             <div className={'ado-cardicons'}>
               <ShoppingCartOutlined />
@@ -235,7 +166,7 @@ const OrdersPage = () => {
           <div className={'ado-cards'}>
             <div>
               <p className={'ado-cardtitles'}>Total Units:</p>
-              <h2 className={'ado-cardcontent'}>{totalUnits}</h2>
+              <h2 className={'ado-cardcontent'}>{stats.totalUnits}</h2>
             </div>
             <div className={'ado-cardicons'}>
               <AppstoreOutlined />
@@ -246,7 +177,7 @@ const OrdersPage = () => {
           <div className={'ado-cards'}>
             <div>
               <p className={'ado-cardtitles'}>Total Amount:</p>
-              <h2 className={'ado-cardcontent'}>${totalAmount.toLocaleString()}</h2>
+              <h2 className={'ado-cardcontent'}>${stats.totalAmount.toLocaleString()}</h2>
             </div>
             <div className={'ado-cardicons'}>
               <DollarOutlined />
@@ -263,15 +194,16 @@ const OrdersPage = () => {
           setSearchTerm={setLocalSearch}
         />
       </div>
+
       <Table
         className={'ado-wholetable'}
         columns={columns}
         dataSource={orders}
         pagination={{
-          current: pageNum,
-          pageSize: limit,
-          total: total,
-          onChange: (page) => setPageNum(page)
+          current: currentPage,
+          pageSize: 10,
+          total: totalCount,
+          onChange: (page) => dispatch(setPage(page))
         }}
         rowKey={'id'}
       />

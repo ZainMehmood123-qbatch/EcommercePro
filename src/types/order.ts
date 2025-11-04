@@ -10,6 +10,9 @@ export interface FetchedOrder {
   items?: FetchedOrderProduct[];
   total?: number;
   paymentStatus?: string;
+  totalOrders: number;
+  totalUnits: number;
+  totalAmount: number;
 }
 
 export interface FetchedOrderItem {
