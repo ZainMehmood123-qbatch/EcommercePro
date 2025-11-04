@@ -20,43 +20,41 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
 }) => {
   return (
     <Modal
-      open={isOpen}
-      onCancel={onClose}
-      footer={null}
       centered
-      width={400}
-      className='delete-confirmation-modal'
+      className={'delete-confirmation-modal'}
+      footer={null}
+      open={isOpen}
       title={null}
+      width={400}
+      onCancel={onClose}
     >
-      <div className='flex flex-col items-center text-center p-6'>
-        <h2 className='text-2xl font-semibold text-[#007BFF] mb-6'>
-          Remove Product
-        </h2>
-        <div className='mb-6'>
-          <ExclamationTriangleIcon className='w-16 h-16 text-yellow-500' />
+      <div className={'flex flex-col items-center text-center p-6'}>
+        <h2 className={'text-2xl font-semibold text-[#007BFF] mb-6'}>Remove Product</h2>
+        <div className={'mb-6'}>
+          <ExclamationTriangleIcon className={'w-16 h-16 text-yellow-500'} />
         </div>
-        <p className='text-lg font-medium text-gray-800 mb-8 leading-relaxed'>
+        <p className={'text-lg font-medium text-gray-800 mb-8 leading-relaxed'}>
           Are you sure you want to delete{' '}
           {productName ? (
-            <span className='font-semibold text-red-500'>{productName}</span>
+            <span className={'font-semibold text-red-500'}>{productName}</span>
           ) : (
             'this item'
           )}
           ?
         </p>
-        <div className='flex gap-4 w-full'>
+        <div className={'flex gap-4 w-full'}>
           <Button
-            size='large'
-            className='flex-1 !h-12 !border-[#007BFF] !text-[#007BFF] hover:!bg-blue-50'
+            className={'flex-1 !h-12 !border-[#007BFF] !text-[#007BFF] hover:!bg-blue-50'}
+            size={'large'}
             onClick={onClose}
           >
             No
           </Button>
           <Button
             danger
-            type='primary'
-            size='large'
-            className='flex-1 !h-12'
+            className={'flex-1 !h-12'}
+            size={'large'}
+            type={'primary'}
             onClick={onConfirm}
           >
             Yes, Delete
