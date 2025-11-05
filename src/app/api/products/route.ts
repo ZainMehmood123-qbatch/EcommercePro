@@ -10,6 +10,89 @@ import type { ProductType, ProductVariant } from '@/types/product';
 
 import { authOptions } from '../auth/[...nextauth]/route';
 
+// export async function GET(req: NextRequest) {
+//   try {
+//     const session = await getServerSession(authOptions);
+//     const role = session?.user?.role || 'USER';
+
+//     const { searchParams } = new URL(req.url);
+
+//     const page = parseInt(searchParams.get('page') ?? '1', 10);
+//     const limit = parseInt(searchParams.get('limit') ?? '8', 10);
+//     const skip = (page - 1) * limit;
+//     const search = searchParams.get('search') ?? '';
+//     const sort = searchParams.get('sort') ?? 'newest';
+
+//     let orderBy: Prisma.ProductOrderByWithRelationInput;
+
+//     switch (sort) {
+//       case 'name_asc':
+//         orderBy = { title: 'asc' };
+//         break;
+//       case 'name_desc':
+//         orderBy = { title: 'desc' };
+//         break;
+//       case 'oldest':
+//         orderBy = { createdAt: 'asc' };
+//         break;
+//       case 'newest':
+//       default:
+//         orderBy = { createdAt: 'desc' };
+//         break;
+//     }
+
+//     const baseWhere: Prisma.ProductWhereInput = {
+//       status: ProductStatus.ACTIVE,
+//       ...(search
+//         ? {
+//             title: {
+//               contains: search,
+//               mode: 'insensitive'
+//             }
+//           }
+//         : {})
+//     };
+
+//     const where: Prisma.ProductWhereInput =
+//       role === Role.ADMIN
+//         ? baseWhere
+//         : {
+//             ...baseWhere,
+//             variants: {
+//               some: { isDeleted: false }
+//             }
+//           };
+
+//     const products = await prisma.product.findMany({
+//       where,
+//       orderBy,
+//       skip,
+//       take: limit,
+//       include: {
+//         variants: {
+//           where: { isDeleted: false }
+//         }
+//       }
+//     });
+
+//     const total = await prisma.product.count({ where });
+
+//     return NextResponse.json({ success: true, data: products, total }, { status: 200 });
+//   } catch (error) {
+//     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+//       return NextResponse.json(
+//         { success: false, message: 'Database query failed' },
+//         { status: 500 }
+//       );
+//     }
+
+//     return NextResponse.json(
+//       { success: false, message: 'Failed to fetch products' },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -58,27 +141,25 @@ export async function GET(req: NextRequest) {
         ? baseWhere
         : {
             ...baseWhere,
-            variants: {
-              some: { isDeleted: false }
-            }
+            variants: { some: { isDeleted: false } }
           };
+
+    const include =
+      role === Role.ADMIN ? { variants: true } : { variants: { where: { isDeleted: false } } };
 
     const products = await prisma.product.findMany({
       where,
       orderBy,
       skip,
       take: limit,
-      include: {
-        variants: {
-          where: { isDeleted: false }
-        }
-      }
+      include
     });
 
     const total = await prisma.product.count({ where });
 
     return NextResponse.json({ success: true, data: products, total }, { status: 200 });
   } catch (error) {
+    console.error('Fetch products error:', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       return NextResponse.json(
         { success: false, message: 'Database query failed' },

@@ -13,7 +13,8 @@ import {
   Image,
   Typography,
   Divider,
-  Space
+  Space,
+  Switch
 } from 'antd';
 import {
   PlusOutlined,
@@ -318,7 +319,6 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
                         </Upload>
                       </Form.Item>
 
-                      {/* Variant Fields */}
                       <div className={'flex-1 grid grid-cols-2 gap-3'}>
                         <Form.Item
                           {...restField}
@@ -371,45 +371,117 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
                         </Form.Item>
                       </div>
 
-                      <div className={'flex flex-col gap-2'}>
-                        {isEditing ? (
-                          <>
-                            <Button
-                              className={'text-green-600 hover:bg-green-50'}
-                              type={'text'}
-                              onClick={() => handleSaveEdit(index)}
+                      <div
+                        className={
+                          'flex flex-col gap-3 items-end rounded-lg border border-gray-200 p-3 shadow-sm hover:shadow-md transition-all bg-white'
+                        }
+                      >
+                        <div className={'flex items-center justify-between gap-3 w-full'}>
+                          <div className={'flex items-center gap-2'}>
+                            <span
+                              className={`text-sm font-medium flex items-center gap-1 px-2 py-0.5 rounded-full ${
+                                form.getFieldValue(['variants', name, 'isDeleted'])
+                                  ? 'bg-red-50 text-red-600 border border-red-200'
+                                  : 'bg-green-50 text-green-600 border border-green-200'
+                              }`}
                             >
-                              Save
-                            </Button>
-                            <Button
-                              icon={<CloseOutlined />}
-                              type={'text'}
-                              onClick={() => handleCancelEdit(index)}
-                            >
-                              Cancel
-                            </Button>
-                          </>
-                        ) : (
-                          <Button
-                            className={'!text-blue-600 hover:!bg-blue-50'}
-                            icon={<EditOutlined />}
-                            type={'text'}
-                            onClick={() => handleStartEdit(index)}
-                          >
-                            Edit
-                          </Button>
-                        )}
+                              <span
+                                className={`text-base ${
+                                  form.getFieldValue(['variants', name, 'isDeleted'])
+                                    ? 'text-red-500'
+                                    : 'text-green-500'
+                                }`}
+                              >
+                                {form.getFieldValue(['variants', name, 'isDeleted']) ? '⚫' : '🟢'}
+                              </span>
+                              {form.getFieldValue(['variants', name, 'isDeleted'])
+                                ? 'Inactive'
+                                : 'Active'}
+                            </span>
+                          </div>
 
-                        {fields.length > 1 ? (
-                          <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            type={'text'}
-                            onClick={() => {
-                              setVariantToDelete(name);
-                              setDeleteModalOpen(true);
+                          <Switch
+                            checked={!form.getFieldValue(['variants', name, 'isDeleted'])}
+                            size={'small'}
+                            onChange={async (checked) => {
+                              const variant = form.getFieldValue(['variants', name]);
+
+                              if (!variant.id) return;
+
+                              try {
+                                setLoading(true);
+                                const updated = await dispatch(
+                                  updateVariant({
+                                    ...variant,
+                                    isDeleted: !checked
+                                  })
+                                ).unwrap();
+
+                                const values = form.getFieldsValue();
+
+                                values.variants[name] = updated;
+                                form.setFieldsValue(values);
+
+                                toast.success(`Variant ${checked ? 'activated' : 'deactivated'}`);
+                              } catch (err) {
+                                // eslint-disable-next-line no-console
+                                console.error(err);
+                                message.error('Failed to update variant status');
+                              } finally {
+                                setLoading(false);
+                              }
                             }}
                           />
+                        </div>
+
+                        {/* Action Buttons — show only if variant is Active */}
+                        {!form.getFieldValue(['variants', name, 'isDeleted']) ? (
+                          <div className={'flex items-center gap-2'}>
+                            {isEditing ? (
+                              <>
+                                <Button
+                                  className={
+                                    '!bg-green-500 hover:!bg-green-600 rounded-md text-white'
+                                  }
+                                  size={'small'}
+                                  type={'primary'}
+                                  onClick={() => handleSaveEdit(index)}
+                                >
+                                  Save
+                                </Button>
+                                <Button
+                                  className={'!text-gray-500 hover:!bg-gray-100 rounded-md'}
+                                  icon={<CloseOutlined />}
+                                  size={'small'}
+                                  onClick={() => handleCancelEdit(index)}
+                                >
+                                  Cancel
+                                </Button>
+                              </>
+                            ) : (
+                              <Button
+                                className={'!text-blue-600 hover:!bg-blue-50 rounded-md'}
+                                icon={<EditOutlined />}
+                                size={'small'}
+                                onClick={() => handleStartEdit(index)}
+                              >
+                                Edit
+                              </Button>
+                            )}
+
+                            {fields.length > 1 ? (
+                              <Button
+                                danger
+                                className={'hover:!bg-red-50 rounded-md'}
+                                icon={<DeleteOutlined />}
+                                size={'small'}
+                                onClick={() => {
+                                  setVariantToDelete(name);
+                                  setDeleteModalOpen(true);
+                                }}
+                              />
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
                     </Space>
