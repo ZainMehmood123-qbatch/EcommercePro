@@ -203,6 +203,7 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
         const newVariant = await dispatch(
           createVariant({ productId: product.id, variant })
         ).unwrap();
+
         const values = form.getFieldsValue();
 
         values.variants[index] = newVariant;
@@ -212,9 +213,14 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
 
       setEditingIndex(null);
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-      message.error('Failed to save variant');
+      if (typeof err === 'string') {
+        // This catches rejectWithValue messages like duplicate variant
+        toast.error(err);
+      } else {
+        message.error('Failed to save variant');
+        // eslint-disable-next-line no-console
+        console.error(err);
+      }
     } finally {
       setLoading(false);
     }
@@ -425,7 +431,7 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
                                 toast.success(`Variant ${checked ? 'activated' : 'deactivated'}`);
                               } catch (err) {
                                 // eslint-disable-next-line no-console
-                                console.error(err);
+                                console.log(err);
                                 message.error('Failed to update variant status');
                               } finally {
                                 setLoading(false);

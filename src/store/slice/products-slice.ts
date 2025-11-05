@@ -159,6 +159,27 @@ export const deleteProduct = createAsyncThunk<string, string, { rejectValue: str
   }
 );
 
+// // Create Variant
+// export const createVariant = createAsyncThunk<
+//   ProductVariant,
+//   { productId: string; variant: ProductVariant },
+//   { rejectValue: string }
+// >('products/createVariant', async ({ productId, variant }, { rejectWithValue }) => {
+//   try {
+//     const res = await fetch('/api/variants', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ ...variant, productId })
+//     });
+
+//     if (!res.ok) throw new Error('Failed to create variant');
+
+//     return await res.json();
+//   } catch (err) {
+//     return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
+//   }
+// });
+
 // Create Variant
 export const createVariant = createAsyncThunk<
   ProductVariant,
@@ -172,9 +193,15 @@ export const createVariant = createAsyncThunk<
       body: JSON.stringify({ ...variant, productId })
     });
 
-    if (!res.ok) throw new Error('Failed to create variant');
+    const data = await res.json();
 
-    return await res.json();
+    if (!res.ok) {
+      // backend already sends a message
+      return rejectWithValue(data.message || 'Failed to create variant');
+    }
+
+    // since your API returns { success, data: newVariant }
+    return data.data as ProductVariant;
   } catch (err) {
     return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
   }
@@ -194,7 +221,11 @@ export const updateVariant = createAsyncThunk<
       body: JSON.stringify(variant)
     });
 
-    if (!res.ok) throw new Error('Failed to update variant');
+    if (!res.ok) {
+      const data = await res.json();
+
+      return rejectWithValue(data.message || 'Failed to update variant');
+    }
 
     return await res.json();
   } catch (err) {
