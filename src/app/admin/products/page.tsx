@@ -24,6 +24,7 @@ import {
   deleteProduct,
   fetchProducts,
   resetProducts,
+  setPage,
   setSearch,
   setSort
 } from '@/store/slice/products-slice';
@@ -52,7 +53,7 @@ const ProductsPage = () => {
   // Fetch products
   const loadProducts = useCallback(
     (pageToLoad: number) => {
-      dispatch(fetchProducts({ page: pageToLoad, search: debouncedSearch, sort }));
+      dispatch(fetchProducts({ page: pageToLoad, search: debouncedSearch, sort, limit: 12 }));
     },
     [dispatch, debouncedSearch, sort]
   );
@@ -184,7 +185,10 @@ const ProductsPage = () => {
           current: page,
           pageSize: 12,
           total: total,
-          onChange: (p) => loadProducts(p)
+          onChange: (p) => {
+            dispatch(setPage(p));
+            loadProducts(p);
+          }
         }}
         rowKey={'id'}
       />

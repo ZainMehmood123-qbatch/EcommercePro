@@ -40,6 +40,7 @@ interface FetchProductsArgs {
   page: number;
   search: string;
   sort: string;
+  limit?: number;
 }
 
 // Fetch Products
@@ -47,10 +48,10 @@ export const fetchProducts = createAsyncThunk<
   ProductResponse,
   FetchProductsArgs,
   { rejectValue: string }
->('products/fetchProducts', async ({ page, search, sort }, { rejectWithValue }) => {
+>('products/fetchProducts', async ({ page, search, sort, limit = 8 }, { rejectWithValue }) => {
   try {
     const res = await fetch(
-      `/api/products?page=${page}&limit=8&search=${encodeURIComponent(search)}&sort=${sort}`
+      `/api/products?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&sort=${sort}`
     );
 
     if (!res.ok) throw new Error('Failed to fetch products');
@@ -217,6 +218,9 @@ const productsSlice = createSlice({
     setSort: (state, action: PayloadAction<string>) => {
       state.sort = action.payload;
     },
+    setPage: (state, action: PayloadAction<number>) => {
+      state.page = action.payload;
+    },
     nextPage: (state) => {
       state.page += 1;
     }
@@ -287,5 +291,5 @@ const productsSlice = createSlice({
   }
 });
 
-export const { resetProducts, setSearch, setSort, nextPage } = productsSlice.actions;
+export const { resetProducts, setSearch, setSort, nextPage, setPage } = productsSlice.actions;
 export default productsSlice.reducer;
