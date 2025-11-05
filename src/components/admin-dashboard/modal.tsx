@@ -190,9 +190,62 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
     setEditingIndex(index);
   };
 
+  // const handleSaveEdit = async (index: number) => {
+  //   try {
+  //     const variant: ProductVariant = form.getFieldValue(['variants', index]);
+
+  //     setLoading(true);
+
+  //     if (variant.id) {
+  //       await dispatch(updateVariant(variant)).unwrap();
+  //       toast.success(`Variant ${index + 1} updated`);
+  //     } else if (product?.id) {
+  //       const newVariant = await dispatch(
+  //         createVariant({ productId: product.id, variant })
+  //       ).unwrap();
+
+  //       const values = form.getFieldsValue();
+
+  //       values.variants[index] = newVariant;
+  //       form.setFieldsValue(values);
+  //       toast.success('New variant added');
+  //     }
+
+  //     setEditingIndex(null);
+  //   } catch (err) {
+  //     if (typeof err === 'string') {
+  //       // This catches rejectWithValue messages like duplicate variant
+  //       toast.error(err);
+  //     } else {
+  //       message.error('Failed to save variant');
+  //       // eslint-disable-next-line no-console
+  //       console.error(err);
+  //     }
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleSaveEdit = async (index: number) => {
     try {
       const variant: ProductVariant = form.getFieldValue(['variants', index]);
+      const allVariants: ProductVariant[] = form.getFieldValue(['variants']);
+
+      // ✅ FRONTEND VALIDATION — Prevent duplicate (colorName + size)
+      const isDuplicate = allVariants.some((v, i) => {
+        if (i === index) return false; // skip current editing variant
+
+        return (
+          v.colorName.trim().toLowerCase() === variant.colorName.trim().toLowerCase() &&
+          v.size.trim().toLowerCase() === variant.size.trim().toLowerCase()
+        );
+      });
+
+      if (isDuplicate) {
+        toast.error('Variant with same color and size already exists.');
+
+        return;
+      }
 
       setLoading(true);
 
@@ -214,7 +267,6 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
       setEditingIndex(null);
     } catch (err) {
       if (typeof err === 'string') {
-        // This catches rejectWithValue messages like duplicate variant
         toast.error(err);
       } else {
         message.error('Failed to save variant');
