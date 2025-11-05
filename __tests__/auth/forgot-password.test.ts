@@ -1,6 +1,7 @@
+import jwt from 'jsonwebtoken';
+
 import { POST } from '@/app/api/auth/forgot-password/route';
 import { prisma } from '@/lib/prisma';
-import jwt from 'jsonwebtoken';
 
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -38,7 +39,10 @@ describe('POST /api/auth/forgot-password', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('should send reset link for existing user', async () => {
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ email: 'john@example.com', resetTokenVersion: 1 });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      email: 'john@example.com',
+      resetTokenVersion: 1
+    });
     (jwt.sign as jest.Mock).mockReturnValue('token');
 
     const res = await POST(mockRequest(validBody));
