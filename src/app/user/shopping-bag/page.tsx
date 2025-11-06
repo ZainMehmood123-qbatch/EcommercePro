@@ -29,7 +29,6 @@ const Shoppingbag: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
-  const [invalidVariantIds, setInvalidVariantIds] = useState<string[]>([]);
   const [lastCheckoutError, setLastCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -114,16 +113,6 @@ const Shoppingbag: React.FC = () => {
       toast.error(lastCheckoutError);
 
       return;
-    }
-
-    if (invalidVariantIds.length > 0) {
-      const stillInvalid = items.some((item) => invalidVariantIds.includes(item.variantId));
-
-      if (stillInvalid) {
-        toast.error(lastCheckoutError || 'Some products are unavailable');
-
-        return;
-      }
     }
     setLoading(true);
 
