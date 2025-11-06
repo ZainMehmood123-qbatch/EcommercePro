@@ -49,10 +49,16 @@ const FormField = ({ label, name, type = 'text', dependency, placeholder }: Form
       break;
 
     case 'fullname':
-      rules.push({
-        pattern: /^[a-zA-Z ]+$/,
-        message: 'Full name can only contain letters and spaces'
-      });
+      rules.push(
+        {
+          pattern: /^(?=.*[A-Za-z].*[A-Za-z].*[A-Za-z])[A-Za-z ]+$/,
+          message: 'Full name can only contain letters and spaces'
+        },
+        {
+          min: 3,
+          message: 'Full name must be at least 3 characters long'
+        }
+      );
       break;
 
     case 'mobile':

@@ -40,18 +40,28 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
         remember: { label: 'Remember', type: 'text' }
       },
-      async authorize(credentials): Promise<User | null> {
-        if (!credentials?.email || !credentials.password) return null;
+      async authorize(credentials): Promise<User> {
+        if (!credentials?.email || !credentials.password) {
+          throw new Error('Please provide both email and password');
+        }
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email }
         });
 
-        if (!user || !user.password) return null;
+        if (!user) {
+          throw new Error('Invalid email or password.');
+        }
+
+        if (!user.password) {
+          throw new Error('Please enter your password.');
+        }
 
         const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
-        if (!isPasswordValid) return null;
+        if (!isPasswordValid) {
+          throw new Error('Invalid email or password.');
+        }
 
         return {
           id: user.id,
@@ -103,7 +113,7 @@ export const authOptions: NextAuthOptions = {
 
           maxAge = remember ? 30 * 24 * 60 * 60 : 2 * 60;
         } else {
-          maxAge = 30 * 24 * 60 * 60;
+          maxAge = 30 * 24 * 60 * 60; // Google case
         }
 
         const exp = now + maxAge;
