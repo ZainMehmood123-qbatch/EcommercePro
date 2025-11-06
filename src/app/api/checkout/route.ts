@@ -52,6 +52,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Some variants not found' }, { status: 400 });
     }
 
+    // Check if any variant is marked as deleted
+    const deletedVariants = variants.filter((v) => v.isDeleted);
+
+    if (deletedVariants.length > 0) {
+      return NextResponse.json(
+        {
+          error: `Some products are unavailable or deleted: ${deletedVariants
+            .map((v) => `${v.product.title} (${v.colorName ?? ''} ${v.size ?? ''})`)
+            .join(', ')}`
+        },
+        { status: 400 }
+      );
+    }
+
     let subtotal = 0;
     const stockErrors: string[] = [];
 
