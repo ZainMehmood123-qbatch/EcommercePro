@@ -29,12 +29,18 @@ const Shoppingbag: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
+  const [invalidVariantIds, setInvalidVariantIds] = useState<string[]>([]);
+  const [lastCheckoutError, setLastCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     if (stockErrors.length > 0) {
       setStockErrors([]);
     }
   }, [items, stockErrors.length]);
+
+  useEffect(() => {
+    setLastCheckoutError(null);
+  }, [items]);
 
   useEffect(() => {
     if (!userId) return;
@@ -103,6 +109,22 @@ const Shoppingbag: React.FC = () => {
 
   const handlePlaceOrder = async () => {
     if (loading) return;
+
+    if (lastCheckoutError) {
+      toast.error(lastCheckoutError);
+
+      return;
+    }
+
+    if (invalidVariantIds.length > 0) {
+      const stillInvalid = items.some((item) => invalidVariantIds.includes(item.variantId));
+
+      if (stillInvalid) {
+        toast.error(lastCheckoutError || 'Some products are unavailable');
+
+        return;
+      }
+    }
     setLoading(true);
 
     if (!items.length) {
@@ -123,6 +145,7 @@ const Shoppingbag: React.FC = () => {
 
         toast.error(`${item.product} — only ${available} left in stock`);
       });
+      setLastCheckoutError('Stock issue — please update your cart');
       setLoading(false);
 
       return;
@@ -151,6 +174,9 @@ const Shoppingbag: React.FC = () => {
 
       if (!res.ok) {
         const message = data?.error || 'Checkout failed due to stock issue.';
+
+        setLastCheckoutError(message); // ✅ cache the backend error
+        toast.error(message);
 
         // Update local cart with the latest stock info if API returns it
         if (data?.updatedStocks?.length) {
@@ -186,6 +212,9 @@ const Shoppingbag: React.FC = () => {
 
         throw new Error(message);
       }
+
+      // ✅ clear any old error if checkout succeeded
+      setLastCheckoutError(null);
 
       // Success flow
       if (userId) clearCart(userId);
