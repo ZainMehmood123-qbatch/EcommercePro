@@ -9,11 +9,14 @@ import { SignupFormValues } from '@/types/auth';
 
 const signupSchema = Joi.object<SignupFormValues>({
   fullname: Joi.string()
-    .pattern(/^[a-zA-Z ]+$/)
+    .trim()
+    .pattern(/^(?=.*[A-Za-z].*[A-Za-z].*[A-Za-z])[A-Za-z ]+$/)
+    .min(3)
     .required()
     .messages({
       'string.empty': 'Please enter your full name',
-      'string.pattern.base': 'Full name can only contain letters and spaces'
+      'string.min': 'Full name must be at least 3 characters long',
+      'string.pattern.base': 'Full name must contain at least 3 letters and only letters and spaces'
     }),
   email: Joi.string()
     .pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
