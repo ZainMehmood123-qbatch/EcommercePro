@@ -193,7 +193,7 @@ export const deleteVariant = createAsyncThunk<
   { rejectValue: string }
 >('products/deleteVariant', async ({ productId, variantId }, { rejectWithValue }) => {
   try {
-    const res = await fetch(`/api/variants/${variantId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/variants/${variantId}`, { method: 'PATCH' });
 
     if (!res.ok) throw new Error('Failed to delete variant');
 
