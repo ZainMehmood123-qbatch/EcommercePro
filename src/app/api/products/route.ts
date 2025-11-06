@@ -64,15 +64,10 @@ export async function GET(req: NextRequest) {
     const include =
       role === Role.ADMIN ? { variants: true } : { variants: { where: { isDeleted: false } } };
 
-    const products = await prisma.product.findMany({
-      where,
-      orderBy,
-      skip,
-      take: limit,
-      include
-    });
-
-    const total = await prisma.product.count({ where });
+    const [products, total] = await prisma.$transaction([
+      prisma.product.findMany({ where, orderBy, skip, take: limit, include }),
+      prisma.product.count({ where })
+    ]);
 
     return NextResponse.json({ success: true, data: products, total }, { status: 200 });
   } catch (error) {
@@ -101,6 +96,13 @@ export async function POST(req: NextRequest) {
     }
 
     const body: ProductType = await req.json();
+
+    if (!body.title || !body.variants?.length) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid product data' },
+        { status: 400 }
+      );
+    }
 
     const newProduct = await prisma.product.create({
       data: {
