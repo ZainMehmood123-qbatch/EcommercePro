@@ -116,7 +116,7 @@ export const deleteProduct = createAsyncThunk<string, string, { rejectValue: str
   'products/deleteProduct',
   async (id, { rejectWithValue }) => {
     try {
-      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/products/${id}`, { method: 'PATCH' });
       const result = await res.json();
 
       // Check both HTTP status and API success
