@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Link from 'next/link';
 
@@ -8,7 +8,6 @@ import { useSession } from 'next-auth/react';
 import { Button, Flex, Table, InputNumber, Image, Spin } from 'antd';
 import type { TableColumnsType, TableProps } from 'antd';
 import { ArrowLeftOutlined, DeleteOutlined } from '@ant-design/icons';
-
 import toast from 'react-hot-toast';
 
 import { clearCart, getCartItems, updateCart } from '@/lib/cart';
@@ -19,10 +18,6 @@ import Navbar from '@/components/common/navbar';
 import './shopping-bag.css';
 
 type TableRowSelection<T extends object = object> = TableProps<T>['rowSelection'];
-type StockError = {
-  variantId: string;
-  message: string;
-};
 
 const Shoppingbag: React.FC = () => {
   const { data: session, status } = useSession();
@@ -32,8 +27,13 @@ const Shoppingbag: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
-  const [stockErrors, setStockErrors] = useState<StockError[]>([]);
-  const [lastCheckoutError, setLastCheckoutError] = useState<string | null>(null);
+  const [stockErrors, setStockErrors] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (stockErrors.length > 0) {
+      setStockErrors([]);
+    }
+  }, [items]);
 
   useEffect(() => {
     if (!userId) return;
@@ -45,25 +45,13 @@ const Shoppingbag: React.FC = () => {
     updateCart(userId, items);
   }, [items, userId]);
 
-  useEffect(() => {
-    if (stockErrors.length === 0) return;
-
-    // Filter out errors for items that no longer exist in the cart
-    setStockErrors((prevErrors) =>
-      prevErrors.filter((error) => items.some((item) => item.variantId === error.variantId))
-    );
-  }, [items, stockErrors.length]);
-
-  useEffect(() => {
-    setLastCheckoutError(null);
-  }, [items]);
-
   // Update quantity
   const updateQty = (key: React.Key, newQty: number) => {
     setItems((prev) => {
       const updated = prev.map((item) => {
         if (item.key === key) {
           if (newQty > item.stock) {
+            console.log(item.stock);
             toast.error(`Only ${item.stock} items available in stock`);
 
             return { ...item, qty: item.stock };
@@ -76,7 +64,6 @@ const Shoppingbag: React.FC = () => {
       });
 
       if (userId) updateCart(userId, updated);
-      if (updated.length === 0) toast('Your cart is now empty');
 
       return updated;
     });
@@ -116,12 +103,6 @@ const Shoppingbag: React.FC = () => {
 
   const handlePlaceOrder = async () => {
     if (loading) return;
-
-    if (lastCheckoutError) {
-      toast.error(lastCheckoutError);
-
-      return;
-    }
     setLoading(true);
 
     if (!items.length) {
@@ -171,9 +152,6 @@ const Shoppingbag: React.FC = () => {
       if (!res.ok) {
         const message = data?.error || 'Checkout failed due to stock issue.';
 
-        setLastCheckoutError(message); // ✅ cache the backend error
-        toast.error(message);
-
         // Update local cart with the latest stock info if API returns it
         if (data?.updatedStocks?.length) {
           setItems((prev) =>
@@ -190,10 +168,10 @@ const Shoppingbag: React.FC = () => {
           const combinedMsg = data.updatedStocks
             .map(
               (s: {
-                productName: string | number;
-                colorName: string | number;
-                size: string | number;
-                availableStock: string | number;
+                productName: CartItem;
+                colorName: CartItem;
+                size: CartItem;
+                availableStock: CartItem;
               }) =>
                 `${s.productName} (${s.colorName || ''} ${s.size || ''}) — only ${
                   s.availableStock
@@ -209,14 +187,12 @@ const Shoppingbag: React.FC = () => {
         throw new Error(message);
       }
 
-      // clear any old error if checkout succeeded
-      setLastCheckoutError(null);
-
       // Success flow
       if (userId) clearCart(userId);
       toast.success('Redirecting to checkout...');
       window.location.href = data.url;
     } catch (err) {
+      console.error('Checkout error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Checkout failed. Try again!';
 
       toast.error(errorMessage);
@@ -337,7 +313,7 @@ const Shoppingbag: React.FC = () => {
     onChange: setSelectedRowKeys
   };
 
-  const subTotal = useMemo(() => items.reduce((sum, i) => sum + i.qty * i.price, 0), [items]);
+  const subTotal = items.reduce((sum, item) => sum + item.qty * item.price, 0);
   const tax = subTotal * 0.1;
   const total = subTotal + tax;
 
