@@ -1,11 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 
-import toast from 'react-hot-toast';
+import { useDispatch, useSelector } from 'react-redux';
+
 import { Button, Spin } from 'antd';
+
+import toast from 'react-hot-toast';
+
+import { AppDispatch, RootState } from '@/store/index';
+import { resetPassword } from '@/store/slice/auth-slice';
 
 import AuthTitle from '@/components/auth/auth-title';
 import AuthForm from '@/components/auth/auth-form';
@@ -15,9 +21,12 @@ import { ResetPasswordFormValues } from '@/types/auth';
 import '../auth.css';
 
 const ResetPasswordPage = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading } = useSelector((state: RootState) => state.auth);
+
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
-  const [loading, setLoading] = useState(false);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -27,35 +36,24 @@ const ResetPasswordPage = () => {
   }, []);
 
   const onFinish = async (values: ResetPasswordFormValues) => {
-    try {
-      setLoading(true);
+    if (!token) {
+      toast.error('Invalid or missing token');
 
-      if (values.password !== values.confirmPassword) {
-        toast.error('Passwords do not match');
+      return;
+    }
 
-        return;
-      }
+    const result = await dispatch(
+      resetPassword({
+        token,
+        password: values.password,
+        confirmPassword: values.confirmPassword
+      })
+    );
 
-      const res = await fetch('/api/auth/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, password: values.password })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success(data.message);
-        setTimeout(() => (window.location.href = '/auth/login'), 1500);
-      } else {
-        toast.error(data.error || 'Reset failed');
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-      toast.error('Something went wrong');
-    } finally {
-      setLoading(false);
+    if (resetPassword.fulfilled.match(result)) {
+      setTimeout(() => {
+        window.location.href = '/auth/login';
+      }, 1500);
     }
   };
 
@@ -74,7 +72,9 @@ const ResetPasswordPage = () => {
           <Spin size={'large'} />
         </div>
       ) : null}
+
       <AuthTitle text={'Reset Password'} />
+
       <AuthForm name={'resetPassword'} onFinish={onFinish}>
         <FormField label={'New Password'} name={'password'} type={'password'} />
         <FormField

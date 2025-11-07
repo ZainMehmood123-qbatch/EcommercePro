@@ -1,12 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-import toast from 'react-hot-toast';
 import { Button, Spin } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+
+import type { AppDispatch, RootState } from '@/store/index';
+import { forgotPassword } from '@/store/slice/auth-slice';
 
 import AuthTitle from '@/components/auth/auth-title';
 import AuthForm from '@/components/auth/auth-form';
@@ -17,7 +20,9 @@ import '../auth.css';
 
 const ForgotPasswordPage = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading, successMessage } = useSelector((state: RootState) => state.auth);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -26,30 +31,15 @@ const ForgotPasswordPage = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const onFinish = async (values: ForgotPasswordFormValues) => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values)
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success('If this email exists, a reset link was sent.');
-        setTimeout(() => router.push('/auth/login'), 2000);
-      } else {
-        toast.error(data.error || 'Failed to send reset email');
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(err);
-      toast.error('Something went wrong');
-    } finally {
-      setLoading(false);
+  // redirect after success
+  useEffect(() => {
+    if (successMessage) {
+      setTimeout(() => router.push('/auth/login'), 2000);
     }
+  }, [successMessage, router]);
+
+  const onFinish = async (values: ForgotPasswordFormValues) => {
+    await dispatch(forgotPassword(values));
   };
 
   if (!mounted) {
@@ -71,7 +61,7 @@ const ForgotPasswordPage = () => {
       <AuthTitle text={'Forgot Password'} />
       <AuthForm name={'forgotPassword'} onFinish={onFinish}>
         <FormField label={'Email Address'} name={'email'} type={'email'} />
-        <Button className={'auth-button'} disabled={loading} htmlType={'submit'} loading={loading}>
+        <Button className={'auth-button'} htmlType={'submit'} loading={loading}>
           {loading ? 'Sending...' : 'Forgot Password'}
         </Button>
       </AuthForm>
