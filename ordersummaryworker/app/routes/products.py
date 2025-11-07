@@ -13,8 +13,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @router.post("/upload-csv")
 async def upload_csv(file: UploadFile = File(...)):
     """
-    ✅ Streaming upload — file is saved temporarily, not read fully into memory.
-    ✅ Celery task processes it line-by-line.
+    Streaming upload — file is saved temporarily, not read fully into memory.
+    Celery task processes it line-by-line.
     """
     temp_filename = f"{uuid.uuid4()}_{file.filename}"
     temp_filepath = os.path.join(UPLOAD_DIR, temp_filename)

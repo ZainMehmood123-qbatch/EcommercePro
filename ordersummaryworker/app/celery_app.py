@@ -14,5 +14,4 @@ celery.conf.beat_schedule = {
     },
 }
 
-# VERY IMPORTANT: ensure Celery registers your task module
 celery.autodiscover_tasks(["app.tasks"])

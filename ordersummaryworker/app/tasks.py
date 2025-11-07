@@ -39,13 +39,13 @@ def recalculate_summary():
 
         db.commit()
         print(
-            f"✅ Summary updated successfully! "
+            f"Summary updated successfully! "
             f"Orders: {total_orders}, Units: {total_units}, Amount: {total_amount}"
         )
 
     except Exception as e:
         db.rollback()
-        print("❌ Error recalculating summary:", e)
+        print("Error recalculating summary:", e)
 
     finally:
         db.close()
@@ -105,16 +105,16 @@ def import_products_from_csv(file_path: str):
                     db.add_all(variants_batch)
                     db.commit()
                     variants_batch.clear()
-                    print(f"✅ Imported {i} rows so far...")
+                    print(f"Imported {i} rows so far...")
 
             # Commit remaining rows
             if variants_batch:
                 db.add_all(variants_batch)
                 db.commit()
 
-        print("✅ All products imported successfully!")
+        print("All products imported successfully!")
     except Exception as e:
         db.rollback()
-        print("❌ Error importing products:", e)
+        print("Error importing products:", e)
     finally:
         db.close()

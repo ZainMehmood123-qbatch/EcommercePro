@@ -17,5 +17,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# new route
 app.include_router(products.router, prefix="/products", tags=["Products"])
