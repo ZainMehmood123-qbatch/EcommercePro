@@ -1,12 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import toast from 'react-hot-toast';
 import { Button, Spin } from 'antd';
+import { useDispatch, useSelector } from 'react-redux';
+
+import type { RootState, AppDispatch } from '@/store/index';
+import { signupUser } from '@/store/slice/auth-slice';
 
 import AuthTitle from '@/components/auth/auth-title';
 import AuthForm from '@/components/auth/auth-form';
@@ -17,7 +21,9 @@ import '../auth.css';
 
 const SignupPage = () => {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { loading } = useSelector((state: RootState) => state.auth);
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -27,11 +33,8 @@ const SignupPage = () => {
   }, []);
 
   const onFinish = async (values: SignupFormValues) => {
-    setLoading(true);
-
     if (values.password !== values.confirmPassword) {
       toast.error('Passwords do not match');
-      setLoading(false);
 
       return;
     }
@@ -41,40 +44,10 @@ const SignupPage = () => {
       email: values.email.toLowerCase().trim()
     };
 
-    const { confirmPassword, ...payload } = formattedValues;
+    const result = await dispatch(signupUser(formattedValues));
 
-    // eslint-disable-next-line no-console
-    console.log(confirmPassword);
-
-    try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!res) {
-        toast.error('No response from server. Please try again.');
-
-        return;
-      }
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        toast.error(data.error || data.message || 'Signup failed.');
-
-        return;
-      }
-
-      toast.success(data.message || 'Your account has been created successfully!');
+    if (signupUser.fulfilled.match(result)) {
       router.push('/auth/login');
-    } catch (err: unknown) {
-      // eslint-disable-next-line no-console
-      console.error('Signup error:', err);
-      toast.error('Unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
