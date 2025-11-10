@@ -4,10 +4,12 @@ import React, { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 
-import { Table, Button, Spin } from 'antd';
+import { Table, Button, Skeleton } from 'antd';
 import moment from 'moment';
 import { ArrowLeftOutlined, ExportOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
+
+import toast from 'react-hot-toast';
 
 import { RootState, AppDispatch } from '@/store';
 import { fetchOrders, setPage } from '@/store/slice/orders-slice';
@@ -41,7 +43,10 @@ const Orders: React.FC = () => {
     const loadOrders = async () => {
       setLoading(true);
       try {
+        setLoading(true);
         await dispatch(fetchOrders({ page: currentPage, limit: 10, search: debouncedSearch }));
+      } catch (err) {
+        toast.error(err instanceof Error ? err.message : 'Failed to fetch orders.');
       } finally {
         setLoading(false);
       }
@@ -49,6 +54,12 @@ const Orders: React.FC = () => {
 
     loadOrders();
   }, [dispatch, currentPage, debouncedSearch]);
+
+  useEffect(() => {
+    if (!loading && orders.length === 0) {
+      toast.error('No orders found matching your search.');
+    }
+  }, [loading, orders]);
 
   const handleViewOrderDetails = (orderId: string) => {
     setSelectedOrderId(orderId);
@@ -135,14 +146,6 @@ const Orders: React.FC = () => {
     }
   ];
 
-  if (loading) {
-    return (
-      <div className={'loader'}>
-        <Spin size={'large'} />
-      </div>
-    );
-  }
-
   return (
     <>
       <Navbar />
@@ -156,11 +159,15 @@ const Orders: React.FC = () => {
           </div>
 
           <div className={'mt-10 pr-4'}>
-            <SearchComponent
-              placeholder={'Search by Order ID'}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-            />
+            {loading ? (
+              <Skeleton.Input active size={'small'} style={{ width: 200 }} />
+            ) : (
+              <SearchComponent
+                placeholder={'Search by Order ID'}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+              />
+            )}
           </div>
         </div>
 
@@ -169,6 +176,7 @@ const Orders: React.FC = () => {
           className={'order-wholetable'}
           columns={columns}
           dataSource={orders}
+          loading={loading}
           pagination={{
             current: currentPage,
             pageSize: 10,

@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 
 import dynamic from 'next/dynamic';
 
-import { Spin } from 'antd';
+import { Spin, Skeleton } from 'antd';
 import { SortAscendingOutlined, SortDescendingOutlined, CalendarOutlined } from '@ant-design/icons';
 
 import { useAppDispatch, useAppSelector } from '@/store/index';
@@ -108,17 +108,26 @@ const Dashboardpage: React.FC = () => {
           <p className={'dashboard-title'}>Our Products</p>
 
           <div className={'dashboard-innerheadericons'}>
-            <SearchComponent
-              placeholder={'Search products'}
-              searchTerm={localSearch}
-              setSearchTerm={setLocalSearch}
-            />
+            {loading ? (
+              <div className={'flex gap-2'}>
+                <Skeleton.Input active size={'small'} style={{ width: 200 }} />
+                <Skeleton.Button active size={'small'} style={{ width: 120, height: 32 }} />
+              </div>
+            ) : (
+              <>
+                <SearchComponent
+                  placeholder={'Search products'}
+                  searchTerm={localSearch}
+                  setSearchTerm={setLocalSearch}
+                />
 
-            <GenericDropdown
-              items={productSortItems}
-              selectedKey={sort}
-              onSelect={(val: string) => dispatch(setSort(val))}
-            />
+                <GenericDropdown
+                  items={productSortItems}
+                  selectedKey={sort}
+                  onSelect={(val: string) => dispatch(setSort(val))}
+                />
+              </>
+            )}
           </div>
         </div>
 
