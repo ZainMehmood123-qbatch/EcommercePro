@@ -23,6 +23,8 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
 
   const handleRemove = (file: UploadFile) => {
     setFileList((prev) => prev.filter((f) => f.uid !== file.uid));
+    toast.success('File removed');
+    message.success('File removed');
   };
 
   const handleDownloadSample = () => {
@@ -38,6 +40,9 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    toast.success('Sample CSV downloaded');
+    message.success('Sample CSV downloaded');
   };
 
   const validateCSVColumns = async (file: File): Promise<boolean> => {
@@ -56,6 +61,9 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
 
       return false;
     }
+
+    toast.success('CSV structure verified');
+    message.success('CSV structure verified');
 
     return true;
   };
@@ -76,6 +84,7 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
 
       return;
     }
+
     const isValid = await validateCSVColumns(file);
 
     if (!isValid) return;
@@ -84,11 +93,15 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
 
     formData.append('file', file);
 
+    toast.loading('Uploading CSV file...');
+
     try {
       const response = await fetch('http://localhost:8000/products/upload-csv', {
         method: 'POST',
         body: formData
       });
+
+      toast.dismiss();
 
       if (!response.ok) throw new Error('Upload failed');
 
@@ -96,10 +109,11 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
       message.success('CSV uploaded successfully! Products will be processed in background.');
       onClose?.();
     } catch (err) {
+      toast.dismiss();
       toast.error('Error uploading CSV. Please try again.');
       message.error('Error uploading CSV. Please try again.');
       // eslint-disable-next-line no-console
-      console.error(err);
+      console.log(err);
     }
   };
 
@@ -145,8 +159,14 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
           onChange={handleChange}
         >
           <div className={'flex flex-col items-center justify-center'}>
-            <UploadOutlined className={'text-blue-600 text-4xl mb-3'} />
-            <p className={'text-gray-600 text-base'}>Drop your file here to upload</p>
+            <UploadOutlined
+              className={`text-4xl mb-3 ${
+                fileList.length >= 1 ? 'text-gray-400' : 'text-blue-600'
+              }`}
+            />
+            <p className={`text-base ${fileList.length >= 1 ? 'text-gray-400' : 'text-gray-600'}`}>
+              Drop your file here to upload
+            </p>
             <Button
               className={`mt-4 border ${
                 fileList.length >= 1
@@ -163,7 +183,7 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
 
       {fileList.length > 0 ? (
         <div className={'mt-6'}>
-          <h3 className={'text-gray-700 text-sm font-medium mb-2'}>Uploaded Files</h3>
+          <h3 className={'text-gray-700 text-sm font-medium mb-2'}>Uploaded File</h3>
           <ul className={'space-y-2'}>
             {fileList.map((file) => (
               <li
