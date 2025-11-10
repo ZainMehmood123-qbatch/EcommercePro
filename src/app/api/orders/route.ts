@@ -32,7 +32,14 @@ export async function GET(req: NextRequest) {
         whereClause = {
           OR: [
             { id: { contains: search.replace('ORD-', ''), mode: 'insensitive' } },
-            { userId: { contains: search.replace('USR-', ''), mode: 'insensitive' } }
+            {
+              user: {
+                fullname: {
+                  contains: search,
+                  mode: 'insensitive'
+                }
+              }
+            }
           ]
         };
       }

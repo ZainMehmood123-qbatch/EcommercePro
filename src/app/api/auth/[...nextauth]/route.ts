@@ -111,7 +111,7 @@ export const authOptions: NextAuthOptions = {
         if (account?.provider === 'credentials') {
           const remember = user.remember ?? false;
 
-          maxAge = remember ? 30 * 24 * 60 * 60 : 2 * 60;
+          maxAge = remember ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60;
         } else {
           maxAge = 30 * 24 * 60 * 60; // Google case
         }

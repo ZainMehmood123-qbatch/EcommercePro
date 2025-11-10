@@ -8,7 +8,7 @@ import {
   ExportOutlined,
   ShoppingCartOutlined
 } from '@ant-design/icons';
-import { Button, Card, Spin, Table } from 'antd';
+import { Button, Card, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import toast from 'react-hot-toast';
 
@@ -30,10 +30,11 @@ const OrdersPage = () => {
     totalCount,
     currentPage,
     stats,
-    loading
+    loading,
+    statsLoading
   } = useSelector((state: RootState) => state.orders);
 
-  const [initialLoading, setInitialLoading] = useState(true);
+  const [, setInitialLoading] = useState(true);
   const [localSearch, setLocalSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
@@ -89,7 +90,14 @@ const OrdersPage = () => {
   const columns: ColumnsType<FetchedOrder> = [
     { title: 'Date', dataIndex: 'createdAt', render: (v) => new Date(v).toLocaleDateString() },
     { title: 'Order #', render: (_, r) => `ORD-${r.id.slice(0, 8)}` },
-    { title: 'User', render: (_, r) => (r.userId ? `USR-${r.userId.slice(0, 8)}` : 'Me') },
+    {
+      title: 'Username',
+      render: (_, r) => (r.user?.fullname ? r.user.fullname : 'Me')
+    },
+    {
+      title: 'Email',
+      render: (_, r) => (r.user?.email ? r.user.email : 'Me')
+    },
     { title: 'Product(s)', render: (_, r) => r.items?.length || 0 },
     {
       title: 'Amount',
@@ -134,62 +142,71 @@ const OrdersPage = () => {
     }
   ];
 
-  if (initialLoading) {
-    return (
-      <div className={'loader'}>
-        <Spin size={'large'} />
-      </div>
-    );
-  }
-
   return (
     <div className={'ado-whole'} style={{ position: 'relative' }}>
-      {loading ? (
-        <div className={'loader-overlay'}>
-          <Spin size={'large'} />
-        </div>
-      ) : null}
+      <div className={'ado-uppergrid grid grid-cols-3 gap-4'}>
+        {statsLoading ? (
+          <>
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={
+                  'p-4 rounded-xl shadow-sm bg-white flex justify-between items-center animate-pulse transition-opacity duration-300'
+                }
+              >
+                <div className={'space-y-2'}>
+                  <div className={'h-4 w-24 bg-gray-200 rounded'} />
+                  <div className={'h-6 w-16 bg-gray-300 rounded'} />
+                </div>
+                <div className={'h-8 w-8 bg-gray-200 rounded-full'} />
+              </div>
+            ))}
+          </>
+        ) : (
+          <>
+            <Card className={'p-1 transition-opacity duration-300'}>
+              <div className={'ado-cards flex justify-between items-center'}>
+                <div>
+                  <p className={'ado-cardtitles'}>Total Orders:</p>
+                  <h2 className={'ado-cardcontent'}>{stats.totalOrders}</h2>
+                </div>
+                <div className={'ado-cardicons text-xl text-gray-600'}>
+                  <ShoppingCartOutlined />
+                </div>
+              </div>
+            </Card>
 
-      <div className={'ado-uppergrid'}>
-        <Card className={'p-1'}>
-          <div className={'ado-cards'}>
-            <div>
-              <p className={'ado-cardtitles'}>Total Orders:</p>
-              <h2 className={'ado-cardcontent'}>{stats.totalOrders}</h2>
-            </div>
-            <div className={'ado-cardicons'}>
-              <ShoppingCartOutlined />
-            </div>
-          </div>
-        </Card>
-        <Card className={'p-1'}>
-          <div className={'ado-cards'}>
-            <div>
-              <p className={'ado-cardtitles'}>Total Units:</p>
-              <h2 className={'ado-cardcontent'}>{stats.totalUnits}</h2>
-            </div>
-            <div className={'ado-cardicons'}>
-              <AppstoreOutlined />
-            </div>
-          </div>
-        </Card>
-        <Card className={'p-1'}>
-          <div className={'ado-cards'}>
-            <div>
-              <p className={'ado-cardtitles'}>Total Amount:</p>
-              <h2 className={'ado-cardcontent'}>${stats.totalAmount.toLocaleString()}</h2>
-            </div>
-            <div className={'ado-cardicons'}>
-              <DollarOutlined />
-            </div>
-          </div>
-        </Card>
+            <Card className={'p-1 transition-opacity duration-300'}>
+              <div className={'ado-cards flex justify-between items-center'}>
+                <div>
+                  <p className={'ado-cardtitles'}>Total Units:</p>
+                  <h2 className={'ado-cardcontent'}>{stats.totalUnits}</h2>
+                </div>
+                <div className={'ado-cardicons text-xl text-gray-600'}>
+                  <AppstoreOutlined />
+                </div>
+              </div>
+            </Card>
+
+            <Card className={'p-1 transition-opacity duration-300'}>
+              <div className={'ado-cards flex justify-between items-center'}>
+                <div>
+                  <p className={'ado-cardtitles'}>Total Amount:</p>
+                  <h2 className={'ado-cardcontent'}>${stats.totalAmount.toLocaleString()}</h2>
+                </div>
+                <div className={'ado-cardicons text-xl text-gray-600'}>
+                  <DollarOutlined />
+                </div>
+              </div>
+            </Card>
+          </>
+        )}
       </div>
 
       <div className={'ado-innernav'}>
         <h1 className={'ado-title'}>Orders</h1>
         <SearchComponent
-          placeholder={'Search by user and orderID'}
+          placeholder={'Search by Username OR OrderId'}
           searchTerm={localSearch}
           setSearchTerm={setLocalSearch}
         />
@@ -199,6 +216,7 @@ const OrdersPage = () => {
         className={'ado-wholetable'}
         columns={columns}
         dataSource={orders}
+        loading={loading}
         pagination={{
           current: currentPage,
           pageSize: 10,

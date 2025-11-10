@@ -4,7 +4,10 @@ import React from 'react';
 import { ProductBase } from './product';
 
 export interface FetchedOrder {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  user: any;
   id: string;
+  fullname: string;
   createdAt: string;
   userId: string;
   items?: FetchedOrderProduct[];

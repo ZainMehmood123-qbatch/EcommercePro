@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 
-import { Table, Avatar, Button, message, Input, Spin } from 'antd';
+import { Table, Avatar, Button, message, Input, Skeleton } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   EditOutlined,
@@ -141,39 +141,54 @@ const ProductsPage = () => {
     }
   ];
 
-  if (loading) {
-    return (
-      <div className={'fixed inset-0 flex items-center justify-center bg-white/70 z-50'}>
-        <Spin size={'large'} />
-      </div>
-    );
-  }
-
   return (
     <div className={'adp-whole'}>
       <div className={'adp-nav'}>
         <h1 className={'adp-title'}>Products</h1>
-        <div className={'flex gap-2'}>
-          <Input.Search
-            placeholder={'Search products'}
-            style={{ width: 200 }}
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-          />
-          <GenericDropdown
-            items={productSortItems}
-            selectedKey={sort}
-            onSelect={(val: string) => {
-              dispatch(setSort(val));
-            }}
-          />
-          <Button type={'primary'} onClick={handleCreate}>
-            + Add a Single Product
-          </Button>
-          <Button className={'adp-addmultipleproducts'} onClick={() => setVisible(true)}>
-            + Add Multiple Products
-          </Button>
-          <AddMultipleProductsModal visible={visible} onClose={() => setVisible(false)} />
+        <div className={'flex gap-2 items-center'}>
+          {loading ? (
+            <>
+              <Skeleton.Input
+                active
+                style={{ width: 200, height: 40, borderRadius: 8, transition: 'opacity 0.3s ease' }}
+              />
+              <Skeleton.Button
+                active
+                style={{ width: 160, height: 40, borderRadius: 8, transition: 'opacity 0.3s ease' }}
+              />
+              <Skeleton.Button
+                active
+                style={{ width: 180, height: 40, borderRadius: 8, transition: 'opacity 0.3s ease' }}
+              />
+              <Skeleton.Button
+                active
+                style={{ width: 220, height: 40, borderRadius: 8, transition: 'opacity 0.3s ease' }}
+              />
+            </>
+          ) : (
+            <>
+              <Input.Search
+                placeholder={'Search products'}
+                style={{ width: 200 }}
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+              />
+              <GenericDropdown
+                items={productSortItems}
+                selectedKey={sort}
+                onSelect={(val: string) => {
+                  dispatch(setSort(val));
+                }}
+              />
+              <Button type={'primary'} onClick={handleCreate}>
+                + Add a Single Product
+              </Button>
+              <Button className={'adp-addmultipleproducts'} onClick={() => setVisible(true)}>
+                + Add Multiple Products
+              </Button>
+              <AddMultipleProductsModal visible={visible} onClose={() => setVisible(false)} />
+            </>
+          )}
         </div>
       </div>
 
@@ -181,6 +196,7 @@ const ProductsPage = () => {
         className={'adp-wholetable'}
         columns={columns}
         dataSource={products}
+        loading={loading}
         pagination={{
           current: page,
           pageSize: 12,

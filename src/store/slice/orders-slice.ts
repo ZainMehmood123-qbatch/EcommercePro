@@ -126,6 +126,7 @@ interface OrdersState {
   orderDetails: OrderDetailType | null;
   orderLoading: boolean;
   orderError: string | null;
+  statsLoading: boolean;
 }
 
 const initialState: OrdersState = {
@@ -141,7 +142,8 @@ const initialState: OrdersState = {
   },
   orderDetails: null,
   orderLoading: false,
-  orderError: null
+  orderError: null,
+  statsLoading: false
 };
 
 const ordersSlice = createSlice({
@@ -164,9 +166,11 @@ const ordersSlice = createSlice({
       .addCase(fetchOrders.pending, (state) => {
         state.loading = true;
         state.error = null;
+        if (state.stats.totalOrders === 0) state.statsLoading = true;
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = false;
+        state.statsLoading = false;
         state.data = action.payload.orders;
         state.totalCount = action.payload.totalCount;
         state.currentPage = action.payload.page;
