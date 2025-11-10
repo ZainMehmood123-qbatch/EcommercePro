@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 import { Modal, Upload, Button, message } from 'antd';
 import type { UploadFile } from 'antd/es/upload/interface';
-import { UploadOutlined, DeleteOutlined, FileOutlined } from '@ant-design/icons';
+import { UploadOutlined, DeleteOutlined, FileOutlined, DownloadOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 
 interface Props {
@@ -15,33 +15,74 @@ interface Props {
 const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
+  const requiredColumns = ['title', 'colorName', 'colorCode', 'size', 'stock', 'price', 'image'];
+
   const handleChange = ({ fileList }: { fileList: UploadFile[] }) => {
-    setFileList(fileList);
+    setFileList(fileList.slice(-1));
   };
 
   const handleRemove = (file: UploadFile) => {
     setFileList((prev) => prev.filter((f) => f.uid !== file.uid));
   };
 
+  const handleDownloadSample = () => {
+    const csvHeader = requiredColumns.join(',') + '\n';
+    const csvSample =
+      'Polo Shirt,Red,#FF0000,M,45,24.99,/red.png\nCargo Pants,Black,#000000,34,28,54.99,/black.png\n';
+    const blob = new Blob([csvHeader + csvSample], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.setAttribute('download', 'sample-products.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const validateCSVColumns = async (file: File): Promise<boolean> => {
+    const text = await file.text();
+    const [headerLine] = text.split('\n');
+    const headers = headerLine
+      .trim()
+      .split(',')
+      .map((h) => h.trim());
+
+    const missing = requiredColumns.filter((col) => !headers.includes(col));
+
+    if (missing.length > 0) {
+      toast.error(`Missing columns: ${missing.join(', ')}`);
+      message.error(`Missing columns: ${missing.join(', ')}`);
+
+      return false;
+    }
+
+    return true;
+  };
+
   const handleUpload = async () => {
     if (!fileList.length || !fileList[0].originFileObj) {
+      toast.error('Please upload a CSV file first!');
       message.error('Please select a CSV file first!');
 
       return;
     }
 
-    const file = fileList[0].originFileObj;
+    const file = fileList[0].originFileObj as File;
 
-    // Optional: Check file type (only CSV allowed)
     if (!file.name.endsWith('.csv')) {
+      toast.error('Only CSV files are allowed!');
       message.error('Only CSV files are allowed!');
 
       return;
     }
+    const isValid = await validateCSVColumns(file);
+
+    if (!isValid) return;
 
     const formData = new FormData();
 
-    formData.append('file', file as Blob);
+    formData.append('file', file);
 
     try {
       const response = await fetch('http://localhost:8000/products/upload-csv', {
@@ -65,6 +106,14 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
   return (
     <Modal
       footer={[
+        <Button
+          key={'download'}
+          className={'border-blue-500 text-blue-600 hover:bg-blue-50'}
+          icon={<DownloadOutlined />}
+          onClick={handleDownloadSample}
+        >
+          Download Sample
+        </Button>,
         <Button key={'cancel'} onClick={onClose}>
           Cancel
         </Button>,
@@ -90,6 +139,7 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
         <Upload.Dragger
           beforeUpload={() => false}
           className={'w-full'}
+          disabled={fileList.length >= 1}
           fileList={fileList}
           multiple={false}
           onChange={handleChange}
@@ -97,7 +147,14 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
           <div className={'flex flex-col items-center justify-center'}>
             <UploadOutlined className={'text-blue-600 text-4xl mb-3'} />
             <p className={'text-gray-600 text-base'}>Drop your file here to upload</p>
-            <Button className={'mt-4 border border-blue-500 text-blue-600 hover:bg-blue-50'}>
+            <Button
+              className={`mt-4 border ${
+                fileList.length >= 1
+                  ? 'border-gray-300 text-gray-400 cursor-not-allowed'
+                  : 'border-blue-500 text-blue-600 hover:bg-blue-50'
+              }`}
+              disabled={fileList.length >= 1}
+            >
               Browse
             </Button>
           </div>

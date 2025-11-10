@@ -57,6 +57,9 @@ def import_products_from_csv(file_path: str):
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
+            required_headers = {"title", "colorName", "colorCode", "size", "stock", "price", "image"}
+            csv_headers = set(reader.fieldnames or [])
+            missing = required_headers - csv_headers
             batch_size = 2
             variants_batch = []
 

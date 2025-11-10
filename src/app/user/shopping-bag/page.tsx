@@ -51,7 +51,6 @@ const Shoppingbag: React.FC = () => {
       const updated = prev.map((item) => {
         if (item.key === key) {
           if (newQty > item.stock) {
-            console.log(item.stock);
             toast.error(`Only ${item.stock} items available in stock`);
 
             return { ...item, qty: item.stock };
@@ -192,7 +191,8 @@ const Shoppingbag: React.FC = () => {
       toast.success('Redirecting to checkout...');
       window.location.href = data.url;
     } catch (err) {
-      console.error('Checkout error:', err);
+      // eslint-disable-next-line no-console
+      console.log('Checkout error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Checkout failed. Try again!';
 
       toast.error(errorMessage);
