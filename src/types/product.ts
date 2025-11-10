@@ -33,6 +33,8 @@ export interface ProductType extends ProductBase {
 
 // Response format from backend (paginated or full list)
 export interface ProductResponse {
+  hasMore: boolean;
+  products: never[];
   data: ProductType[];
   total: number;
 }

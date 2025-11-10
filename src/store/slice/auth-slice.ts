@@ -53,6 +53,7 @@ export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (values: ForgotPasswordFormValues, { rejectWithValue }) => {
     try {
+      const email = values.email.trim().toLowerCase();
       const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

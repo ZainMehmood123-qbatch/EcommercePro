@@ -32,8 +32,9 @@ const LoginPage = () => {
   const onFinish = async (values: LoginFormValues) => {
     setLoading(true);
     try {
+      const email = values.email.trim().toLowerCase();
       const res = await signIn('credentials', {
-        email: values.email,
+        email,
         password: values.password,
         remember: remember ? 'true' : 'false',
         redirect: false

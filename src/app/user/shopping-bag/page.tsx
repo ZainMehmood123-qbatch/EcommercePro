@@ -28,6 +28,7 @@ const Shoppingbag: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<CartItem | null>(null);
   const [stockErrors, setStockErrors] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (stockErrors.length > 0) {
@@ -101,12 +102,14 @@ const Shoppingbag: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (loading) return;
+    if (loading || isProcessing) return; // prevent double click
     setLoading(true);
+    setIsProcessing(true);
 
     if (!items.length) {
       toast.error('Your cart is empty!');
       setLoading(false);
+      setIsProcessing(false);
 
       return;
     }
@@ -123,6 +126,7 @@ const Shoppingbag: React.FC = () => {
         toast.error(`${item.product} — only ${available} left in stock`);
       });
       setLoading(false);
+      setIsProcessing(false);
 
       return;
     }
@@ -137,11 +141,7 @@ const Shoppingbag: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           // Strip frontend-only fields like availableStock before sending
-          items: items.map(({ availableStock, ...rest }) => {
-            void availableStock;
-
-            return rest;
-          }),
+          items: items.map(({ availableStock, ...rest }) => rest),
           total
         })
       });
@@ -186,16 +186,15 @@ const Shoppingbag: React.FC = () => {
         throw new Error(message);
       }
 
-      // Success flow
+      // Success flow — clear cart & redirect
       if (userId) clearCart(userId);
       toast.success('Redirecting to checkout...');
       window.location.href = data.url;
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.log('Checkout error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Checkout failed. Try again!';
 
       toast.error(errorMessage);
+      setIsProcessing(false); // allow retry on error
     } finally {
       setLoading(false);
     }
@@ -387,13 +386,13 @@ const Shoppingbag: React.FC = () => {
                 </Button>
                 <Button
                   className={'sb-placeorder'}
-                  disabled={loading}
+                  disabled={loading || isProcessing}
                   loading={loading}
                   size={'large'}
                   type={'primary'}
                   onClick={handlePlaceOrder}
                 >
-                  {loading ? 'Processing...' : 'Place Order'}
+                  {loading || isProcessing ? 'Processing...' : 'Place Order'}
                 </Button>
               </div>
             </div>
@@ -411,6 +410,15 @@ const Shoppingbag: React.FC = () => {
               setItemToDelete(null);
             }}
           />
+        ) : null}
+        {loading ? (
+          <div
+            className={
+              'fixed inset-0 z-[9999] flex items-center justify-center bg-black/10 backdrop-blur-sm'
+            }
+          >
+            <Spin size={'large'} tip={'Processing your order...'} />
+          </div>
         ) : null}
       </Flex>
     </>
