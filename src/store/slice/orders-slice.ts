@@ -127,6 +127,7 @@ interface OrdersState {
   orderLoading: boolean;
   orderError: string | null;
   statsLoading: boolean;
+  orderCache: Record<string, OrderDetailType>;
 }
 
 const initialState: OrdersState = {
@@ -143,7 +144,8 @@ const initialState: OrdersState = {
   orderDetails: null,
   orderLoading: false,
   orderError: null,
-  statsLoading: false
+  statsLoading: false,
+  orderCache: {}
 };
 
 const ordersSlice = createSlice({
