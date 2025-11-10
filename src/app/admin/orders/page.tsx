@@ -6,9 +6,10 @@ import {
   AppstoreOutlined,
   DollarOutlined,
   ExportOutlined,
-  ShoppingCartOutlined
+  ShoppingCartOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
-import { Button, Card, Table } from 'antd';
+import { Button, Card, Table, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import toast from 'react-hot-toast';
 
@@ -119,23 +120,24 @@ const OrdersPage = () => {
       title: 'Actions',
       render: (_, r) => (
         <div className={'flex gap-2'}>
-          <Button
-            className={'hover:bg-blue-50 hover:text-blue-600 transition-all'}
-            icon={<ExportOutlined />}
-            type={'text'}
-            onClick={() => handleViewOrderDetails(r.id)}
-          />
-          {r.paymentStatus === 'PAID' ? (
+          <Tooltip title={'View Order Details'}>
             <Button
-              className={
-                '!bg-green-500 !border-green-500 hover:!bg-green-600 hover:!border-green-600'
-              }
-              loading={updatingOrderId === r.id}
-              type={'primary'}
-              onClick={() => handleMarkCompleted(r.id)}
-            >
-              {updatingOrderId === r.id ? 'Updating...' : 'Mark Completed'}
-            </Button>
+              className={'hover:bg-blue-50 hover:text-blue-600 transition-all'}
+              icon={<ExportOutlined />}
+              type={'text'}
+              onClick={() => handleViewOrderDetails(r.id)}
+            />
+          </Tooltip>
+          {r.paymentStatus === 'PAID' ? (
+            <Tooltip title={'Mark as Completed'}>
+              <Button
+                className={'hover:bg-green-50 transition-all'}
+                icon={<CheckCircleOutlined className={'!text-green-600'} />}
+                loading={updatingOrderId === r.id}
+                type={'text'}
+                onClick={() => handleMarkCompleted(r.id)}
+              />
+            </Tooltip>
           ) : null}
         </div>
       )
