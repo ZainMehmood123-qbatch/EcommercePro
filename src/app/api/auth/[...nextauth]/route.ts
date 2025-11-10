@@ -74,35 +74,50 @@ export const authOptions: NextAuthOptions = {
     })
   ],
 
-  pages: { signIn: '/auth/login' },
+  pages: { signIn: '/auth/login', error: '/auth/login' },
 
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === 'google' && user.email) {
-        let existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
           where: { email: user.email }
         });
 
-        if (!existingUser) {
-          existingUser = await prisma.user.create({
-            data: {
-              fullname: user.name ?? 'No Name',
-              email: user.email,
-              password: '',
-              role: 'USER'
-            }
-          });
+        if (existingUser) {
+          // If existing user already has a password => block Google login
+          if (existingUser.password && existingUser.password !== '') {
+            throw new Error('Please login using your email and password.');
+          }
+
+          // If no password => continue login
+          await getOrCreateStripeCustomer(existingUser.id, existingUser.email);
+
+          user.id = existingUser.id;
+          user.role = existingUser.role as 'ADMIN' | 'USER';
+
+          return true;
         }
 
-        await getOrCreateStripeCustomer(existingUser.id, existingUser.email);
+        // If no user exists, create one
+        const newUser = await prisma.user.create({
+          data: {
+            fullname: user.name ?? 'No Name',
+            email: user.email,
+            password: '',
+            role: 'USER'
+          }
+        });
 
-        user.id = existingUser.id;
-        user.role = existingUser.role as 'ADMIN' | 'USER';
+        await getOrCreateStripeCustomer(newUser.id, newUser.email);
+        user.id = newUser.id;
+        user.role = newUser.role as 'ADMIN' | 'USER';
+
+        return true;
       }
 
+      // For normal credentials login
       return true;
     },
-
     async jwt({ token, user, trigger, account }): Promise<JWT> {
       if (trigger === 'signIn' && user) {
         const now = Math.floor(Date.now() / 1000);

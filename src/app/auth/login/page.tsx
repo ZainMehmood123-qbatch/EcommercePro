@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { signIn } from 'next-auth/react';
 import toast from 'react-hot-toast';
@@ -28,6 +28,17 @@ const LoginPage = () => {
 
     return () => clearTimeout(timer);
   }, []);
+
+  const searchParams = useSearchParams();
+  const errorParam = searchParams.get('error');
+
+  useEffect(() => {
+    if (errorParam) {
+      const decoded = decodeURIComponent(errorParam);
+
+      toast.error(decoded);
+    }
+  }, [errorParam]);
 
   const onFinish = async (values: LoginFormValues) => {
     setLoading(true);
@@ -122,7 +133,7 @@ const LoginPage = () => {
       <Button
         className={'auth-button mt-2'}
         icon={<GoogleOutlined />}
-        onClick={() => signIn('google', { callbackUrl: '/' })}
+        onClick={() => signIn('google')}
       >
         Continue with Google
       </Button>
