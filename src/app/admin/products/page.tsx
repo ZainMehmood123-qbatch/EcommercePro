@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 
-import { Table, Avatar, Button, message, Input, Skeleton } from 'antd';
+import { Table, Avatar, Button, message, Input, Skeleton, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
   EditOutlined,
@@ -123,19 +123,23 @@ const ProductsPage = () => {
       title: 'Actions',
       render: (record: ProductType) => (
         <div className={'flex gap-2'}>
-          <Button
-            icon={<EditOutlined className={'!text-[#007BFF]'} />}
-            type={'text'}
-            onClick={() => handleEdit(record)}
-          />
-          <Button
-            icon={<DeleteOutlined className={'!text-[#DC3545]'} />}
-            type={'text'}
-            onClick={() => {
-              setProductToDelete(record);
-              setIsDeleteModalOpen(true);
-            }}
-          />
+          <Tooltip title={'Edit Product'}>
+            <Button
+              icon={<EditOutlined className={'!text-[#007BFF]'} />}
+              type={'text'}
+              onClick={() => handleEdit(record)}
+            />
+          </Tooltip>
+          <Tooltip title={'Delete Product'}>
+            <Button
+              icon={<DeleteOutlined className={'!text-[#DC3545]'} />}
+              type={'text'}
+              onClick={() => {
+                setProductToDelete(record);
+                setIsDeleteModalOpen(true);
+              }}
+            />
+          </Tooltip>
         </div>
       )
     }
