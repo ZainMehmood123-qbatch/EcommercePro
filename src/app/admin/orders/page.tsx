@@ -102,8 +102,12 @@ const OrdersPage = () => {
     { title: 'Product(s)', render: (_, r) => r.items?.length || 0 },
     {
       title: 'Amount',
-      render: (_, r) =>
-        `$${(r.items?.reduce((sum, i) => sum + i.price * i.qty, 0) ?? 0).toFixed(2)}`
+      render: (_, r) => {
+        const subtotal = r.items?.reduce((sum, i) => sum + i.price * i.qty, 0) ?? 0;
+        const totalWithTax = subtotal * 1.1;
+
+        return `$${totalWithTax.toFixed(2)}`;
+      }
     },
     {
       title: 'Status',

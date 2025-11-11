@@ -80,7 +80,6 @@ export const createProduct = createAsyncThunk<
 
     const data = await res.json();
 
-    // 🔍 Use backend's message if available
     if (!res.ok) {
       return rejectWithValue(data.message || 'Failed to create product');
     }
@@ -119,14 +118,13 @@ export const deleteProduct = createAsyncThunk<string, string, { rejectValue: str
       const res = await fetch(`/api/products/${id}`, { method: 'PATCH' });
       const result = await res.json();
 
-      // Check both HTTP status and API success
       if (!res.ok || result?.success === false) {
         const msg = result?.message || 'Failed to delete product';
 
         return rejectWithValue(msg);
       }
 
-      return id; // return deleted product id for reducer
+      return id;
     } catch (err) {
       return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
     }

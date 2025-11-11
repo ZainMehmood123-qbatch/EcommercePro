@@ -102,7 +102,7 @@ const Shoppingbag: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (loading || isProcessing) return; // prevent double click
+    if (loading || isProcessing) return;
     setLoading(true);
     setIsProcessing(true);
 

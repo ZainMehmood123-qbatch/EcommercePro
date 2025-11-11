@@ -19,7 +19,6 @@ import type { ProductType } from '@/types/product';
 
 import './dashboard.css';
 
-// ---------- Dynamic Imports ----------
 const DashboardCard = dynamic(() => import('@/components/dashboard/dashboard-card'), {
   ssr: false,
   loading: () => null
@@ -54,7 +53,6 @@ const DashboardPage: React.FC = () => {
   const PAGE_SIZE = 8;
   const WINDOW_SIZE = 32;
 
-  // ---------- Debounce Search ----------
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(localSearch), 500);
 
