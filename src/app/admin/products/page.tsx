@@ -49,11 +49,20 @@ const ProductsPage = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<ProductType | null>(null);
   const [visible, setVisible] = useState(false);
+  const [tableLoading, setTableLoading] = useState(false);
 
   // Fetch products
+
   const loadProducts = useCallback(
-    (pageToLoad: number) => {
-      dispatch(fetchProducts({ page: pageToLoad, search: debouncedSearch, sort, limit: 12 }));
+    async (pageToLoad: number) => {
+      setTableLoading(true);
+      try {
+        await dispatch(
+          fetchProducts({ page: pageToLoad, search: debouncedSearch, sort, limit: 12 })
+        ).unwrap();
+      } finally {
+        setTableLoading(false);
+      }
     },
     [dispatch, debouncedSearch, sort]
   );
@@ -200,7 +209,7 @@ const ProductsPage = () => {
         className={'adp-wholetable'}
         columns={columns}
         dataSource={products}
-        loading={loading}
+        loading={tableLoading}
         pagination={{
           current: page,
           pageSize: 12,
