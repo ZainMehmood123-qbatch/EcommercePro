@@ -118,17 +118,18 @@ export const authOptions: NextAuthOptions = {
       // For normal credentials login
       return true;
     },
+
     async jwt({ token, user, trigger, account }): Promise<JWT> {
       if (trigger === 'signIn' && user) {
         const now = Math.floor(Date.now() / 1000);
         let maxAge: number;
 
-        if (account?.provider === 'credentials') {
+        if (account?.provider === 'credentials' || account?.provider === 'google') {
           const remember = user.remember ?? false;
 
           maxAge = remember ? 30 * 24 * 60 * 60 : 7 * 24 * 60 * 60;
         } else {
-          maxAge = 30 * 24 * 60 * 60; // Google case
+          maxAge = 30 * 24 * 60 * 60;
         }
 
         const exp = now + maxAge;
