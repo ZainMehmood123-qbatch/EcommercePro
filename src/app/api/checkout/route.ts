@@ -22,15 +22,12 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id || !session.user.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
     const body = await req.json();
-
     const { items, total } = body as { items: CartItem[]; total: number };
 
     if (!items?.length) {
       return NextResponse.json({ error: 'No items in cart' }, { status: 400 });
     }
-
     const variantIds = items.map((i) => i.variantId);
     const duplicates = variantIds.filter((id, index) => variantIds.indexOf(id) !== index);
 

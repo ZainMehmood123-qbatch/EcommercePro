@@ -42,17 +42,14 @@ export const getProductsSchema = Joi.object({
     'number.base': 'Page number must be a number',
     'number.min': 'Page number must be at least 1'
   }),
-
   limit: Joi.number().integer().min(1).max(100).default(10).messages({
     'number.base': 'Limit must be a number',
     'number.min': 'Limit must be at least 1',
     'number.max': 'Limit cannot exceed 100'
   }),
-
   search: Joi.string().allow('').optional().messages({
     'string.base': 'Search must be a string'
   }),
-
   sort: Joi.string()
     .valid('newest', 'oldest', 'price_asc', 'price_desc')
     .default('newest')

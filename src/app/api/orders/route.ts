@@ -87,6 +87,33 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// export async function PATCH(req: Request) {
+//   try {
+//     const { orderId, paymentStatus } = await req.json();
+
+//     if (!orderId || !paymentStatus) {
+//       return NextResponse.json({ error: 'Missing orderId or paymentStatus' }, { status: 400 });
+//     }
+
+//     const updatedOrder = await prisma.order.update({
+//       where: { id: orderId },
+//       data: { paymentStatus }
+//     });
+
+//     return NextResponse.json({
+//       success: true,
+//       message: 'Order updated successfully',
+//       data: updatedOrder
+//     });
+//   } catch (error) {
+//     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+//       return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+//     }
+
+//     return NextResponse.json({ success: false, message: 'Server error' }, { status: 500 });
+//   }
+// }
+
 export async function PATCH(req: Request) {
   try {
     const { orderId, paymentStatus } = await req.json();
@@ -95,10 +122,31 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Missing orderId or paymentStatus' }, { status: 400 });
     }
 
+    // 🧩 Find the order to get the userId
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: { id: true, userId: true }
+    });
+
+    if (!existingOrder) {
+      return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+    }
+
+    // ✅ Update order status
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { paymentStatus }
     });
+
+    // 🔔 If admin marked as COMPLETED, notify the user
+    if (paymentStatus === 'COMPLETED') {
+      await prisma.notification.create({
+        data: {
+          userId: existingOrder.userId,
+          message: `Your order with OrderID ${existingOrder.id.slice(0, 6)} has been marked as Completed by the admin.`
+        }
+      });
+    }
 
     return NextResponse.json({
       success: true,
@@ -106,6 +154,8 @@ export async function PATCH(req: Request) {
       data: updatedOrder
     });
   } catch (error) {
+    console.error('Order update error:', error);
+
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
       return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
     }

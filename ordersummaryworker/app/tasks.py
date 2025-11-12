@@ -1,11 +1,12 @@
+# app/tasks.py
 import csv
+import io
 import uuid
 from datetime import datetime
 from app.celery_app import celery
 from app.db import SessionLocal
 from app.models import Order, OrderItem, OrderSummary, Product, ProductVariant
 from sqlalchemy import func
-
 
 @celery.task(name="app.tasks.recalculate_summary")
 def recalculate_summary():
@@ -22,7 +23,7 @@ def recalculate_summary():
                 totalOrders=0,
                 totalUnits=0,
                 totalAmount=0,
-                lastUpdated=datetime(2000, 1, 1),  # very old default date
+                lastUpdated=datetime(2000, 1, 1),
             )
             db.add(summary)
             db.commit()
@@ -62,48 +63,34 @@ def recalculate_summary():
 
         db.commit()
         print(
-            f"✅ Summary incrementally updated! "
+            f"Summary incrementally updated! "
             f"+{new_orders_count} orders, +{new_units} units, +{new_amount} amount"
         )
 
     except Exception as e:
         db.rollback()
-        print("❌ Error updating summary incrementally:", e)
+        print("Error updating summary incrementally:", e)
     finally:
         db.close()
 
-
 @celery.task(name="app.tasks.import_products_from_csv")
 def import_products_from_csv(file_path: str):
-    """
-    Background CSV importer — processes large product CSV files in batches (streamed).
-    Efficiently inserts only missing products/variants.
-    """
+    """Background task — process CSV file in streaming (chunked) manner."""
     db = SessionLocal()
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            required_headers = {"title", "colorName", "colorCode", "size", "stock", "price", "image"}
-            csv_headers = set(reader.fieldnames or [])
-            missing = required_headers - csv_headers
-
-            if missing:
-                raise ValueError(f"Missing required CSV headers: {', '.join(missing)}")
-
-            batch_size = 100  # increased for performance
+            batch_size = 2
             variants_batch = []
 
             for i, row in enumerate(reader, start=1):
-                title = row.get("title", "").strip()
-                color = row.get("colorName", "").strip()
-                color_code = row.get("colorCode", "").strip()
-                size = row.get("size", "").strip()
+                title = row.get("title")
+                color = row.get("colorName")
+                size = row.get("size")
                 price = float(row.get("price") or 0)
                 stock = int(row.get("stock") or 0)
-                image = row.get("image", "").strip()
-
-                if not title:
-                    continue  # skip invalid rows
+                image = row.get("image")
+                color_code = row.get("colorCode")
 
                 # Check if product exists
                 product = db.query(Product).filter(Product.title == title).first()
@@ -113,7 +100,7 @@ def import_products_from_csv(file_path: str):
                     db.commit()
 
                 # Check if variant exists
-                exists = (
+                existing_variant = (
                     db.query(ProductVariant)
                     .filter(
                         ProductVariant.productId == product.id,
@@ -123,7 +110,7 @@ def import_products_from_csv(file_path: str):
                     .first()
                 )
 
-                if not exists:
+                if not existing_variant:
                     variant = ProductVariant(
                         id=str(uuid.uuid4()),
                         productId=product.id,
@@ -140,19 +127,17 @@ def import_products_from_csv(file_path: str):
                 if i % batch_size == 0:
                     db.add_all(variants_batch)
                     db.commit()
-                    print(f"Imported {i} rows so far...")
                     variants_batch.clear()
+                    print(f"Imported {i} rows so far...")
 
             # Commit remaining rows
             if variants_batch:
                 db.add_all(variants_batch)
                 db.commit()
 
-        print("🎉 All products imported successfully!")
-
+        print("All products imported successfully!")
     except Exception as e:
         db.rollback()
-        print("❌ Error importing products:", e)
-
+        print("Error importing products:", e)
     finally:
         db.close()

@@ -35,6 +35,8 @@ model User {
   orders            Order[]
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  notifications Notification[]
 }
 
 model Product {
@@ -99,4 +101,13 @@ model OrderSummary {
   totalUnits   Int
   totalAmount  Float
   lastUpdated  DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

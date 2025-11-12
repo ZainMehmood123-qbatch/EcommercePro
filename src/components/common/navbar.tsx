@@ -8,11 +8,12 @@ import { useRouter } from 'next/navigation';
 
 import { useSession, signOut } from 'next-auth/react';
 import { Button, Dropdown } from 'antd';
-import { Bell, ShoppingBag, User } from 'lucide-react';
+import { ShoppingBag, User } from 'lucide-react';
 
 import { toast } from 'react-hot-toast';
 
 import { subscribeCartChange, getCartItems } from '@/lib/cart';
+import NotificationBell from '@/components/common/Notification';
 
 const Navbar = ({ title = 'E-commerce' }) => {
   const { data: session, status } = useSession();
@@ -104,7 +105,7 @@ const Navbar = ({ title = 'E-commerce' }) => {
             </span>
           ) : null}
         </div>
-        <Bell className={'h-4 w-4 text-[#007BFF]'} />
+        <NotificationBell />
         {!isLoggedIn ? (
           <Link className={'text-[#007BFF] font-medium text-xs leading-3'} href={'/auth/login'}>
             Login
