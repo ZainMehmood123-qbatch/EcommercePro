@@ -80,7 +80,7 @@ def import_products_from_csv(file_path: str):
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
-            batch_size = 2
+            batch_size = 1
             variants_batch = []
 
             for i, row in enumerate(reader, start=1):
@@ -111,6 +111,7 @@ def import_products_from_csv(file_path: str):
                 )
 
                 if not existing_variant:
+                    print(f"➡️ Adding variant for {title} ({color}-{size})")
                     variant = ProductVariant(
                         id=str(uuid.uuid4()),
                         productId=product.id,
@@ -122,6 +123,9 @@ def import_products_from_csv(file_path: str):
                         image=image,
                     )
                     variants_batch.append(variant)
+                else:
+                    print(f"⚠️ Variant already exists for {title} ({color}-{size})")
+
 
                 # Commit every N rows
                 if i % batch_size == 0:
