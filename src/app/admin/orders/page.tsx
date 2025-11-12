@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   AppstoreOutlined,
@@ -13,7 +13,7 @@ import { Button, Card, Table, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import toast from 'react-hot-toast';
 
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import SearchComponent from '@/components/dashboard/search-bar';
 import OrderDetailsSidebar from '@/components/OrderDetailsSidebar';
