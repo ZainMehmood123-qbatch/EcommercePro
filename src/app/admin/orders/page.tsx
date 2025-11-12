@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 import {
   AppstoreOutlined,
@@ -19,13 +19,13 @@ import SearchComponent from '@/components/dashboard/search-bar';
 import OrderDetailsSidebar from '@/components/OrderDetailsSidebar';
 import { FetchedOrder } from '@/types/order';
 
-import { RootState, AppDispatch } from '@/store';
+import { RootState, useAppDispatch } from '@/store';
 import { fetchOrders, setPage, markOrderCompleted } from '@/store/slice/orders-slice';
 
 import './orderss.css';
 
 const OrdersPage = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const {
     data: orders,
     totalCount,
