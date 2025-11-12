@@ -67,7 +67,6 @@ const ProductsPage = () => {
     [dispatch, debouncedSearch, sort]
   );
 
-  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(localSearch);
@@ -76,16 +75,14 @@ const ProductsPage = () => {
     return () => clearTimeout(handler);
   }, [localSearch]);
 
-  // Sync redux search state
   useEffect(() => {
     dispatch(setSearch(debouncedSearch));
   }, [debouncedSearch, dispatch]);
 
-  // Fetch when search or sort changes
   useEffect(() => {
     dispatch(resetProducts());
     loadProducts(1);
-  }, [debouncedSearch, sort, dispatch, loadProducts]);
+  }, [debouncedSearch, sort, loadProducts, dispatch]);
 
   const handleEdit = (product: ProductType) => {
     setSelectedProduct(product);
