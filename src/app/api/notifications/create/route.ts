@@ -14,6 +14,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(notification);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error creating notification:', error);
 
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
