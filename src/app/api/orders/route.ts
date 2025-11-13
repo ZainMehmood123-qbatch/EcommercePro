@@ -95,7 +95,6 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: 'Missing orderId or paymentStatus' }, { status: 400 });
     }
 
-    // 🧩 Find the order to get the userId
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },
       select: { id: true, userId: true }
@@ -105,13 +104,11 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
     }
 
-    // ✅ Update order status
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { paymentStatus }
     });
 
-    // 🔔 If admin marked as COMPLETED, notify the user
     if (paymentStatus === 'COMPLETED') {
       await prisma.notification.create({
         data: {

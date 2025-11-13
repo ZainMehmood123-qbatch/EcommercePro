@@ -6,7 +6,6 @@ import jwt from 'jsonwebtoken';
 
 import { prisma } from '@/lib/prisma';
 
-// Joi schema for validation
 const schema = Joi.object({
   token: Joi.string().required(),
   password: Joi.string()
@@ -23,7 +22,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    // Validate with Joi
     const { error, value } = schema.validate(body);
 
     if (error) {

@@ -84,12 +84,10 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (existingUser) {
-          // If existing user already has a password => block Google login
           if (existingUser.password && existingUser.password !== '') {
             throw new Error('Please login using your email and password.');
           }
 
-          // If no password => continue login
           await getOrCreateStripeCustomer(existingUser.id, existingUser.email);
 
           user.id = existingUser.id;
@@ -98,7 +96,6 @@ export const authOptions: NextAuthOptions = {
           return true;
         }
 
-        // If no user exists, create one
         const newUser = await prisma.user.create({
           data: {
             fullname: user.name ?? 'No Name',
@@ -115,7 +112,6 @@ export const authOptions: NextAuthOptions = {
         return true;
       }
 
-      // For normal credentials login
       return true;
     },
 
