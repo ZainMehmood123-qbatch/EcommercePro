@@ -145,8 +145,6 @@ const DashboardCard = ({ product }: DashboardCardProps) => {
             ${price.toFixed(2)}
           </span>
         </div>
-
-        {/* Color Selection */}
         <div>
           <label className={'block text-xs font-medium text-gray-500 mb-2'}>
             Select Color {selectedColor ? <span className={'text-[#007BFF]'}>✓</span> : null}
@@ -191,8 +189,6 @@ const DashboardCard = ({ product }: DashboardCardProps) => {
             ))}
           </div>
         </div>
-
-        {/* Size Selection */}
         <div>
           <label className={'block text-xs font-medium text-gray-500 mb-2'}>
             Select Size {selectedSize ? <span className={'text-[#007BFF]'}>✓</span> : null}
@@ -218,8 +214,6 @@ const DashboardCard = ({ product }: DashboardCardProps) => {
             ))}
           </div>
         </div>
-
-        {/* Quantity and Add to Cart */}
         <div
           className={
             'flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2'
