@@ -31,7 +31,6 @@ const productSortItems: GenericDropdownItem[] = [
   { key: 'oldest', label: 'Oldest First', icon: <CalendarOutlined /> }
 ];
 
-// ---------- Component ----------
 const DashboardPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { search, sort, hasMore } = useAppSelector((state) => state.products);
@@ -63,7 +62,6 @@ const DashboardPage: React.FC = () => {
     dispatch(setSearch(debouncedSearch));
   }, [debouncedSearch, dispatch]);
 
-  // ---------- Fetch Products ----------
   const fetchPage = useCallback(
     async (pageNum: number, mode: 'reset' | 'append' | 'prepend' = 'append') => {
       if (isLoadingRef.current) return;
@@ -132,7 +130,6 @@ const DashboardPage: React.FC = () => {
     [dispatch, debouncedSearch, sort]
   );
 
-  // ---------- Scroll Handler ----------
   const handleScroll = useCallback(() => {
     if (!scrollContainerRef.current) return;
 
@@ -155,7 +152,6 @@ const DashboardPage: React.FC = () => {
     }, 80);
   }, [fetchPage]);
 
-  // ---------- Initial Load ----------
   useEffect(() => {
     allProductsCache.current = [];
     firstPageRef.current = lastPageRef.current = 1;
@@ -166,7 +162,6 @@ const DashboardPage: React.FC = () => {
     fetchPage(1, 'reset');
   }, [debouncedSearch, sort, dispatch, fetchPage]);
 
-  // ---------- Scroll Event Binding ----------
   useEffect(() => {
     const el = scrollContainerRef.current;
 
@@ -180,7 +175,6 @@ const DashboardPage: React.FC = () => {
     };
   }, [handleScroll]);
 
-  // ---------- Render ----------
   return (
     <>
       {isLoadingRef.current ? (
