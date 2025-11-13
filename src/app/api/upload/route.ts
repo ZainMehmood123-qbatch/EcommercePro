@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       'image/webp',
       'image/gif'
     ];
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize = 5 * 1024 * 1024; //5MB
 
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
@@ -36,10 +36,12 @@ export async function POST(request: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+
     const timestamp = Date.now();
     const fileExtension = path.extname(file.name);
     const sanitizedFileName = file.name.replace(fileExtension, '').replace(/\s+/g, '_');
     const uniqueFileName = `${sanitizedFileName}_${timestamp}${fileExtension}`;
+
     const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'products');
 
     await mkdir(uploadsDir, { recursive: true });
