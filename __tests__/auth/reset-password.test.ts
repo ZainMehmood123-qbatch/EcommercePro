@@ -1,8 +1,10 @@
-import { POST } from '@/app/api/auth/reset-password/route';
-import { prisma } from '@/lib/prisma';
+/* eslint-disable no-undef */
 import bcrypt from 'bcryptjs';
+
 import jwt from 'jsonwebtoken';
 
+import { POST } from '@/app/api/auth/reset-password/route';
+import { prisma } from '@/lib/prisma';
 
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -11,7 +13,6 @@ beforeAll(() => {
 afterAll(() => {
   jest.restoreAllMocks();
 });
-
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -51,7 +52,10 @@ describe('POST /api/auth/reset-password', () => {
 
   it('should update password successfully', async () => {
     (jwt.verify as jest.Mock).mockReturnValue({ email: 'john@example.com', version: 1 });
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ email: 'john@example.com', resetTokenVersion: 1 });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+      email: 'john@example.com',
+      resetTokenVersion: 1
+    });
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
     (prisma.user.update as jest.Mock).mockResolvedValue({});
 
@@ -63,7 +67,9 @@ describe('POST /api/auth/reset-password', () => {
   });
 
   it('should return 400 for invalid token', async () => {
-    (jwt.verify as jest.Mock).mockImplementation(() => { throw new Error('invalid'); });
+    (jwt.verify as jest.Mock).mockImplementation(() => {
+      throw new Error('invalid');
+    });
 
     const res = await POST(mockRequest(validBody));
     const data = await res.json();

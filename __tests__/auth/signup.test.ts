@@ -1,7 +1,8 @@
-import { POST } from '@/app/api/auth/signup/route';
-import { prisma } from '@/lib/prisma';
+/* eslint-disable no-undef */
 import bcrypt from 'bcryptjs';
 
+import { POST } from '@/app/api/auth/signup/route';
+import { prisma } from '@/lib/prisma';
 
 beforeAll(() => {
   jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -10,7 +11,6 @@ beforeAll(() => {
 afterAll(() => {
   jest.restoreAllMocks();
 });
-
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {

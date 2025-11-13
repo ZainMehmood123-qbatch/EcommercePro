@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import jwt from 'jsonwebtoken';
 
 import { POST } from '@/app/api/auth/forgot-password/route';

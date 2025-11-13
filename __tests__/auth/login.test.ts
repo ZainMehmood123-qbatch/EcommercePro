@@ -1,11 +1,13 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { prisma } from '@/lib/prisma';
+/* eslint-disable no-undef */
 import bcrypt from 'bcryptjs';
-import { getOrCreateStripeCustomer } from '@/lib/stripeCustomer';
+
 import type { AdapterUser } from 'next-auth/adapters';
-import type { User } from 'next-auth';
-import type { Account } from 'next-auth';
+import type { User, Account } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
+
+import { getOrCreateStripeCustomer } from '@/lib/stripeCustomer';
+import { prisma } from '@/lib/prisma';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 describe('NextAuth - Credentials & Google Provider', () => {
   const mockUser: User = {
@@ -20,42 +22,42 @@ describe('NextAuth - Credentials & Google Provider', () => {
   });
 
   // ✅ 1. Valid credentials
-//   it('✅ should authorize valid credentials', async () => {
-//     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-//       ...mockUser,
-//       password: 'hashedPassword'
-//     });
-//     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+  //   it('✅ should authorize valid credentials', async () => {
+  //     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+  //       ...mockUser,
+  //       password: 'hashedPassword'
+  //     });
+  //     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-//     const credentials = {
-//       email: 'test@example.com',
-//       password: 'password123',
-//       remember: 'true'
-//     };
+  //     const credentials = {
+  //       email: 'test@example.com',
+  //       password: 'password123',
+  //       remember: 'true'
+  //     };
 
-//     const provider = authOptions.providers.find(
-//       (p) => p.name === 'Credentials'
-//     );
+  //     const provider = authOptions.providers.find(
+  //       (p) => p.name === 'Credentials'
+  //     );
 
-//     if (!provider || !('authorize' in provider)) {
-//       throw new Error('Credentials provider not found');
-//     }
+  //     if (!provider || !('authorize' in provider)) {
+  //       throw new Error('Credentials provider not found');
+  //     }
 
-//     const user = await provider.authorize(credentials, {
-//       body: {},
-//       query: {},
-//       headers: {},
-//       method: 'POST'
-//     });
+  //     const user = await provider.authorize(credentials, {
+  //       body: {},
+  //       query: {},
+  //       headers: {},
+  //       method: 'POST'
+  //     });
 
-//     expect(user).toEqual({
-//       id: 'user-123',
-//       name: 'Test User',
-//       email: 'test@example.com',
-//       role: 'USER',
-//       remember: true
-//     });
-//   });
+  //     expect(user).toEqual({
+  //       id: 'user-123',
+  //       name: 'Test User',
+  //       email: 'test@example.com',
+  //       role: 'USER',
+  //       remember: true
+  //     });
+  //   });
 
   // ❌ 2. User not found
   it('❌ should return null if user not found', async () => {
@@ -67,9 +69,7 @@ describe('NextAuth - Credentials & Google Provider', () => {
       remember: 'false'
     };
 
-    const provider = authOptions.providers.find(
-      (p) => p.name === 'Credentials'
-    );
+    const provider = authOptions.providers.find((p) => p.name === 'Credentials');
 
     if (!provider || !('authorize' in provider)) {
       throw new Error('Credentials provider not found');
@@ -99,9 +99,7 @@ describe('NextAuth - Credentials & Google Provider', () => {
       remember: 'false'
     };
 
-    const provider = authOptions.providers.find(
-      (p) => p.name === 'Credentials'
-    );
+    const provider = authOptions.providers.find((p) => p.name === 'Credentials');
 
     if (!provider || !('authorize' in provider)) {
       throw new Error('Credentials provider not found');
@@ -124,6 +122,7 @@ describe('NextAuth - Credentials & Google Provider', () => {
     (getOrCreateStripeCustomer as jest.Mock).mockResolvedValue('stripe-123');
 
     const signInCb = authOptions.callbacks?.signIn;
+
     if (!signInCb) throw new Error('signIn callback missing');
 
     const user: User = { ...mockUser };
@@ -134,17 +133,16 @@ describe('NextAuth - Credentials & Google Provider', () => {
     };
 
     const result = await signInCb({ user, account });
+
     expect(result).toBe(true);
     expect(prisma.user.create).toHaveBeenCalled();
-    expect(getOrCreateStripeCustomer).toHaveBeenCalledWith(
-      mockUser.id,
-      mockUser.email
-    );
+    expect(getOrCreateStripeCustomer).toHaveBeenCalledWith(mockUser.id, mockUser.email);
   });
 
   // ✅ 5. JWT callback populates token correctly
   it('✅ should populate jwt correctly on signIn', async () => {
     const jwtCb = authOptions.callbacks?.jwt;
+
     if (!jwtCb) throw new Error('jwt callback missing');
 
     const token: JWT = {
@@ -182,6 +180,7 @@ describe('NextAuth - Credentials & Google Provider', () => {
   // ✅ 6. Session callback returns correct user session
   it('✅ should return session with user details', async () => {
     const sessionCb = authOptions.callbacks?.session;
+
     if (!sessionCb) throw new Error('session callback missing');
 
     const mockToken: JWT = {
