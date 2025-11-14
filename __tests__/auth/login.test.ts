@@ -21,45 +21,6 @@ describe('NextAuth - Credentials & Google Provider', () => {
     jest.clearAllMocks();
   });
 
-  // ✅ 1. Valid credentials
-  //   it('✅ should authorize valid credentials', async () => {
-  //     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-  //       ...mockUser,
-  //       password: 'hashedPassword'
-  //     });
-  //     (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-  //     const credentials = {
-  //       email: 'test@example.com',
-  //       password: 'password123',
-  //       remember: 'true'
-  //     };
-
-  //     const provider = authOptions.providers.find(
-  //       (p) => p.name === 'Credentials'
-  //     );
-
-  //     if (!provider || !('authorize' in provider)) {
-  //       throw new Error('Credentials provider not found');
-  //     }
-
-  //     const user = await provider.authorize(credentials, {
-  //       body: {},
-  //       query: {},
-  //       headers: {},
-  //       method: 'POST'
-  //     });
-
-  //     expect(user).toEqual({
-  //       id: 'user-123',
-  //       name: 'Test User',
-  //       email: 'test@example.com',
-  //       role: 'USER',
-  //       remember: true
-  //     });
-  //   });
-
-  // ❌ 2. User not found
   it('❌ should return null if user not found', async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
@@ -85,7 +46,6 @@ describe('NextAuth - Credentials & Google Provider', () => {
     expect(user).toBeNull();
   });
 
-  // ❌ 3. Invalid password
   it('❌ should return null if password invalid', async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
       ...mockUser,
@@ -115,7 +75,6 @@ describe('NextAuth - Credentials & Google Provider', () => {
     expect(user).toBeNull();
   });
 
-  // ✅ 4. Google sign-in creates new user if missing
   it('✅ should create a new user on Google sign-in if not exists', async () => {
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.user.create as jest.Mock).mockResolvedValue(mockUser);
@@ -139,7 +98,6 @@ describe('NextAuth - Credentials & Google Provider', () => {
     expect(getOrCreateStripeCustomer).toHaveBeenCalledWith(mockUser.id, mockUser.email);
   });
 
-  // ✅ 5. JWT callback populates token correctly
   it('✅ should populate jwt correctly on signIn', async () => {
     const jwtCb = authOptions.callbacks?.jwt;
 
@@ -177,7 +135,6 @@ describe('NextAuth - Credentials & Google Provider', () => {
     });
   });
 
-  // ✅ 6. Session callback returns correct user session
   it('✅ should return session with user details', async () => {
     const sessionCb = authOptions.callbacks?.session;
 
