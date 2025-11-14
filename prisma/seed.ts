@@ -84,13 +84,6 @@ async function main() {
   //     ]
   //   },
   //   {
-  //     title: 'Polo Shirt',
-  //     variants: [
-  //       { size: 'M', stock: 50, price: 29.99 },
-  //       { size: 'L', stock: 65, price: 30.5 }
-  //     ]
-  //   },
-  //   {
   //     title: 'Leather Jacket',
   //     variants: [
   //       { size: 'L', stock: 20, price: 120 },
@@ -203,170 +196,164 @@ async function main() {
         { size: 'M', stock: 80, price: 19.99 },
         { size: 'L', stock: 120, price: 20.99 }
       ]
+    },
+
+    {
+      title: 'Denim Jacket',
+      variants: [
+        { size: 'M', stock: 25, price: 89.5 },
+        { size: 'L', stock: 30, price: 91 }
+      ]
+    },
+    {
+      title: 'Sneakers',
+      variants: [
+        { size: '41', stock: 60, price: 59 },
+        { size: '42', stock: 75, price: 60 }
+      ]
+    },
+    {
+      title: 'Hoodie',
+      variants: [
+        { size: 'M', stock: 40, price: 39.99 },
+        { size: 'L', stock: 30, price: 41 }
+      ]
+    },
+    {
+      title: 'Leather Jacket',
+      variants: [
+        { size: 'L', stock: 20, price: 120 },
+        { size: 'XL', stock: 25, price: 125 }
+      ]
+    },
+    {
+      title: 'Running Shoes',
+      variants: [
+        { size: '42', stock: 60, price: 75 },
+        { size: '43', stock: 80, price: 77 }
+      ]
+    },
+    {
+      title: 'Checked Shirt',
+      variants: [
+        { size: 'M', stock: 55, price: 35 },
+        { size: 'L', stock: 45, price: 36 }
+      ]
+    },
+    {
+      title: 'Jeans Slim Fit',
+      variants: [
+        { size: '30', stock: 60, price: 55.5 },
+        { size: '32', stock: 90, price: 56.5 }
+      ]
+    },
+    {
+      title: 'Green Hoodie',
+      variants: [
+        { size: 'M', stock: 35, price: 42 },
+        { size: 'L', stock: 45, price: 43 }
+      ]
+    },
+    {
+      title: 'White Sneakers',
+      variants: [
+        { size: '40', stock: 70, price: 60 },
+        { size: '41', stock: 85, price: 61 }
+      ]
+    },
+    {
+      title: 'Striped T-Shirt',
+      variants: [
+        { size: 'M', stock: 100, price: 22 },
+        { size: 'L', stock: 80, price: 23 }
+      ]
+    },
+    {
+      title: 'Blue Jeans',
+      variants: [
+        { size: '32', stock: 100, price: 50 },
+        { size: '34', stock: 110, price: 51 }
+      ]
+    },
+    {
+      title: 'Winter Coat',
+      variants: [
+        { size: 'L', stock: 25, price: 130 },
+        { size: 'XL', stock: 20, price: 132 }
+      ]
+    },
+    {
+      title: 'Summer Hat',
+      variants: [
+        { size: 'M', stock: 50, price: 25 },
+        { size: 'L', stock: 40, price: 26 }
+      ]
+    },
+    {
+      title: 'Leather Belt',
+      variants: [
+        { size: 'M', stock: 60, price: 35 },
+        { size: 'L', stock: 50, price: 36 }
+      ]
+    },
+    { title: 'Sports Cap', variants: [{ size: 'One Size', stock: 70, price: 15 }] },
+    {
+      title: 'Yoga Pants',
+      variants: [
+        { size: 'S', stock: 40, price: 30 },
+        { size: 'M', stock: 50, price: 31 }
+      ]
+    },
+    {
+      title: 'Hooded Sweatshirt',
+      variants: [
+        { size: 'M', stock: 45, price: 40 },
+        { size: 'L', stock: 30, price: 41 }
+      ]
+    },
+    {
+      title: 'Graphic Tee',
+      variants: [
+        { size: 'S', stock: 70, price: 21 },
+        { size: 'M', stock: 85, price: 22 }
+      ]
+    },
+    {
+      title: 'Slim Chinos',
+      variants: [
+        { size: '30', stock: 55, price: 49.5 },
+        { size: '32', stock: 65, price: 50.5 }
+      ]
+    },
+    {
+      title: 'Wool Sweater',
+      variants: [
+        { size: 'M', stock: 35, price: 70 },
+        { size: 'L', stock: 40, price: 72 }
+      ]
+    },
+    {
+      title: 'Running Shorts',
+      variants: [
+        { size: 'S', stock: 80, price: 25 },
+        { size: 'M', stock: 90, price: 26 }
+      ]
+    },
+    {
+      title: 'Puffer Jacket',
+      variants: [
+        { size: 'L', stock: 20, price: 110 },
+        { size: 'XL', stock: 25, price: 115 }
+      ]
+    },
+    {
+      title: 'Denim Shorts',
+      variants: [
+        { size: '30', stock: 60, price: 40 },
+        { size: '32', stock: 70, price: 42 }
+      ]
     }
 
-    // {
-    //   title: 'Denim Jacket',
-    //   variants: [
-    //     { size: 'M', stock: 25, price: 89.5 },
-    //     { size: 'L', stock: 30, price: 91 }
-    //   ]
-    // },
-    // {
-    //   title: 'Sneakers',
-    //   variants: [
-    //     { size: '41', stock: 60, price: 59 },
-    //     { size: '42', stock: 75, price: 60 }
-    //   ]
-    // },
-    // {
-    //   title: 'Hoodie',
-    //   variants: [
-    //     { size: 'M', stock: 40, price: 39.99 },
-    //     { size: 'L', stock: 30, price: 41 }
-    //   ]
-    // },
-    // {
-    //   title: 'Polo Shirt',
-    //   variants: [
-    //     { size: 'M', stock: 50, price: 29.99 },
-    //     { size: 'L', stock: 65, price: 30.5 }
-    //   ]
-    // },
-    // {
-    //   title: 'Leather Jacket',
-    //   variants: [
-    //     { size: 'L', stock: 20, price: 120 },
-    //     { size: 'XL', stock: 25, price: 125 }
-    //   ]
-    // },
-    // {
-    //   title: 'Running Shoes',
-    //   variants: [
-    //     { size: '42', stock: 60, price: 75 },
-    //     { size: '43', stock: 80, price: 77 }
-    //   ]
-    // },
-    // {
-    //   title: 'Checked Shirt',
-    //   variants: [
-    //     { size: 'M', stock: 55, price: 35 },
-    //     { size: 'L', stock: 45, price: 36 }
-    //   ]
-    // },
-    // {
-    //   title: 'Jeans Slim Fit',
-    //   variants: [
-    //     { size: '30', stock: 60, price: 55.5 },
-    //     { size: '32', stock: 90, price: 56.5 }
-    //   ]
-    // },
-    // {
-    //   title: 'Green Hoodie',
-    //   variants: [
-    //     { size: 'M', stock: 35, price: 42 },
-    //     { size: 'L', stock: 45, price: 43 }
-    //   ]
-    // },
-    // {
-    //   title: 'White Sneakers',
-    //   variants: [
-    //     { size: '40', stock: 70, price: 60 },
-    //     { size: '41', stock: 85, price: 61 }
-    //   ]
-    // },
-    // {
-    //   title: 'Striped T-Shirt',
-    //   variants: [
-    //     { size: 'M', stock: 100, price: 22 },
-    //     { size: 'L', stock: 80, price: 23 }
-    //   ]
-    // },
-    // {
-    //   title: 'Blue Jeans',
-    //   variants: [
-    //     { size: '32', stock: 100, price: 50 },
-    //     { size: '34', stock: 110, price: 51 }
-    //   ]
-    // },
-    // {
-    //   title: 'Winter Coat',
-    //   variants: [
-    //     { size: 'L', stock: 25, price: 130 },
-    //     { size: 'XL', stock: 20, price: 132 }
-    //   ]
-    // },
-    // {
-    //   title: 'Summer Hat',
-    //   variants: [
-    //     { size: 'M', stock: 50, price: 25 },
-    //     { size: 'L', stock: 40, price: 26 }
-    //   ]
-    // },
-    // {
-    //   title: 'Leather Belt',
-    //   variants: [
-    //     { size: 'M', stock: 60, price: 35 },
-    //     { size: 'L', stock: 50, price: 36 }
-    //   ]
-    // },
-    // { title: 'Sports Cap', variants: [{ size: 'One Size', stock: 70, price: 15 }] },
-    // {
-    //   title: 'Yoga Pants',
-    //   variants: [
-    //     { size: 'S', stock: 40, price: 30 },
-    //     { size: 'M', stock: 50, price: 31 }
-    //   ]
-    // },
-    // {
-    //   title: 'Hooded Sweatshirt',
-    //   variants: [
-    //     { size: 'M', stock: 45, price: 40 },
-    //     { size: 'L', stock: 30, price: 41 }
-    //   ]
-    // },
-    // {
-    //   title: 'Graphic Tee',
-    //   variants: [
-    //     { size: 'S', stock: 70, price: 21 },
-    //     { size: 'M', stock: 85, price: 22 }
-    //   ]
-    // },
-    // {
-    //   title: 'Slim Chinos',
-    //   variants: [
-    //     { size: '30', stock: 55, price: 49.5 },
-    //     { size: '32', stock: 65, price: 50.5 }
-    //   ]
-    // },
-    // {
-    //   title: 'Wool Sweater',
-    //   variants: [
-    //     { size: 'M', stock: 35, price: 70 },
-    //     { size: 'L', stock: 40, price: 72 }
-    //   ]
-    // },
-    // {
-    //   title: 'Running Shorts',
-    //   variants: [
-    //     { size: 'S', stock: 80, price: 25 },
-    //     { size: 'M', stock: 90, price: 26 }
-    //   ]
-    // },
-    // {
-    //   title: 'Puffer Jacket',
-    //   variants: [
-    //     { size: 'L', stock: 20, price: 110 },
-    //     { size: 'XL', stock: 25, price: 115 }
-    //   ]
-    // },
-    // {
-    //   title: 'Denim Shorts',
-    //   variants: [
-    //     { size: '30', stock: 60, price: 40 },
-    //     { size: '32', stock: 70, price: 42 }
-    //   ]
-    // },
     // {
     //   title: 'Formal Shirt',
     //   variants: [
