@@ -151,7 +151,16 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
         }
       >
         <Upload.Dragger
-          beforeUpload={() => false}
+          beforeUpload={(file) => {
+            if (!file.name.endsWith('.csv')) {
+              toast.error('Only CSV files are allowed!');
+              message.error('Only CSV files are allowed!');
+
+              return Upload.LIST_IGNORE; // File ko list mei add hi nahi karega
+            }
+
+            return false; // File ko upload na kare, but list mei add kar de
+          }}
           className={'w-full'}
           disabled={fileList.length >= 1}
           fileList={fileList}
