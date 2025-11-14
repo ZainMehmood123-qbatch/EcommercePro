@@ -156,10 +156,10 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
               toast.error('Only CSV files are allowed!');
               message.error('Only CSV files are allowed!');
 
-              return Upload.LIST_IGNORE; // File ko list mei add hi nahi karega
+              return Upload.LIST_IGNORE;
             }
 
-            return false; // File ko upload na kare, but list mei add kar de
+            return false;
           }}
           className={'w-full'}
           disabled={fileList.length >= 1}
