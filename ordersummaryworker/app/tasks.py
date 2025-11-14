@@ -117,7 +117,7 @@ def import_products_from_csv(file_path: str):
                     print(f"Variant already exists for {title} ({color}-{size})")
                     continue  
 
-                print(f"➡️ Adding variant for {title} ({color}-{size})")
+                print(f"Adding variant for {title} ({color}-{size})")
                 variant = ProductVariant(
                     id=str(uuid.uuid4()),
                     productId=product.id,
@@ -133,7 +133,7 @@ def import_products_from_csv(file_path: str):
                 if i % batch_size == 0:
                     db.add_all(variants_batch)
                     db.commit()
-                    print(f"✅ Imported {i} rows so far...")
+                    print(f"Imported {i} rows so far...")
                     variants_batch.clear()
 
             if variants_batch:

@@ -34,6 +34,7 @@ const Shoppingbag: React.FC = () => {
     if (stockErrors.length > 0) {
       setStockErrors([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
   useEffect(() => {
@@ -141,6 +142,7 @@ const Shoppingbag: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           // Strip frontend-only fields like availableStock before sending
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
           items: items.map(({ availableStock, ...rest }) => rest),
           total
         })
