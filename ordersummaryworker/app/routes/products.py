@@ -19,11 +19,9 @@ async def upload_csv(file: UploadFile = File(...)):
     temp_filename = f"{uuid.uuid4()}_{file.filename}"
     temp_filepath = os.path.join(UPLOAD_DIR, temp_filename)
 
-    # Save uploaded file to disk (streamed)
     with open(temp_filepath, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # Pass only file path to Celery, not full content
     import_products_from_csv.delay(temp_filepath)
 
-    return {"message": "✅ CSV upload started. Products will be added in background."}
+    return {"message": "CSV upload started. Products will be added in background."}
