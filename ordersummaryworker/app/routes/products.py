@@ -20,6 +20,7 @@ async def upload_csv(file: UploadFile = File(...)):
     temp_filepath = os.path.join(UPLOAD_DIR, temp_filename)
 
     with open(temp_filepath, "wb") as buffer:
+        print('1')
         shutil.copyfileobj(file.file, buffer)
 
     import_products_from_csv.delay(temp_filepath)

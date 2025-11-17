@@ -52,7 +52,7 @@ export const getProductsSchema = Joi.object({
   }),
   sort: Joi.string()
     .valid('newest', 'oldest', 'price_asc', 'price_desc')
-    .default('newest')
+    .default('oldest')
     .messages({
       'any.only': 'Sort must be one of: newest, oldest, price_asc, price_desc'
     })

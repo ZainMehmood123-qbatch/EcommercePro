@@ -29,7 +29,7 @@ const initialState: ProductsState = {
   page: 1,
   limit: 8,
   search: '',
-  sort: 'newest',
+  sort: 'oldest',
   loading: false,
   loadingMore: false,
   hasMore: true,
@@ -127,6 +127,24 @@ export const deleteProduct = createAsyncThunk<string, string, { rejectValue: str
       return id;
     } catch (err) {
       return rejectWithValue(err instanceof Error ? err.message : 'Something went wrong');
+    }
+  }
+);
+
+export const toggleProductStatus = createAsyncThunk(
+  'products/toggleStatus',
+  async (id: string, { rejectWithValue }) => {
+    try {
+      const res = await fetch(`/api/products/${id}/toggle-status`, {
+        method: 'PATCH'
+      });
+      const data = await res.json();
+
+      if (!res.ok) return rejectWithValue(data.message);
+
+      return data.data;
+    } catch (e) {
+      return rejectWithValue('Failed to update product status');
     }
   }
 );
@@ -242,6 +260,11 @@ const productsSlice = createSlice({
       state.error = action.payload ?? 'Unknown error';
       state.loading = false;
       state.loadingMore = false;
+    });
+    builder.addCase(toggleProductStatus.fulfilled, (state, { payload }) => {
+      const index = state.products.findIndex((p) => p.id === payload.id);
+
+      if (index !== -1) state.products[index].status = payload.status;
     });
 
     builder.addCase(createProduct.fulfilled, (state, action) => {

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') ?? '8', 10);
     const skip = (page - 1) * limit;
     const search = searchParams.get('search') ?? '';
-    const sort = searchParams.get('sort') ?? 'newest';
+    const sort = searchParams.get('sort') ?? 'oldest';
 
     let orderBy: Prisma.ProductOrderByWithRelationInput;
 
@@ -42,7 +42,6 @@ export async function GET(req: NextRequest) {
     }
 
     const baseWhere: Prisma.ProductWhereInput = {
-      status: ProductStatus.ACTIVE,
       ...(search
         ? {
             title: {
@@ -58,6 +57,7 @@ export async function GET(req: NextRequest) {
         ? baseWhere
         : {
             ...baseWhere,
+            status: ProductStatus.ACTIVE,
             variants: { some: { isDeleted: false } }
           };
 
@@ -87,6 +87,67 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// export async function POST(req: NextRequest) {
+//   try {
+//     const session = await getServerSession(authOptions);
+
+//     if (session?.user?.role !== Role.ADMIN) {
+//       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 403 });
+//     }
+
+//     const body: ProductType = await req.json();
+
+//     if (!body.title || !body.variants?.length) {
+//       return NextResponse.json(
+//         { success: false, message: 'Invalid product data' },
+//         { status: 400 }
+//       );
+//     }
+
+//     const newProduct = await prisma.product.create({
+//       data: {
+//         title: body.title,
+//         status: ProductStatus.ACTIVE,
+//         variants: {
+//           create: (body.variants ?? []).map((v: ProductVariant) => ({
+//             colorName: v.colorName,
+//             colorCode: v.colorCode,
+//             size: v.size,
+//             stock: v.stock,
+//             price: v.price,
+//             image: v.image
+//           }))
+//         }
+//       },
+//       include: { variants: true }
+//     });
+
+//     return NextResponse.json({ success: true, data: newProduct }, { status: 201 });
+//   } catch (error) {
+//     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+//       if (error.code === 'P2002') {
+//         return NextResponse.json(
+//           {
+//             success: false,
+//             message: 'Duplicate variant: same color and size already exist for this product.'
+//           },
+//           { status: 400 }
+//         );
+//       }
+
+//       return NextResponse.json(
+//         { success: false, message: 'Database error occurred' },
+//         { status: 500 }
+//       );
+//     }
+
+//     return NextResponse.json(
+//       { success: false, message: 'Failed to create product' },
+//       { status: 500 }
+//     );
+//   }
+// }
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -104,6 +165,48 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 1️⃣ First check if product already exists by title
+    const existingProduct = await prisma.product.findFirst({
+      where: { title: body.title },
+      include: { variants: true }
+    });
+
+    // 2️⃣ If product exists → add variants instead of creating new product
+    if (existingProduct) {
+      const newVariantsData = (body.variants ?? []).map((v: ProductVariant) => ({
+        colorName: v.colorName,
+        colorCode: v.colorCode,
+        size: v.size,
+        stock: v.stock,
+        price: v.price,
+        image: v.image,
+        productId: existingProduct.id
+      }));
+
+      try {
+        const addedVariants = await prisma.productVariant.createMany({
+          data: newVariantsData,
+          skipDuplicates: true // ❗ Prevent duplicate (unique constraint) variants
+        });
+
+        return NextResponse.json(
+          {
+            success: true,
+            message: 'Product already existed, variants added.',
+            addedVariants,
+            productId: existingProduct.id
+          },
+          { status: 200 }
+        );
+      } catch (error) {
+        return NextResponse.json(
+          { success: false, message: 'Some variants may already exist.' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // 3️⃣ If product does NOT exist → create new product (your original logic)
     const newProduct = await prisma.product.create({
       data: {
         title: body.title,
@@ -124,25 +227,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, data: newProduct }, { status: 201 });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Duplicate variant: same color and size already exist for this product.'
-          },
-          { status: 400 }
-        );
-      }
-
-      return NextResponse.json(
-        { success: false, message: 'Database error occurred' },
-        { status: 500 }
-      );
-    }
-
     return NextResponse.json(
-      { success: false, message: 'Failed to create product' },
+      { success: false, message: 'Failed to process request' },
       { status: 500 }
     );
   }

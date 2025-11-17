@@ -170,6 +170,14 @@ export async function POST(req: NextRequest) {
       return newOrder;
     });
 
+    // Tax rate create (optional, ya Dashboard me pehle create karke ID use kar sakte ho)
+    const taxRate = await stripe.taxRates.create({
+      display_name: 'Sales Tax',
+      percentage: 10,
+      inclusive: false // price ke upar add hoga
+    });
+
+    // Stripe line_items me tax add karo
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] = itemsWithValidatedData.map(
       (item) => ({
         price_data: {
@@ -177,7 +185,6 @@ export async function POST(req: NextRequest) {
           product_data: {
             name: `${item.productName} — ${item.colorName || ''} ${item.size || ''}`,
             description: `Qty: ${item.qty} • Price: $${item.price}`,
-
             metadata: {
               productId: item.productId,
               variantId: item.variantId,
@@ -187,7 +194,8 @@ export async function POST(req: NextRequest) {
           },
           unit_amount: Math.round(item.price * 100)
         },
-        quantity: item.qty
+        quantity: item.qty,
+        tax_rates: [taxRate.id]
       })
     );
 

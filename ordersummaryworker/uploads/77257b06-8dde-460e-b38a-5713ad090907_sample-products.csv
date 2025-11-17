@@ -1,0 +1,28 @@
+title,colorName,colorCode,size,stock,price,image
+Qbatch41,Black,#000000,S,100,10.5,/black.png
+Qbatch42,Red,#000000,S,100,10.5,/red.png
+Qbatch32,Black,#000000,S,100,10.5,/black.png
+Qbatch33,Red,#000000,S,100,10.5,/red.png
+Qbatch34,Yellow,#000000,S,100,10.5,/yellow.png
+Qbatch35,Black,#000000,S,100,10.5,/black.png
+Qbatch46,Red,#000000,S,100,10.5,/red.png
+Qbatch Cargo Pants67,Red,#000000,31,100,10.5,/red.png
+Qbatch Cargo Pants68,Black,#000000,34,100,10.5,/red.png
+aQbatch41,Black,#000000,S,100,10.5,/black.png
+sQbatch42,Red,#000000,S,100,10.5,/red.png
+aQbatch32,Black,#000000,S,100,10.5,/black.png
+aQbatch33,Red,#000000,S,100,10.5,/red.png
+aQbatch34,Yellow,#000000,S,100,10.5,/yellow.png
+aQbatch35,Black,#000000,S,100,10.5,/black.png
+aQbatch46,Red,#000000,S,100,10.5,/red.png
+aQbatch Cargo Pants67,Red,#000000,31,100,10.5,/red.png
+aQbatch Cargo Pants68,Black,#000000,34,100,10.5,/red.png
+bQbatch41,Black,#000000,S,100,10.5,/black.png
+bQbatch42,Red,#000000,S,100,10.5,/red.png
+bQbatch32,Black,#000000,S,100,10.5,/black.png
+bQbatch33,Red,#000000,S,100,10.5,/red.png
+bQbatch34,Yellow,#000000,S,100,10.5,/yellow.png
+bQbatch35,Black,#000000,S,100,10.5,/black.png
+bQbatch46,Red,#000000,S,100,10.5,/red.png
+bQbatch Cargo Pants67,Red,#000000,31,100,10.5,/red.png
+bQbatch Cargo Pants68,Black,#000000,34,100,10.5,/red.png

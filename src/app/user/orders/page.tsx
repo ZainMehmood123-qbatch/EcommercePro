@@ -4,9 +4,9 @@ import React, { useEffect, useState } from 'react';
 
 import Link from 'next/link';
 
-import { Table, Button, Skeleton } from 'antd';
+import { Table, Button, Skeleton, Tooltip } from 'antd';
 import moment from 'moment';
-import { ArrowLeftOutlined, ExportOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, ExportOutlined, ReloadOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 
 import toast from 'react-hot-toast';
@@ -69,6 +69,25 @@ const Orders: React.FC = () => {
   const handleCloseSidebar = () => {
     setSidebarOpen(false);
     setSelectedOrderId(null);
+  };
+
+  const handleRetryPayment = async (orderId: string) => {
+    try {
+      const res = await fetch('/api/checkout/retry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Failed to retry payment');
+
+      // Redirect user to Stripe checkout
+      window.location.href = data.url;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Something went wrong');
+    }
   };
 
   const columns = [
@@ -136,12 +155,26 @@ const Orders: React.FC = () => {
       title: 'Actions',
       dataIndex: 'actions',
       render: (_: FetchedOrder, record: FetchedOrder) => (
-        <Button
-          className={'order-titlenames hover:bg-blue-50 hover:text-blue-600 transition-all'}
-          icon={<ExportOutlined />}
-          type={'text'}
-          onClick={() => handleViewOrderDetails(record.id)}
-        />
+        <div className={'flex gap-2'}>
+          <Tooltip title={'View Order Details'}>
+            <Button
+              className={'order-titlenames hover:bg-blue-50 hover:text-blue-600 transition-all'}
+              icon={<ExportOutlined />}
+              type={'text'}
+              onClick={() => handleViewOrderDetails(record.id)}
+            />
+          </Tooltip>
+          {record.paymentStatus === 'PENDING' ? (
+            <Tooltip title={'Retry Payment'}>
+              <Button
+                className={'hover:bg-blue-50 hover:text-blue-600 transition-all'}
+                icon={<ReloadOutlined />}
+                type={'text'}
+                onClick={() => handleRetryPayment(record.id)}
+              />
+            </Tooltip>
+          ) : null}
+        </div>
       )
     }
   ];

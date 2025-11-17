@@ -2,14 +2,14 @@
 
 import { useEffect, useState, useCallback } from 'react';
 
-import { Table, Avatar, Button, message, Input, Skeleton, Tooltip } from 'antd';
+import { Table, Avatar, Button, message, Input, Skeleton, Tooltip, Switch } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import {
-  EditOutlined,
   DeleteOutlined,
   SortAscendingOutlined,
   SortDescendingOutlined,
-  CalendarOutlined
+  CalendarOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 
 import ProductModal from '@/components/admin-dashboard/modal';
@@ -26,7 +26,8 @@ import {
   resetProducts,
   setPage,
   setSearch,
-  setSort
+  setSort,
+  toggleProductStatus
 } from '@/store/slice/products-slice';
 
 const productSortItems: GenericDropdownItem[] = [
@@ -128,14 +129,30 @@ const ProductsPage = () => {
     {
       title: 'Actions',
       render: (record: ProductType) => (
-        <div className={'flex gap-2'}>
-          <Tooltip title={'Edit Product'}>
+        <div className={'flex gap-2 items-center'}>
+          {/* Toggle for Active / Inactive */}
+          <Tooltip title={record.status === 'ACTIVE' ? 'Set Inactive' : 'Set Active'}>
+            <Switch
+              checked={record.status === 'ACTIVE'}
+              onChange={() => {
+                dispatch(toggleProductStatus(record.id))
+                  .unwrap()
+                  .then(() => {
+                    message.success('Product status updated');
+                  })
+                  .catch((err) => message.error(err));
+              }}
+            />
+          </Tooltip>
+
+          <Tooltip title={'View and Edit Product'}>
             <Button
-              icon={<EditOutlined className={'!text-[#007BFF]'} />}
+              icon={<EyeOutlined className={'!text-[#007BFF]'} />}
               type={'text'}
               onClick={() => handleEdit(record)}
             />
           </Tooltip>
+
           <Tooltip title={'Delete Product'}>
             <Button
               icon={<DeleteOutlined className={'!text-[#DC3545]'} />}

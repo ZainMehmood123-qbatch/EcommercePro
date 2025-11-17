@@ -29,8 +29,7 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
 
   const handleDownloadSample = () => {
     const csvHeader = requiredColumns.join(',') + '\n';
-    const csvSample =
-      'Polo Shirt,Red,#FF0000,M,45,24.99,/red.png\nCargo Pants,Black,#000000,34,28,54.99,/black.png\n';
+    const csvSample = '\nPolo Shirt,Red,#FF0000,M,45,24.99,/red.png';
     const blob = new Blob([csvHeader + csvSample], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -96,9 +95,10 @@ const AddMultipleProductsModal = ({ visible, onClose }: Props) => {
     toast.loading('Uploading CSV file...');
 
     try {
-      const response = await fetch('http://localhost:8000/products/upload-csv', {
+      const response = await fetch('/api/upload-csv', {
         method: 'POST',
-        body: formData
+        body: formData,
+        credentials: 'include'
       });
 
       toast.dismiss();

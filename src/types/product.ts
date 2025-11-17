@@ -26,6 +26,7 @@ export interface ProductVariant {
 
 // Complete product (with all its variants)
 export interface ProductType extends ProductBase {
+  status: string;
   variants: ProductVariant[];
   key?: React.Key;
   qty?: number;

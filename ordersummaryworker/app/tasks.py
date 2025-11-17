@@ -11,11 +11,12 @@ from sqlalchemy import func
 @celery.task(name="app.tasks.recalculate_summary")
 def recalculate_summary():
     """
-    Incremental summary recalculation — only processes orders created after the last summary update.
+    Incremental summary recalculation — optimized with a single query for all aggregates.
     """
     db = SessionLocal()
     try:
-        summary = db.query(OrderSummary).first()
+        # Fetch or create summary
+        summary = db.query(OrderSummary).with_for_update().first()  # lock row to prevent race conditions
 
         if not summary:
             summary = OrderSummary(
@@ -26,41 +27,31 @@ def recalculate_summary():
             )
             db.add(summary)
             db.commit()
+            db.refresh(summary)  # refresh to get the row with ID etc.
 
         last_time = summary.lastUpdated or datetime(2000, 1, 1)
 
-        new_orders_count = (
-            db.query(func.count(Order.id))
-            .filter(Order.createdAt > last_time)
-            .scalar()
-            or 0
+        # Single query to get counts, units, and total amount
+        result = (
+        db.query(
+            func.count(func.distinct(Order.id)).label("new_orders"),  # count unique orders
+            func.coalesce(func.sum(OrderItem.qty), 0).label("new_units"),
+            func.coalesce(func.sum(OrderItem.qty * OrderItem.price), 0).label("new_amount")
         )
+        .join(OrderItem, OrderItem.orderId == Order.id)
+        .filter(Order.createdAt > last_time)
+        .one()
+    )
 
-        new_units = (
-            db.query(func.sum(OrderItem.qty))
-            .join(Order, OrderItem.orderId == Order.id)
-            .filter(Order.createdAt > last_time)
-            .scalar()
-            or 0
-        )
-
-        new_amount = (
-            db.query(func.sum(OrderItem.qty * OrderItem.price))
-            .join(Order, OrderItem.orderId == Order.id)
-            .filter(Order.createdAt > last_time)
-            .scalar()
-            or 0
-        )
-
-        summary.totalOrders += new_orders_count
-        summary.totalUnits += new_units
-        summary.totalAmount += new_amount
+        summary.totalOrders += result.new_orders
+        summary.totalUnits += result.new_units
+        summary.totalAmount += result.new_amount
         summary.lastUpdated = datetime.utcnow()
 
         db.commit()
         print(
             f"Summary incrementally updated! "
-            f"+{new_orders_count} orders, +{new_units} units, +{new_amount} amount"
+            f"+{result.new_orders} orders, +{result.new_units} units, +{result.new_amount} amount"
         )
 
     except Exception as e:

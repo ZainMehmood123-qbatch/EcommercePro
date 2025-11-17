@@ -1,0 +1,10 @@
+title,colorName,colorCode,size,stock,price,image
+Qbatch2,Black,#000000,S,100,10.5,/black.png
+Qbatch2,Red,#000000,S,100,10.5,/red.png
+Qbatch1,Black,#000000,S,100,10.5,/black.png
+Qbatch1,Red,#000000,S,100,10.5,/red.png
+Qbatch1,Yellow,#000000,S,100,10.5,/yellow.png
+Qbatch1,Black,#000000,S,100,10.5,/black.png
+Qbatch2,Red,#000000,S,100,10.5,/red.png
+Cargo Pants,Red,#000000,31,100,10.5,/red.png
+Cargo Pants,Black,#000000,34,100,10.5,/red.png

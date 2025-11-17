@@ -1,38 +1,30 @@
 import { NextResponse } from 'next/server';
 
 import bcrypt from 'bcryptjs';
-import Joi from 'joi';
 import jwt from 'jsonwebtoken';
 
 import { prisma } from '@/lib/prisma';
-
-const schema = Joi.object({
-  token: Joi.string().required(),
-  password: Joi.string()
-    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/)
-    .required()
-    .messages({
-      'string.pattern.base':
-        'Password must be at least 6 characters, include uppercase, lowercase, number, and special character',
-      'any.required': 'Password is required'
-    })
-});
+import { resetpasswordSchema } from '@/validations/authSchema';
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { error, value } = schema.validate(body);
+    // Validate request body
+    const { error, value } = resetpasswordSchema.validate(body, { abortEarly: false });
 
     if (error) {
-      const { details } = error || {};
-      const [{ message }] = details || [];
+      const errors = error.details.map((detail) => ({
+        field: detail.path[0],
+        message: detail.message
+      }));
 
-      return NextResponse.json({ error: message }, { status: 400 });
+      return NextResponse.json({ errors }, { status: 400 });
     }
 
     const { token, password } = value;
 
+    // Verify JWT token
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       email: string;
       version: number;
@@ -42,6 +34,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
     }
 
+    // Find user
     const user = await prisma.user.findUnique({
       where: { email: decoded.email },
       select: { id: true, resetTokenVersion: true }
@@ -51,12 +44,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'User not found' }, { status: 400 });
     }
 
+    // Check if token version matches
     if (decoded.version !== user.resetTokenVersion) {
       return NextResponse.json({ error: 'This token has already been used' }, { status: 400 });
     }
 
+    // Hash new password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Update password & increment reset token version
     await prisma.user.update({
       where: { email: decoded.email },
       data: {
@@ -66,8 +62,9 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, message: 'Password updated successfully' });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars
-  } catch (error) {
-    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 400 });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Invalid or expired token';
+
+    return NextResponse.json({ error: message }, { status: 400 });
   }
 }

@@ -1,53 +1,25 @@
 import { NextResponse } from 'next/server';
 
 import bcrypt from 'bcryptjs';
-import Joi from 'joi';
 
 import { prisma } from '@/lib/prisma';
 import { getOrCreateStripeCustomer } from '@/lib/stripeCustomer';
 import { SignupFormValues } from '@/types/auth';
-
-const signupSchema = Joi.object<SignupFormValues>({
-  fullname: Joi.string()
-    .trim()
-    .pattern(/^(?=.*[A-Za-z].*[A-Za-z].*[A-Za-z])[A-Za-z ]+$/)
-    .min(3)
-    .required()
-    .messages({
-      'string.empty': 'Please enter your full name',
-      'string.min': 'Full name must be at least 3 characters long',
-      'string.pattern.base': 'Full name must contain at least 3 letters and only letters and spaces'
-    }),
-  email: Joi.string()
-    .pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)
-    .required()
-    .messages({
-      'string.empty': 'Please enter your email',
-      'string.pattern.base': 'Enter a valid email format (e.g. user@example.com)'
-    }),
-  mobile: Joi.string()
-    .pattern(/^[0-9]{10,15}$/)
-    .optional()
-    .messages({
-      'string.pattern.base': 'Enter a valid mobile number (10-15 digits)'
-    }),
-  password: Joi.string()
-    .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/)
-    .required()
-    .messages({
-      'string.empty': 'Please enter your password',
-      'string.pattern.base':
-        'Password must be at least 6 characters, include uppercase, lowercase, number, and special character'
-    })
-});
+import { signupSchema } from '@/validations/authSchema';
 
 export async function POST(req: Request) {
   try {
     const body: SignupFormValues = await req.json();
-    const { error, value } = signupSchema.validate(body);
+
+    const { error, value } = signupSchema.validate(body, { abortEarly: false });
 
     if (error) {
-      return NextResponse.json({ error: error.details[0].message }, { status: 400 });
+      const errors = error.details.map((detail) => ({
+        field: detail.path[0],
+        message: detail.message
+      }));
+
+      return NextResponse.json({ errors }, { status: 400 });
     }
 
     const { fullname, email, mobile, password } = value;
@@ -55,7 +27,7 @@ export async function POST(req: Request) {
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      return NextResponse.json({ error: 'User already exists with this email' }, { status: 400 });
+      return NextResponse.json({ error: 'User already exists with this email' }, { status: 409 });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);

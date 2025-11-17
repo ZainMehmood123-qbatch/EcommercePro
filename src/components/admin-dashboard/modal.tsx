@@ -16,13 +16,7 @@ import {
   Switch,
   message
 } from 'antd';
-import {
-  PlusOutlined,
-  UploadOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  CloseOutlined
-} from '@ant-design/icons';
+import { PlusOutlined, UploadOutlined, EditOutlined, CloseOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
 
@@ -56,6 +50,7 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [originalValues, setOriginalValues] = useState<Record<number, ProductVariant>>({});
   const [hasUnsavedVariant, setHasUnsavedVariant] = useState(false);
+  const [isTitleChanged, setIsTitleChanged] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -63,6 +58,7 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
         title: product.title,
         variants: product.variants
       });
+      setEditingIndex(0);
     } else {
       form.resetFields();
       form.setFieldsValue({
@@ -77,8 +73,8 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
           }
         ]
       });
+      setEditingIndex(0);
     }
-    setEditingIndex(null);
     setOriginalValues({});
   }, [product, form]);
 
@@ -219,12 +215,29 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
     setEditingIndex(null);
   };
 
+  const handleFieldsChange = (
+    changedFields: Array<{ name: (string | number)[]; value: unknown }>,
+    allFields: Array<{ name: (string | number)[]; value: unknown }>
+  ) => {
+    const titleField = allFields.find((f) => f.name[0] === 'title');
+
+    if (!titleField) return;
+    const currentTitle = typeof titleField.value === 'string' ? titleField.value : '';
+
+    setIsTitleChanged(currentTitle !== (product?.title || ''));
+  };
+
   return (
     <Modal
       footer={
         <Space style={{ justifyContent: 'flex-end', width: '100%' }}>
           <Button onClick={onClose}>Cancel</Button>
-          <Button loading={loading} type={'primary'} onClick={handleSave}>
+          <Button
+            disabled={!isTitleChanged}
+            loading={loading}
+            type={'primary'}
+            onClick={handleSave}
+          >
             {product ? 'Update' : 'Save'}
           </Button>
         </Space>
@@ -235,7 +248,17 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
       width={600}
       onCancel={onClose}
     >
-      <Form form={form} layout={'vertical'}>
+      <Form form={form} layout={'vertical'} onFieldsChange={handleFieldsChange}>
+        {loading ? (
+          <div className={'absolute inset-0 bg-white/60 z-[9999] flex items-center justify-center'}>
+            <div
+              className={
+                'h-10 w-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin'
+              }
+            />
+          </div>
+        ) : null}
+
         <Form.Item
           label={'Product Name'}
           name={'title'}
@@ -353,22 +376,37 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
                           onChange={async (checked) => {
                             const variant = form.getFieldValue(['variants', name]);
 
-                            if (!variant.id) return;
+                            if (!variant?.id) return;
+
+                            const newValue = !checked; // isDeleted toggle
+                            const previousValue = variant.isDeleted;
+
+                            // ⭐ Optimistic UI (no data loss)
+                            form.setFieldValue(['variants', name, 'isDeleted'], newValue);
 
                             try {
                               setLoading(true);
+
                               const updated = await dispatch(
                                 updateVariant({
                                   ...variant,
-                                  isDeleted: !checked
+                                  isDeleted: newValue
                                 })
                               ).unwrap();
-                              const values = form.getFieldsValue();
 
-                              values.variants[name] = updated;
-                              form.setFieldsValue(values);
+                              // ⭐ Sync backend actual response
+                              // But ONLY update this variant—not whole form
+                              Object.keys(updated).forEach((field) => {
+                                form.setFieldValue(
+                                  ['variants', name, field],
+                                  updated[field as keyof ProductVariant]
+                                );
+                              });
+
                               toast.success(`Variant ${checked ? 'activated' : 'deactivated'}`);
                             } catch {
+                              // ❌ rollback only 1 field (no data loss)
+                              form.setFieldValue(['variants', name, 'isDeleted'], previousValue);
                               message.error('Failed to update status');
                             } finally {
                               setLoading(false);
@@ -407,28 +445,6 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
                             Edit
                           </Button>
                         )}
-                        {fields.length > 1 ? (
-                          <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            size={'small'}
-                            onClick={() => {
-                              const variant = form.getFieldValue(['variants', name]);
-
-                              if (variant?.id) {
-                                setVariantToDelete(name);
-                                setDeleteModalOpen(true);
-                              } else {
-                                const values = form.getFieldsValue();
-
-                                values.variants.splice(name, 1);
-                                form.setFieldsValue(values);
-
-                                setHasUnsavedVariant(false);
-                              }
-                            }}
-                          />
-                        ) : null}
                       </Space>
                     </div>
                   </div>
@@ -453,7 +469,8 @@ const ProductModal: React.FC<Props> = ({ visible, onClose, product }) => {
                     size: '',
                     price: 0,
                     stock: 0,
-                    image: ''
+                    image: '',
+                    isDeleted: true
                   } as ProductVariant);
                   setHasUnsavedVariant(true);
                 }}
